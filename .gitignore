@@ -1,0 +1,29 @@
+# Environment variables (contains secrets)
+.env
+
+.history/
+
+# User-specific Claude Code config (contains local paths and tokens)
+.claude.json
+
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# tui logs
+*.log
+
+# data files
+*.csv
+*.txt
