@@ -1,6 +1,6 @@
 # Environment variables (contains secrets)
 .env
-
+.history/*
 .history/
 
 # User-specific Claude Code config (contains local paths and tokens)
