@@ -1,0 +1,83 @@
+# local history
+.history/
+.history/**
+**/__pycache__/** 
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyc
+*$py.class
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+*.pyc
+MANIFEST
+
+# Unit test / coverage reports
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.cache/
+
+# Type checkers / linters
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project-specific
+src/ntag424_sdm_provisioner.egg-info/
+
+# Tag key databases (NEVER commit these!)
+tag_keys.csv
+tag_keys_backup.csv
+
+src/ntag424_sdm_provisioner/commands/__pycache__/change_file_settings.cpython-314.pyc
+
+
+# logs files and test artifacts
+*.txt
+**/test_output*
+tag_keys_backups/*
+*.log
+*.csv

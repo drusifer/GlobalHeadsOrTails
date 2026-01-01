@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(Get-ChildItem -Path \"c:\\Users\\drusi\\VSCode_Projects\\GlobalHeadsAndTails\" -Filter \"*.log\" -Recurse)",
+      "Bash(Sort-Object LastWriteTime -Descending)",
+      "Bash(Select-Object -First 5 FullName)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(dir:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(\".venv/Scripts/ruff.exe\" check src/ --show-settings)",
+      "Bash(.venvScriptspython.exe -m poe lint-full)",
+      "Bash(\".venv/Scripts/python.exe\" -m poe lint-full)",
+      "Bash(source .venv/Scripts/activate)",
+      "Bash(poe lint-full:*)",
+      "Bash(poe fix:*)",
+      "Bash(ruff check:*)",
+      "Bash(mypy:*)",
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(done)",
+      "Bash(.venv/Scripts/python.exe -m ruff check src/ --fix)",
+      "Bash(.venv/Scripts/python.exe -m ruff check:*)",
+      "Bash(../.venv/Scripts/python.exe -m poe:*)",
+      "Bash(powershell -Command \"& .\\\\.venv\\\\Scripts\\\\python.exe -m poe lint-quick\")",
+      "Bash(powershell -Command \"& .\\\\.venv\\\\Scripts\\\\python.exe -m ruff check src/ntag424_sdm_provisioner/csv_key_manager.py\")",
+      "Bash(powershell -Command \"& .\\\\.venv\\\\Scripts\\\\python.exe -m ruff check src/ --output-format=concise\")",
+      "Bash(powershell -Command \"& .\\\\.venv\\\\Scripts\\\\python.exe -m ruff check src/ --fix --output-format=concise\")",
+      "Bash(powershell -Command \"& .\\\\.venv\\\\Scripts\\\\python.exe -m ruff check src/ntag424_sdm_provisioner/constants.py:59 --output-format=text\")",
+      "Bash(powershell -Command \"& .\\\\.venv\\\\Scripts\\\\python.exe -m ruff check src/ntag424_sdm_provisioner/constants.py --output-format=full 2>&1 | Select-String -Pattern ''ERA001''\")",
+      "Bash(pdftotext:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enableAllProjectMcpServers": false,
+  "enabledMcpjsonServers": [
+    "filesystem",
+    "github",
+    "memory",
+    "sequential-thinking",
+    "sqlite"
+  ]
+}

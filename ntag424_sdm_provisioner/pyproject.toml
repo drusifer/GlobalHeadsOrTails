@@ -1,0 +1,396 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ntag424-sdm-provisioner"
+version = "0.1.0"
+description = "A Python tool to provision NTAG424 DNA tags for SDM."
+authors = [{ name = "Drew's Coding Partner" }]
+requires-python = ">=3.8"
+dependencies = [
+    "pyscard>=2.0.0",
+    "pycryptodome>=3.12.0",
+    "textual>=0.40.0",
+    "packaging>=23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.23.0",
+    # Linting & Formatting
+    "ruff>=0.1.0",           # Fast linter & formatter
+    "pylint>=3.0.0",          # Code quality & duplication
+    "mypy>=1.7.0",            # Type checking
+    # Code Quality Analysis
+    "radon>=6.0.0",           # Cyclomatic complexity & maintainability index
+    "vulture>=2.10",          # Dead code detection
+    "bandit>=1.7.0",          # Security vulnerability scanner
+    # Comprehensive Analysis (optional)
+    "prospector>=1.10.0",     # Meta-linter (combines multiple tools)
+    # Task Runner
+    "poethepoet>=0.24.0",     # Task automation
+]
+docs = [
+    "PyMuPDF>=1.20.0",
+    "Pillow>=9.0.0",
+]
+extraction = [
+    "PyMuPDF>=1.20.0",
+    "Pillow>=9.0.0",
+    "pytesseract>=0.3.10",
+]
+reference = [
+    "pylibsdm>=0.2.0",  # Reference implementation for SDM
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# Command-line scripts
+[project.scripts]
+provision-tag = "ntag424_sdm_provisioner.main:cli"
+test-simulator = "tests.test_seritag_ev2_compliance:main"
+extract-pdf = "pdf_to_markdown_extractor:main"
+provision-tui = "ntag424_sdm_provisioner.tui.tui_main:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings"
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests", 
+    "simulator: Tests using Seritag simulator",
+    "hardware: Tests requiring real hardware"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]
+
+# Unittest configuration
+[tool.unittest]
+discover = {start-directory = "tests", pattern = "test_*.py"}
+
+# ============================================================================
+# Ruff - Fast Python Linter & Formatter
+# ============================================================================
+[tool.ruff]
+src = ["src"]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    # === Core (existing) ===
+    "E",      # pycodestyle errors
+    "F",      # pyflakes (unused imports, undefined names)
+    "I",      # isort (import sorting)
+    "UP",     # pyupgrade (modern Python syntax)
+    "TID",    # flake8-tidy-imports (import hygiene)
+    "B",      # flake8-bugbear (common bugs)
+    "SIM",    # flake8-simplify (code simplification)
+
+    # === Security (CRITICAL for crypto) ===
+    "S",      # bandit - security vulnerability detection
+
+    # === Type Safety ===
+    "ANN",    # flake8-annotations - enforce type hints
+    "TCH",    # flake8-type-checking - typing imports optimization
+
+    # === Code Quality ===
+    "C90",    # mccabe - cyclomatic complexity
+    "PTH",    # flake8-use-pathlib - prefer pathlib over os.path
+    "RUF",    # ruff-specific rules
+    "PLE",    # pylint errors
+    "PLW",    # pylint warnings
+    "PLR",    # pylint refactor (code smells, magic numbers, etc.)
+    "PLC",    # pylint convention (naming, formatting)
+
+    # === Code Smells & Bad Practices ===
+    "N",      # pep8-naming (naming conventions)
+    "ERA",    # eradicate (commented-out code detection)
+    "FBT",    # flake8-boolean-trap (avoid boolean positional args)
+    "PIE",    # flake8-pie (misc lints)
+    "ARG",    # flake8-unused-arguments
+    "PERF",   # perflint (performance anti-patterns)
+    "FURB",   # refurb (modernize code patterns)
+    "LOG",    # flake8-logging (logging best practices)
+    "G",      # flake8-logging-format
+
+    # === Documentation ===
+    "D",      # pydocstyle (docstring conventions)
+
+    # === Testing ===
+    "PT",     # flake8-pytest-style - pytest best practices
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+
+    # === Type annotations - gradual typing approach ===
+    "ANN401", # allow Any type when needed
+    "ANN001", # missing type annotation for function argument
+    "ANN002", # missing type annotation for *args
+    "ANN003", # missing type annotation for **kwargs
+    "ANN201", # missing return type for public function
+    "ANN202", # missing return type for private function
+    "ANN204", # missing return type for special method
+
+    # === Security - acceptable patterns ===
+    "S101",   # assert usage is fine in tests
+    "S311",   # pseudo-random ok (we use secrets module for real crypto)
+    "S110",   # try-except-pass ok for UI cleanup and fallback logic
+    "S112",   # try-except-continue ok for resilient iteration
+
+    # === Complexity - acceptable for crypto/protocol code ===
+    "C901",   # complex functions
+    "PLR0911", # too many return statements
+    "PLR0912", # too many branches
+    "PLR0913", # too many arguments
+    "PLR0915", # too many statements
+    "PLR2004", # magic value comparison
+
+    # === Style preferences ===
+    "RUF005", # collection literal concatenation
+    "SIM102", # collapsible if - sometimes clearer to keep separate
+    "SIM103", # needless bool - explicit returns can be clearer
+    "SIM117", # multiple with statements - sometimes clearer separate
+    "FBT001", # boolean positional arg
+    "FBT002", # boolean default arg
+    "FBT003", # boolean positional value in call
+
+    # === Documentation - gradual approach ===
+    "D100",   # missing docstring in public module
+    "D101",   # missing docstring in public class
+    "D102",   # missing docstring in public method
+    "D103",   # missing docstring in public function
+    "D104",   # missing docstring in public package
+    "D105",   # missing docstring in magic method
+    "D107",   # missing docstring in __init__
+    "D203",   # blank line before class (conflicts with D211)
+    "D213",   # multi-line summary second line (conflicts with D212)
+
+    # === Import optimization (not correctness) ===
+    "TC001",  # typing-only first-party import
+    "TC002",  # typing-only third-party import
+    "TC003",  # typing-only standard-library import
+    "TC004",  # runtime import in type-checking block
+
+    # === Design patterns ===
+    "B024",   # ABC without abstract methods - used for documentation
+    "N802",   # function name should be lowercase
+    "N806",   # variable should be lowercase
+
+    # === Performance - false positives ===
+    "PERF203", # try-except in loop
+
+    # === Logging ===
+    "G004",   # logging statement uses f-string
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ntag424_sdm_provisioner"]
+force-single-line = false
+lines-after-imports = 2
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"  # Forces absolute imports everywhere
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10  # Flag functions with cyclomatic complexity > 10
+
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true
+suppress-none-returning = true
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false  # @pytest.fixture not @pytest.fixture()
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"  # Use Google-style docstrings
+
+[tool.ruff.lint.pylint]
+max-args = 8  # Maximum arguments per function
+max-branches = 15  # Maximum branches in function
+max-returns = 8  # Maximum return statements
+max-statements = 60  # Maximum statements in function
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+# ============================================================================
+# Pylint - Code Duplication Detection
+# ============================================================================
+# Run with: pylint --disable=all --enable=R0801 src/
+# Or full check: pylint src/
+[tool.pylint.main]
+source-roots = ["src"]
+ignore-patterns = ["test_.*\\.py"]
+
+[tool.pylint.similarities]
+# Minimum lines number of a similarity (default: 4)
+min-similarity-lines = 6
+# Ignore comments when computing similarities
+ignore-comments = true
+# Ignore docstrings when computing similarities
+ignore-docstrings = true
+# Ignore imports when computing similarities
+ignore-imports = true
+# Ignore function signatures when computing similarities
+ignore-signatures = true
+
+[tool.pylint.messages_control]
+# Only enable duplication check by default (R0801 = duplicate-code)
+# For full pylint, remove this and run: pylint src/
+disable = ["all"]
+enable = ["R0801"]
+
+# ============================================================================
+# Mypy - Static Type Checking
+# ============================================================================
+# Run with: mypy src/
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Gradual typing - set to true when ready
+ignore_missing_imports = true  # Third-party packages without stubs
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+check_untyped_defs = true
+no_implicit_optional = true
+
+# Per-module options
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+# ============================================================================
+# Radon - Cyclomatic Complexity & Maintainability Index
+# ============================================================================
+# Run with:
+#   radon cc src/ -a -nc           # Cyclomatic complexity (show all)
+#   radon cc src/ -a -nc -s        # CC sorted by score
+#   radon mi src/ -s               # Maintainability index
+#   radon hal src/                 # Halstead metrics
+#   radon raw src/ -s              # Raw metrics
+#
+# Complexity Grades:
+#   A: 1-5   (simple, low risk)
+#   B: 6-10  (moderate, low risk)
+#   C: 11-20 (complex, moderate risk)
+#   D: 21-30 (very complex, high risk)
+#   E: 31-40 (extremely complex, very high risk)
+#   F: 41+   (unmaintainable, very high risk)
+#
+# Configuration: See CLI args above (no pyproject.toml config for radon)
+
+# ============================================================================
+# Vulture - Dead Code Detection
+# ============================================================================
+# Run with: vulture src/ --min-confidence 80
+#
+# Finds unused:
+#   - functions, classes, variables
+#   - imports
+#   - properties
+#   - attributes
+#
+# Configuration: See .vulture_whitelist for false positives
+# Confidence levels: 0-100 (higher = more certain it's unused)
+
+# ============================================================================
+# Bandit - Security Vulnerability Scanner
+# ============================================================================
+# Run with: bandit -r src/ -f json -o bandit-report.json
+# Or: bandit -r src/ -ll  # Show only medium/high severity
+[tool.bandit]
+exclude_dirs = ["/tests", "/.venv", "/build"]
+skips = [
+    "B101",  # assert_used - fine in tests
+    "B311",  # random - we use secrets module for crypto
+]
+
+# ============================================================================
+# LINTER MODES - Two-Tier Quality Gates
+# ============================================================================
+#
+# TIER 1: QUICK CHECKS (TDD - Neo's workflow)
+# -------------------------------------------
+# Fast checks (<5 sec) for rapid development feedback.
+# Run: make lint-quick  OR  ./scripts/lint-quick.ps1
+#
+# Commands:
+#   ruff check src/ --fix          # Auto-fix what we can
+#   ruff format src/               # Format code
+#   pytest tests/ -x -q --tb=no    # Fast fail, minimal output
+#
+# TIER 2: FULL QA GATE (Sprint Acceptance - Trin's workflow)
+# ----------------------------------------------------------
+# Thorough checks for shipping. Includes slower/flaky tests.
+# Run: make lint-full  OR  ./scripts/lint-full.ps1
+#
+# Commands:
+#   ruff check src/                        # Full lint (no auto-fix)
+#   ruff format --check src/               # Check formatting without modifying
+#   mypy src/                              # Type checking
+#   pylint src/                            # Code duplication & quality
+#   radon cc src/ -a -nc --total-average   # Cyclomatic complexity
+#   radon mi src/ -s                       # Maintainability index
+#   vulture src/ --min-confidence 80       # Dead code detection
+#   bandit -r src/ -ll                     # Security vulnerabilities
+#   pytest tests/ -v --tb=short --cov      # Full test suite with coverage
+#
+# ============================================================================
+
+# ============================================================================
+# Poe the Poet - Task Runner
+# ============================================================================
+# Run with: poe <task-name>
+# Examples:
+#   poe lint-quick    # Fast checks
+#   poe lint-full     # Full QA gate
+#   poe fix           # Auto-fix formatting
+#   poe test          # Run tests
+#   poe clean         # Clean cache files
+[tool.poe.tasks]
+lint-quick = [
+    {cmd = "ruff check src/ --fix"},
+    {cmd = "ruff format src/"},
+    {cmd = "pytest tests/ -q"}
+]
+
+lint-full = [
+    {cmd = "ruff check src/"},
+    {cmd = "mypy src/"},
+    {cmd = "pylint src/"},
+    {cmd = "radon cc src/ -a -nc"},
+    {cmd = "vulture src/ --min-confidence 80"},
+    {cmd = "bandit -r src/ -ll"},
+    {cmd = "pytest tests/ --cov"}
+]
+
+fix = [
+    {cmd = "ruff check src/ --fix"},
+    {cmd = "ruff format src/"}
+]
+
+test = {cmd = "pytest tests/ --cov"}
+
+clean = {shell = "python -c \"import shutil, pathlib; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('__pycache__')]; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('.pytest_cache')]; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('.mypy_cache')]; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('.ruff_cache')]; [p.unlink() for p in pathlib.Path('.').rglob('*.pyc')]; shutil.rmtree('.coverage', ignore_errors=True); shutil.rmtree('htmlcov', ignore_errors=True)\""}
