@@ -12,25 +12,26 @@
     .results-table { border-collapse: collapse; width: 100%; max-width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; background: white; }
     .results-table td { padding: 18px; font-size: 2.0rem; font-weight: bold; border-bottom: 1px solid #e0e0e0; }
     .fancy-text { padding: 10px; font-family: monospace; font-size: 4rem; font-weight: bold; color: #ff6347; text-shadow: 2px 2px 0 #fff; }
-    .error { color: #ffeb3b; font-weight: bold; font-size: 1.2em; }
+    .error-text { color: #ffcccc; font-weight: bold; margin-top: 10px; font-size: 1.2em; }
   </style>
 </head>
 <body>
   <div class="header">
     <h1>Heads vs. Tails</h1>
+    
     {% if outcome %}
       <div><span class="fancy-text">{{ outcome }}</span></div>
     {% endif %}
-    
+
     {% if error %}
-      <div class="error">{{ error }}</div>
+      <div class="error-text">Error: {{ error }}</div>
     {% endif %}
 
     {% if params %}
     <table class="params-table">
       <tbody>
         {% for key, value in params.items() %}
-        <tr {% if key == 'Lookup Key' %}style="background-color: rgba(255, 255, 0, 0.1);"{% endif %}>
+        <tr>
           <td>{{ key }}</td>
           <td>{{ value }}</td>
         </tr>
@@ -42,9 +43,14 @@
 
   <table class="results-table">
     <tbody>
-      <!-- Placeholder for totals, or pass them in if we want to track global stats -->
-      <!-- In this version, we focus on the current game outcome -->
-      <tr><td>Outcome:</td><td>{{ outcome if outcome else "Pending" }}</td></tr>
+      <tr>
+        <td>Heads:</td>
+        <td>{{ totals.heads if totals else 0 }}</td>
+      </tr>
+      <tr>
+        <td>Tails:</td>
+        <td>{{ totals.tails if totals else 0 }}</td>
+      </tr>
     </tbody>
   </table>
 </body>

@@ -13,6 +13,7 @@ from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from pathlib import Path
 from typing import ClassVar
+from enum import Enum
 
 from ntag424_sdm_provisioner.crypto.crypto_primitives import calculate_cmac_full, truncate_cmac
 from ntag424_sdm_provisioner.key_manager_interface import KEY_DEFAULT_FACTORY
@@ -20,6 +21,10 @@ from ntag424_sdm_provisioner.uid_utils import uid_to_asset_tag
 
 
 log = logging.getLogger(__name__)
+class Outcome(Enum):
+    HEADS = "Heads"
+    TAILS = "Tails"
+    INVALID = "Invalid"
 
 @dataclass
 class TagKeys:
@@ -33,6 +38,7 @@ class TagKeys:
     status: str  # 'factory', 'provisioned', 'locked', 'error'
     notes: str = ""
     last_used_date: str = ""  # ISO format timestamp of last use
+    outcome: Outcome = Outcome.INVALID
 
     def get_picc_master_key_bytes(self) -> bytes:
         """Get PICC master key as bytes."""
@@ -63,6 +69,7 @@ class TagKeys:
             f"  App Read Key: {self.app_read_key}\n"
             f"  SDM MAC Key: {self.sdm_mac_key}\n"
             f"  Last Used: {self.last_used_date}\n"
+            f"  Outcome: {self.outcome.value}\n"
             f")"
         )
 
@@ -204,6 +211,17 @@ class CsvKeyManager:
         else:
             # For other key numbers, return factory key (we don't use them yet)
             return KEY_DEFAULT_FACTORY
+    
+    def get_outcome(self, uid: str) -> Outcome:
+        """Get the outcome for a specific tag UID.
+
+        Args:
+            uid: Tag UID as bytes       
+        Returns:
+            Outcome enum value
+        """
+        tag_keys = self.get_tag_keys(uid)
+        return tag_keys.outcome
 
     def get_tag_keys(self, uid: str) -> TagKeys:
         """Get all keys for a specific tag UID.
