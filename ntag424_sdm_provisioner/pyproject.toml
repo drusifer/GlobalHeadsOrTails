@@ -8,15 +8,18 @@ version = "0.1.0"
 description = "A Python tool to provision NTAG424 DNA tags for SDM."
 authors = [{ name = "Drew's Coding Partner" }]
 requires-python = ">=3.8"
-dependencies = [
-    "pyscard>=2.0.0",
-    "pycryptodome>=3.12.0",
-    "textual>=0.40.0",
-    "packaging>=23.0",
-    "flask>=3.0.0",
-]
+dependencies = []
 
 [project.optional-dependencies]
+provisioner = [
+    "pyscard>=2.0.0",
+    "textual>=0.40.0",
+    "packaging>=23.0",
+]
+server = [
+    "flask>=3.0.0",
+    "pycryptodome>=3.12.0",
+]
 dev = [
     # Testing
     "pytest>=7.0.0",
