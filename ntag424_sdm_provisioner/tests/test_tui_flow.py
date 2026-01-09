@@ -1,7 +1,10 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from ntag424_sdm_provisioner.services.provisioning_service import ProvisioningService
 from ntag424_sdm_provisioner.tui.state_manager import StateManager
+
 
 @pytest.fixture
 def mock_card_connection():
@@ -37,8 +40,7 @@ def test_state_manager_transitions():
 
 @patch("ntag424_sdm_provisioner.services.provisioning_service.ProvisioningService.provision")
 def test_provision_flow_logic(mock_provision, provisioning_service):
-    """
-    Test the provisioning flow logic directly.
+    """Test the provisioning flow logic directly.
     Verifies that calling provision() triggers the service correctly.
     """
     # Call the method under test

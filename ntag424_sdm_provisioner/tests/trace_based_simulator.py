@@ -1,5 +1,4 @@
-"""
-Trace-Based HAL Simulator
+"""Trace-Based HAL Simulator
 
 Uses captured APDU traces from SUCCESSFUL_PROVISION_FLOW.md to provide
 exact replay simulation for testing provisioning workflows.
@@ -8,39 +7,36 @@ This simulator returns the EXACT responses captured from a real tag,
 ensuring tests match production behavior precisely.
 """
 
-from typing import List, Tuple, Optional, Dict
 import logging
 
 from ntag424_sdm_provisioner.commands.base import AuthApduCommand
+
 
 log = logging.getLogger(__name__)
 
 
 class TraceBasedSimulator:
-    """
-    Simulates NTAG424 DNA tag using captured APDU traces.
+    """Simulates NTAG424 DNA tag using captured APDU traces.
     
     Returns exact responses from successful provisioning run, allowing
     deterministic testing without hardware.
     """
     
     def __init__(self, uid: bytes = bytes.fromhex("04516B4A2F7080")):
-        """
-        Initialize simulator with captured UID.
+        """Initialize simulator with captured UID.
 
         Args:
             uid: 7-byte UID (default from successful run: 0451664A2F7080)
         """
         self.uid = uid
-        self.call_count: Dict[str, int] = {}
+        self.call_count: dict[str, int] = {}
         self.auth_phase = 0  # Track authentication phases
 
         # Build APDU trace database from successful run
         self.traces = self._build_trace_database()
     
-    def send_apdu(self, apdu: List[int], use_escape: bool = False) -> Tuple[List[int], int, int]:
-        """
-        Send APDU and return trace-based response.
+    def send_apdu(self, apdu: list[int], use_escape: bool = False) -> tuple[list[int], int, int]:
+        """Send APDU and return trace-based response.
         
         Args:
             apdu: APDU command bytes
@@ -70,7 +66,7 @@ class TraceBasedSimulator:
         log.error(f"No trace for: {sig} (call #{call_num})")
         return [], 0x6D, 0x00  # INS not supported
     
-    def _apdu_signature(self, apdu: List[int]) -> str:
+    def _apdu_signature(self, apdu: list[int]) -> str:
         """Create signature for APDU matching."""
         if len(apdu) < 2:
             return "INVALID"
@@ -99,9 +95,8 @@ class TraceBasedSimulator:
         
         return f"{cla:02X}_{ins:02X}"
     
-    def _build_trace_database(self) -> Dict[str, Tuple[List[int], int, int]]:
-        """
-        Build database of APDU traces from SUCCESSFUL_PROVISION_FLOW.md.
+    def _build_trace_database(self) -> dict[str, tuple[list[int], int, int]]:
+        """Build database of APDU traces from SUCCESSFUL_PROVISION_FLOW.md.
         
         Returns dict mapping: signature_callnum -> (data, sw1, sw2)
         """
@@ -270,8 +265,7 @@ class TraceBasedSimulator:
 
 
 class MockCardManager:
-    """
-    Mock CardManager that creates trace-based simulator connections.
+    """Mock CardManager that creates trace-based simulator connections.
     
     Usage:
         with MockCardManager() as card:
@@ -280,9 +274,8 @@ class MockCardManager:
     """
     
     def __init__(self, uid: bytes = bytes.fromhex("04516B4A2F7080")):
-        """
-        Args:
-            uid: UID to simulate (default from successful run: 0451664A2F7080)
+        """Args:
+        uid: UID to simulate (default from successful run: 0451664A2F7080)
         """
         self.uid = uid
         self.connection = None
@@ -299,22 +292,19 @@ class MockCardManager:
 
 
 class MockNTag424CardConnection:
-    """
-    Mock connection that matches NTag424CardConnection interface.
+    """Mock connection that matches NTag424CardConnection interface.
     
     Uses TraceBasedSimulator for responses.
     """
     
     def __init__(self, uid: bytes):
-        """
-        Args:
-            uid: UID to simulate
+        """Args:
+        uid: UID to simulate
         """
         self.simulator = TraceBasedSimulator(uid)
     
-    def send_apdu(self, apdu: List[int], use_escape: bool = False) -> Tuple[List[int], int, int]:
-        """
-        Send APDU (matches real HAL interface).
+    def send_apdu(self, apdu: list[int], use_escape: bool = False) -> tuple[list[int], int, int]:
+        """Send APDU (matches real HAL interface).
         
         Args:
             apdu: APDU command bytes
@@ -326,8 +316,7 @@ class MockNTag424CardConnection:
         return self.simulator.send_apdu(apdu, use_escape)
     
     def send(self, command):
-        """
-        Execute command using new pattern.
+        """Execute command using new pattern.
         
         Args:
             command: ApduCommand to execute
@@ -364,9 +353,8 @@ class MockNTag424CardConnection:
         data: bytes,
         chunk_size: int = 52,
         use_escape: bool = False
-    ) -> Tuple[int, int]:
-        """
-        Chunked write (matches real HAL interface).
+    ) -> tuple[int, int]:
+        """Chunked write (matches real HAL interface).
         
         Returns final (sw1, sw2) after all chunks.
         """
@@ -397,8 +385,7 @@ class MockNTag424CardConnection:
 
 
 def get_mock_connection(uid: bytes = bytes.fromhex("04516B4A2F7080")):
-    """
-    Get a mock connection for testing.
+    """Get a mock connection for testing.
 
     Args:
         uid: UID to simulate (default: 0451664A2F7080)
@@ -421,15 +408,15 @@ if __name__ == "__main__":
     print("=" * 70)
     
     with MockCardManager() as card:
-        from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccApplication
         from ntag424_sdm_provisioner.commands.get_chip_version import GetChipVersion
+        from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccApplication
         
         # Test basic commands
         card.send(SelectPiccApplication())
         print("[OK] Selected PICC Application")
         
         version = card.send(GetChipVersion())
-        print(f"[OK] UID: {version.uid.hex().upper()}")
+        print(f"[OK] UID: {version.uid.uid}")  # version.uid is already a UID object
         
     print("\n[SUCCESS] Trace-based simulator working!")
 

@@ -1,10 +1,14 @@
-"""
-Pytest configuration and shared fixtures.
+"""Pytest configuration and shared fixtures.
 
 This file is auto-discovered by pytest and runs before any tests.
 """
-import os
-import sys
+
+from pathlib import Path
+
+import pytest
+
+from ntag424_sdm_provisioner.sequence_logger import SequenceLogger, create_sequence_logger
+
 
 # ============================================================================
 # GUARD: Prevent package shadowing
@@ -12,8 +16,8 @@ import sys
 # If someone creates tests/ntag424_sdm_provisioner/, it shadows the real package
 # and breaks ALL imports. This guard fails fast with a clear error message.
 
-_bad_path = os.path.join(os.path.dirname(__file__), "ntag424_sdm_provisioner")
-if os.path.isdir(_bad_path):
+_bad_path = Path(__file__).parent / "ntag424_sdm_provisioner"
+if _bad_path.is_dir():
     raise ImportError(
         f"\n{'='*70}\n"
         f"FATAL: {_bad_path} exists!\n"
@@ -31,9 +35,6 @@ if os.path.isdir(_bad_path):
 # ============================================================================
 # Shared Fixtures
 # ============================================================================
-import pytest
-
-from ntag424_sdm_provisioner.sequence_logger import SequenceLogger, create_sequence_logger
 
 
 @pytest.fixture
@@ -52,4 +53,3 @@ def test_uid() -> bytes:
 def sequence_logger() -> SequenceLogger:
     """Shared sequence logger for tests."""
     return create_sequence_logger("Test")
-

@@ -1,10 +1,8 @@
-"""
-Tests for WriteDataAuth command.
+"""Tests for WriteDataAuth command.
 
 TDD: Write tests first, then implement.
 """
 
-import pytest
 
 
 class TestWriteDataAuthCommand:
@@ -63,8 +61,8 @@ class TestWriteDataAuthCommand:
 
     def test_implements_auth_apdu_command(self):
         """WriteDataAuth must implement AuthApduCommand interface."""
-        from ntag424_sdm_provisioner.commands.write_data_auth import WriteDataAuth
         from ntag424_sdm_provisioner.commands.base import AuthApduCommand
+        from ntag424_sdm_provisioner.commands.write_data_auth import WriteDataAuth
 
         cmd = WriteDataAuth(file_no=0x02, offset=0, data=b"test")
         assert isinstance(cmd, AuthApduCommand)

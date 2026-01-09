@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Test automatic chunking in HAL layer.
+"""Test automatic chunking in HAL layer.
 
 Verifies:
 - Small writes (<= 52 bytes) sent as single APDU
@@ -10,6 +9,7 @@ Verifies:
 
 import sys
 from pathlib import Path
+
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))

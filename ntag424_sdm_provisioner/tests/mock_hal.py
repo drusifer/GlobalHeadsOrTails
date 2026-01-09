@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, List, Tuple, Optional
 
 from Crypto.Cipher import AES
-from Crypto.Hash import CMAC
+
 
 # --- Constants copied from real modules for self-contained testing ---
 KEY_DEFAULT_FACTORY = b"\x00" * 16
@@ -37,8 +36,7 @@ def _left_rotate(data: bytes, shift_bytes: int) -> bytes:
 
 
 class MockCardConnection:
-    """
-    A mock implementation of a pyscard connection that simulates an NTAG424 chip.
+    """A mock implementation of a pyscard connection that simulates an NTAG424 chip.
     This class acts as a state machine, tracking authentication status and keys.
     
     Updated to match real tag behavior from comprehensive_ndef_test.py results:
@@ -49,7 +47,7 @@ class MockCardConnection:
     """
 
     def __init__(self):
-        self.keys: Dict[int, bytes] = {
+        self.keys: dict[int, bytes] = {
             0: KEY_DEFAULT_FACTORY,
             1: KEY_DEFAULT_FACTORY,
             2: KEY_DEFAULT_FACTORY,
@@ -61,16 +59,15 @@ class MockCardConnection:
         self._rndB_prime: bytes | None = None  # The RndB' sent to the client
         
         # File system state
-        self.selected_file: Optional[int] = None  # None or file ID
+        self.selected_file: int | None = None  # None or file ID
         self.ndef_file_data: bytes = b'\x00' * 256  # 256 bytes for NDEF file
         self.picc_app_selected: bool = False  # Whether PICC app is selected
         
         # GetChipVersion state
         self.get_version_part: int = 0  # 0=not started, 1=part1, 2=part2, 3=part3
 
-    def send_apdu(self, apdu: List[int], use_escape: bool = False) -> Tuple[List[int], int, int]:
-        """
-        Send APDU to mock card (matches real HAL interface).
+    def send_apdu(self, apdu: list[int], use_escape: bool = False) -> tuple[list[int], int, int]:
+        """Send APDU to mock card (matches real HAL interface).
         
         Args:
             apdu: APDU command bytes
@@ -95,11 +92,11 @@ class MockCardConnection:
         # Unknown CLA
         return [], 0x6E, 0x00
     
-    def transmit(self, apdu: List[int]) -> Tuple[List[int], int, int]:
+    def transmit(self, apdu: list[int]) -> tuple[list[int], int, int]:
         """Legacy pyscard interface - delegates to send_apdu."""
         return self.send_apdu(apdu, use_escape=False)
     
-    def _handle_iso_command(self, apdu: List[int]) -> Tuple[List[int], int, int]:
+    def _handle_iso_command(self, apdu: list[int]) -> tuple[list[int], int, int]:
         """Handle ISO 7816-4 commands (CLA=00)."""
         if len(apdu) < 4:
             return [], 0x6D, 0x00
@@ -125,7 +122,7 @@ class MockCardConnection:
         # Unknown ISO command
         return [], 0x6D, 0x00
     
-    def _handle_iso_select_file(self, p1: int, p2: int, data: bytes) -> Tuple[List[int], int, int]:
+    def _handle_iso_select_file(self, p1: int, p2: int, data: bytes) -> tuple[list[int], int, int]:
         """Handle ISOSelectFile (00 A4)."""
         # P1=0x02: Select EF under current DF, by file identifier
         # P1=0x04: Select by DF name
@@ -154,7 +151,7 @@ class MockCardConnection:
         # File not found
         return [], *SW_FILE_NOT_FOUND
     
-    def _handle_iso_read_binary(self, p1: int, p2: int, apdu: List[int]) -> Tuple[List[int], int, int]:
+    def _handle_iso_read_binary(self, p1: int, p2: int, apdu: list[int]) -> tuple[list[int], int, int]:
         """Handle ISOReadBinary (00 B0)."""
         # Check if file is selected
         if self.selected_file != 0xE104:
@@ -186,7 +183,7 @@ class MockCardConnection:
         read_data = self.ndef_file_data[offset:offset+read_length]
         return list(read_data), *STATUS_SUCCESS
     
-    def _handle_iso_update_binary(self, p1: int, p2: int, data: bytes) -> Tuple[List[int], int, int]:
+    def _handle_iso_update_binary(self, p1: int, p2: int, data: bytes) -> tuple[list[int], int, int]:
         """Handle ISOUpdateBinary (00 D6)."""
         # Check if file is selected
         if self.selected_file != 0xE104:
@@ -212,7 +209,7 @@ class MockCardConnection:
         
         return [], *STATUS_SUCCESS
     
-    def _handle_proprietary_command(self, apdu: List[int]) -> Tuple[List[int], int, int]:
+    def _handle_proprietary_command(self, apdu: list[int]) -> tuple[list[int], int, int]:
         """Handle proprietary NTAG424 commands (CLA=90)."""
         if len(apdu) < 4:
             return [], 0x6D, 0x00
@@ -285,7 +282,7 @@ class MockCardConnection:
         # Default error for unknown commands
         return [], 0x6E, 0x00
     
-    def _handle_get_chip_version(self) -> Tuple[List[int], int, int]:
+    def _handle_get_chip_version(self) -> tuple[list[int], int, int]:
         """Handle GetChipVersion (90 60) and GetAdditionalFrame (90 AF) continuation."""
         if self.get_version_part == 0:
             # Part 1: Hardware info (7 bytes)
@@ -328,7 +325,7 @@ class MockCardConnection:
             # Invalid state
             return [], 0x6A, 0x80
 
-    def getATR(self) -> List[int]:
+    def getATR(self) -> list[int]:
         """Returns a mock ATR for an NTAG424."""
         return [
             0x3B, 0x88, 0x80, 0x01, 0x4E, 0x58, 0x50, 0x2D,
@@ -337,8 +334,7 @@ class MockCardConnection:
 
 
 class MockCardManager:
-    """
-    A mock context manager that yields a MockCardConnection.
+    """A mock context manager that yields a MockCardConnection.
     """
     def __enter__(self) -> MockCardConnection:
         self.connection = MockCardConnection()
@@ -347,6 +343,6 @@ class MockCardManager:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-def list_readers() -> List[str]:
+def list_readers() -> list[str]:
     """Returns a mock reader list."""
     return ["MockNFCReader 0"]

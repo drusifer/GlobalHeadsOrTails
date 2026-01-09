@@ -9,6 +9,7 @@ from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
 from ntag424_sdm_provisioner.tools.base import TagState, ToolResult
 from ntag424_sdm_provisioner.tools.tool_helpers import read_ndef_file
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 class DiagnosticsTool:
@@ -38,7 +39,7 @@ class DiagnosticsTool:
         try:
             version_info = card.send(GetChipVersion())
             diagnostics["chip"] = {
-                "uid": version_info.uid.hex().upper(),
+                "uid": version_info.uid.uid,  # version_info.uid is already a UID object
                 "hw_version": f"{version_info.hw_major_version}.{version_info.hw_minor_version}",
                 "sw_version": f"{version_info.sw_major_version}.{version_info.sw_minor_version}",
                 "hw_storage": version_info.hw_storage_size,

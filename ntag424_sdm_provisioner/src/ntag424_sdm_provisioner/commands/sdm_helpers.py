@@ -1,3 +1,5 @@
+# Re-export build_ndef_uri_record for backward compatibility
+from ntag424_sdm_provisioner.commands.sun_commands import build_ndef_uri_record
 from ntag424_sdm_provisioner.constants import (
     FileOption,
     FileSettingsResponse,
@@ -7,15 +9,13 @@ from ntag424_sdm_provisioner.constants import (
     SDMUrlTemplate,
 )
 
-# Re-export build_ndef_uri_record for backward compatibility
-from ntag424_sdm_provisioner.commands.sun_commands import build_ndef_uri_record
 
 __all__ = [
-    "calculate_sdm_offsets",
+    "build_ndef_uri_record",
     "build_sdm_settings_payload",
+    "calculate_sdm_offsets",
     "parse_file_settings",
     "parse_key_version",
-    "build_ndef_uri_record",
 ]
 
 

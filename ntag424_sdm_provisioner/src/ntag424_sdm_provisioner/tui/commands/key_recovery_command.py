@@ -14,6 +14,7 @@ from ntag424_sdm_provisioner.services.key_recovery_service import (
     KeyRecoveryService,
 )
 from ntag424_sdm_provisioner.tui.nfc_command import NFCCommand
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
@@ -69,7 +70,7 @@ class KeyRecoveryCommand(NFCCommand):
 
             # Get tag UID
             version_info = connection.send(GetChipVersion())
-            uid = version_info.uid.hex().upper()
+            uid = version_info.uid.uid  # version_info.uid is already a UID object
             results["uid"] = uid
             log.info(f"Tag UID: {uid}")
 
@@ -138,8 +139,9 @@ class KeyRecoveryCommand(NFCCommand):
 
         log.info("Generating new random keys...")
 
-        # Generate new random keys
-        with self.key_manager.provision_tag(uid_bytes) as new_keys:
+        # Generate new random keys - wrap bytes UID in UID class for key manager
+        uid = UID(uid_bytes)
+        with self.key_manager.provision_tag(uid) as new_keys:
             # Keep status and notes
             new_keys.status = "keys_configured"
             new_keys.notes = f"Keys synced via recovery at {self._clock.now()}"

@@ -70,7 +70,7 @@ class ReprovisionTool:
         # Save new keys
 
         new_tag_keys = TagKeys(
-            uid=tag_state.uid.hex().upper(),
+            uid=tag_state.uid,
             picc_master_key=new_keys[0].hex(),
             app_read_key=new_keys[1].hex(),
             sdm_mac_key=new_keys[3].hex(),
@@ -78,7 +78,7 @@ class ReprovisionTool:
             status="reprovisioned",
             notes="Keys changed",
         )
-        key_mgr.save_tag_keys(tag_state.uid, new_tag_keys)
+        key_mgr.save_tag_keys(new_tag_keys)
 
         return ToolResult(
             success=True,

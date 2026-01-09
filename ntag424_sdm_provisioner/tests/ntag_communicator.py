@@ -1,14 +1,13 @@
 # filename: ntag_communicator.py
 
-from smartcard.System import readers
-from smartcard.util import toBytes, toHexString
+from smartcard.util import toHexString
 
 from ntag424_sdm_provisioner.commands.base import ApduError
 from ntag424_sdm_provisioner.commands.chip_check import ChipCheck
-from ntag424_sdm_provisioner.commands.get_reader_settings import GetReaderSettings, SetBuzzer
 from ntag424_sdm_provisioner.commands.mfc_list import MFC_ListSectors
 from ntag424_sdm_provisioner.hal import CardManager
 from ntag424_sdm_provisioner.sequence_logger import create_sequence_logger
+
 
 # --- NTAG424 DNA APDU Commands ---
 # CLA, INS, P1, P2, Le (for GetVersion, Le=00 means get max response)
@@ -21,8 +20,7 @@ def try_mfc(cardReader):
 
 
 def identify_ntag424():
-    """
-    Connects to the first available reader, selects the card,
+    """Connects to the first available reader, selects the card,
     sends the GET_VERSION command, and checks the response.
     """
     seq = create_sequence_logger("IdentifyNtag424")

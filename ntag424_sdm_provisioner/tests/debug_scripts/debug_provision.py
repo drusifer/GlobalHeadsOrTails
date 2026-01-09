@@ -1,14 +1,16 @@
 import logging
-import sys
 import os
+import sys
+
 
 # Add src to path
 sys.path.insert(0, os.path.abspath("src"))
 
-from ntag424_sdm_provisioner.services.provisioning_service import ProvisioningService
-from ntag424_sdm_provisioner.seritag_simulator import SeritagSimulator, SeritagCardConnection
-from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
 from ntag424_sdm_provisioner.constants import GAME_COIN_BASE_URL
+from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
+from ntag424_sdm_provisioner.seritag_simulator import SeritagCardConnection, SeritagSimulator
+from ntag424_sdm_provisioner.services.provisioning_service import ProvisioningService
+
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)

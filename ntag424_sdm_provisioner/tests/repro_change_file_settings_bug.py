@@ -1,11 +1,16 @@
 
-import pytest
-from ntag424_sdm_provisioner.constants import SDMConfiguration, CommMode, AccessRights, FileOption, SDMOffsets
 from ntag424_sdm_provisioner.commands.change_file_settings import ChangeFileSettingsAuth
+from ntag424_sdm_provisioner.constants import (
+    AccessRights,
+    CommMode,
+    FileOption,
+    SDMConfiguration,
+    SDMOffsets,
+)
+
 
 def test_change_file_settings_auth_structure():
-    """
-    Verify the structure of ChangeFileSettingsAuth command.
+    """Verify the structure of ChangeFileSettingsAuth command.
     Per LESSONS.md (Root Cause #3), FileNo should be INSIDE the encrypted payload,
     not in the unencrypted header.
     """

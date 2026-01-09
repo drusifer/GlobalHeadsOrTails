@@ -15,6 +15,7 @@ from ntag424_sdm_provisioner.services.format_service import FormatService
 from ntag424_sdm_provisioner.tui.logging_handler import TextualLogHandler
 from ntag424_sdm_provisioner.tui.widgets import TagStatusWidget
 from ntag424_sdm_provisioner.tui.worker_manager import WorkerManager
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
@@ -218,12 +219,14 @@ class FormatPICCScreen(Screen):
             from ntag424_sdm_provisioner.card_factory import CardConnectionFactory
             from ntag424_sdm_provisioner.commands.get_chip_version import GetChipVersion
             from ntag424_sdm_provisioner.commands.get_key_version import GetKeyVersion
-            from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccApplication
+            from ntag424_sdm_provisioner.commands.select_picc_application import (
+                SelectPiccApplication,
+            )
 
             with CardConnectionFactory.create(SequenceLogger()) as conn:
                 conn.send(SelectPiccApplication())
                 version_info = conn.send(GetChipVersion())
-                uid = version_info.uid.hex().upper()
+                uid = version_info.uid.uid  # version_info.uid is already a UID object
                 self.current_uid = uid
 
                 # Read key versions

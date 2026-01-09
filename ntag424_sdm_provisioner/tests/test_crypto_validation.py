@@ -1,17 +1,17 @@
-"""
-Crypto Validation Tests
+"""Crypto Validation Tests
 
 Compares production implementation against DNA_Calc reference implementation
 to ensure both produce identical results.
 """
 
-import pytest
-from ntag424_sdm_provisioner.commands.change_key import ChangeKey
-from ntag424_sdm_provisioner.commands.base import AuthenticatedConnection
-from ntag424_sdm_provisioner.crypto.auth_session import Ntag424AuthSession
-from ntag424_sdm_provisioner.constants import AuthSessionKeys
-from dna_calc_reference import CRC32, DNA_Calc
 from unittest.mock import Mock
+
+import pytest
+
+from ntag424_sdm_provisioner.commands.base import AuthenticatedConnection
+from ntag424_sdm_provisioner.commands.change_key import ChangeKey
+from ntag424_sdm_provisioner.constants import AuthSessionKeys
+from tests.dna_calc_reference import CRC32, DNA_Calc
 
 
 class TestCryptoValidation:
@@ -65,8 +65,7 @@ class TestCryptoValidation:
             f"CRC32 mismatch: custom={crc_custom:08X}, zlib={crc_zlib:08X}"
     
     def test_change_key_key0_reference_vs_production(self, test_keys, mock_auth_conn):
-        """
-        Compare ChangeKey (production) vs DNA_Calc (reference) for Key 0.
+        """Compare ChangeKey (production) vs DNA_Calc (reference) for Key 0.
         
         Both should produce identical encrypted APDU.
         """
@@ -109,8 +108,7 @@ class TestCryptoValidation:
         print(f"[OK] Key 0 - Reference output:   {reference_apdu.hex().upper()[:32]}...")
     
     def test_change_key_key1_reference_vs_production(self, test_keys, mock_auth_conn):
-        """
-        Compare ChangeKey (production) vs DNA_Calc (reference) for Key 1.
+        """Compare ChangeKey (production) vs DNA_Calc (reference) for Key 1.
         
         Key 1+ requires XOR with old key and CRC32 calculation.
         """
@@ -166,8 +164,7 @@ class TestCryptoValidation:
         print(f"[OK] Key 1 - Reference output:   {reference_apdu.hex().upper()[:32]}...")
     
     def test_iv_calculation_consistency(self, test_keys):
-        """
-        Verify IV calculation produces expected format.
+        """Verify IV calculation produces expected format.
         
         IV format: A5 5A || TI || CmdCtr || 00 00 00 00 00 00 00 00
         Then encrypt with session enc key using zero IV.
@@ -190,13 +187,12 @@ class TestCryptoValidation:
         print(f"\n[OK] IV (encrypted): {iv.hex().upper()}")
     
     def test_cmac_truncation_even_bytes(self, test_keys):
-        """
-        Verify CMAC truncation uses even-numbered bytes (1,3,5,7,9,11,13,15).
+        """Verify CMAC truncation uses even-numbered bytes (1,3,5,7,9,11,13,15).
         
         This is a critical requirement from NXP spec.
         """
-        from Crypto.Hash import CMAC
         from Crypto.Cipher import AES
+        from Crypto.Hash import CMAC
         
         # Test data
         test_data = b"Test CMAC truncation"
@@ -222,8 +218,7 @@ class TestCryptoValidation:
         print(f"[OK] Indices used: {expected_indices}")
     
     def test_key_data_padding_format(self):
-        """
-        Verify key data padding follows 0x80 + zeros pattern.
+        """Verify key data padding follows 0x80 + zeros pattern.
         
         This is the NIST SP 800-38B CMAC padding standard.
         """
@@ -251,8 +246,7 @@ class TestCryptoValidation:
 
 
 class TestCryptoReferenceComparison:
-    """
-    High-level comparison between production and reference.
+    """High-level comparison between production and reference.
     
     These tests ensure our refactored code produces the same cryptographic
     outputs as the proven Arduino-based reference implementation.
@@ -286,8 +280,7 @@ class TestCryptoReferenceComparison:
         }
     
     def test_full_apdu_comparison_key0(self, matching_sessions):
-        """
-        Compare complete APDU output for Key 0 change.
+        """Compare complete APDU output for Key 0 change.
         
         This is the ultimate validation - both implementations should
         produce byte-identical APDUs.
@@ -317,9 +310,9 @@ class TestCryptoReferenceComparison:
         # Reference returns encrypted data + MAC (40 bytes total)
         assert len(reference_apdu) == 40
         
-        print(f"\n[OK] Key 0 Production key data (32 bytes):")
+        print("\n[OK] Key 0 Production key data (32 bytes):")
         print(f"   {production_key_data.hex().upper()}")
-        print(f"\n[OK] Key 0 Reference output (40 bytes):")
+        print("\n[OK] Key 0 Reference output (40 bytes):")
         print(f"   {reference_apdu.hex().upper()}")
         
         # Reference returns encrypted data + MAC, not full APDU
@@ -327,8 +320,7 @@ class TestCryptoReferenceComparison:
         assert len(reference_apdu) == 40
     
     def test_full_apdu_comparison_key1(self, matching_sessions):
-        """
-        Compare complete APDU output for Key 1 change.
+        """Compare complete APDU output for Key 1 change.
         
         Key 1+ includes XOR with old key and CRC32 calculation.
         """
@@ -362,9 +354,9 @@ class TestCryptoReferenceComparison:
         assert len(production_key_data) == 32
         assert len(reference_apdu) == 40
         
-        print(f"\n[OK] Key 1 Production key data (32 bytes):")
+        print("\n[OK] Key 1 Production key data (32 bytes):")
         print(f"   {production_key_data.hex().upper()}")
-        print(f"\n[OK] Key 1 Reference output (40 bytes):")
+        print("\n[OK] Key 1 Reference output (40 bytes):")
         print(f"   {reference_apdu.hex().upper()}")
 
 
@@ -372,14 +364,13 @@ class TestCryptoCorrectness:
     """Verify crypto operations meet NXP specifications."""
     
     def test_cmac_even_byte_truncation(self):
-        """
-        CRITICAL: Verify CMAC uses even-numbered bytes per NXP spec.
+        """CRITICAL: Verify CMAC uses even-numbered bytes per NXP spec.
         
         Per NT4H2421Gx datasheet:
         "The MAC used in NT4H2421Gx is truncated by using only the 8 even-numbered bytes"
         """
-        from Crypto.Hash import CMAC
         from Crypto.Cipher import AES
+        from Crypto.Hash import CMAC
         
         # Test CMAC
         key = bytes([0x00] * 16)
@@ -406,14 +397,13 @@ class TestCryptoCorrectness:
         assert mac_truncated[6] == mac_full[13]
         assert mac_truncated[7] == mac_full[15]
         
-        print(f"\n[OK] CMAC Truncation Test:")
+        print("\n[OK] CMAC Truncation Test:")
         print(f"   Full MAC (16):      {mac_full.hex().upper()}")
         print(f"   Truncated (8):      {mac_truncated.hex().upper()}")
-        print(f"   Indices: [1,3,5,7,9,11,13,15]")
+        print("   Indices: [1,3,5,7,9,11,13,15]")
     
     def test_iv_format_specification(self):
-        """
-        Verify IV follows NXP specification.
+        """Verify IV follows NXP specification.
         
         IV plaintext: A5 5A || TI || CmdCtr || 00 00 00 00 00 00 00 00
         IV actual: E(KSesAuthENC, zero_iv, IV_plaintext)
@@ -442,12 +432,11 @@ class TestCryptoCorrectness:
         
         print(f"\n[OK] IV Plaintext: {plaintext_iv.hex().upper()}")
         print(f"[OK] IV Actual:    {actual_iv.hex().upper()}")
-        print(f"[OK] Format: A5 5A || TI(4) || CmdCtr(2) || Zeros(8)")
+        print("[OK] Format: A5 5A || TI(4) || CmdCtr(2) || Zeros(8)")
 
 
 def test_validation_summary():
-    """
-    Summary test showing that production and reference implementations
+    """Summary test showing that production and reference implementations
     are structurally compatible.
     """
     print("\n" + "="*70)

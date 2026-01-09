@@ -1,11 +1,13 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from ntag424_sdm_provisioner.constants import TagStatus
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, TagKeys
 from ntag424_sdm_provisioner.sequence_logger import create_sequence_logger
-from ntag424_sdm_provisioner.seritag_simulator import SeritagCardConnection, SeritagCardManager
+from ntag424_sdm_provisioner.seritag_simulator import SeritagCardManager
 from ntag424_sdm_provisioner.services.diagnostics_service import TagDiagnosticsService
+from natag424_sdm_provisioner.uid_utils import UID
 
 
 class TestTagDiagnosticsService:
@@ -29,7 +31,7 @@ class TestTagDiagnosticsService:
             info = service.get_chip_info()
             
             assert info is not None
-            assert info.uid == bytes.fromhex("043F684A2F7080")  # SeritagSimulator UID
+            assert info.uid == UID("043F684A2F7080")  # SeritagSimulator UID
             assert info.hw_storage_size == 416
             
     def test_get_tag_status_factory(self, simulator, mock_key_mgr):
@@ -70,11 +72,11 @@ class TestTagDiagnosticsService:
         with simulator as card:
             service = TagDiagnosticsService(card, mock_key_mgr)
             diag = service.get_full_diagnostics()
-            
+
             assert 'chip' in diag
-            assert 'key_versions' in diag
-            assert 'file_settings' in diag
+            assert 'key_versions_unauth' in diag  # Current API uses key_versions_unauth
+            assert 'file_settings_unauth' in diag  # Current API uses file_settings_unauth
             assert 'cc_file' in diag
             assert 'ndef' in diag
-            
+
             assert diag['chip']['uid'] == "043F684A2F7080"  # SeritagSimulator UID

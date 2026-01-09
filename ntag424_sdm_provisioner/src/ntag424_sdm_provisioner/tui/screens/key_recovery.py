@@ -1,24 +1,38 @@
 """Key Recovery Screen - Discover and recover lost keys from backup files."""
 
+import csv
 import logging
+import os
+import re
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from textual.app import ComposeResult
-from textual.containers import Container, Vertical
+from textual.containers import Container, Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Button, Footer, Header, Label, OptionList, Static
-from textual.widgets.option_list import Option
+from textual.widgets import Button, Footer, Header, Label, Static
 from textual.worker import Worker, WorkerState
 
-from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
+from ntag424_sdm_provisioner.card_factory import CardConnectionFactory
+from ntag424_sdm_provisioner.commands.get_chip_version import GetChipVersion
+from ntag424_sdm_provisioner.commands.get_key_version import GetKeyVersion
+from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccApplication
+from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, TagKeys
+from ntag424_sdm_provisioner.sequence_logger import SequenceLogger
 from ntag424_sdm_provisioner.services.key_recovery_service import (
     KeyRecoveryCandidate,
     KeyRecoveryService,
 )
 from ntag424_sdm_provisioner.tui.commands.key_recovery_command import KeyRecoveryCommand
-from ntag424_sdm_provisioner.tui.widgets import TagStatusWidget
+from ntag424_sdm_provisioner.tui.widgets import (
+    KeyCandidate,
+    KeyCandidatesTable,
+    PhoneTapWidget,
+    TagKeysDetailWidget,
+    TagStatusWidget,
+)
 from ntag424_sdm_provisioner.tui.worker_manager import WorkerManager
 
 
@@ -37,84 +51,128 @@ class UIDSummary:
 
 
 class KeyRecoveryScreen(Screen):
-    """Screen for discovering and recovering lost keys from backup files."""
+    """Screen for discovering and recovering lost keys from backup files.
+
+    Layout (48 rows fixed height, wide horizontal layout):
+    ┌─────────────────────────────────────────────────────────────────────────────────┐
+    │ KEY RECOVERY TOOL                                                    [Status]   │
+    ├──────────────────────────────────┬──────────────────────────────────────────────┤
+    │ TAG STATUS (TagStatusWidget)     │  KEY DETAILS (TagKeysDetailWidget)           │
+    │ UID: 04B7664A2F7080  HW:PRO      │  KEY 0 (PICC): 825f... DB:✓ HW:v01 TEST:✓   │
+    │ Keys: PICC✓ App✓ SDM✓            │  KEY 1 (App):  3865... DB:✓ HW:v01 TEST:✓   │
+    │                                  │  KEY 3 (SDM):  c099... DB:✓ HW:v01 TEST:-   │
+    ├──────────────────────────────────┴──────────────────────────────────────────────┤
+    │ BACKUP KEY CANDIDATES (KeyCandidatesTable)                                       │
+    │ Source         │ Status │ Date    │ PICC    │ App     │ SDM     │ Tested        │
+    │ backup1.csv    │ prov   │ 12/25   │ 825f... │ 3865... │ c099... │ ✓P ✓A -S      │
+    │ tag_keys.csv   │ prov   │ 11/08   │ 825f... │ 3865... │ c099... │ -P -A -S      │
+    ├─────────────────────────────────────────────────────────────────────────────────┤
+    │ PHONE TAP TEST (PhoneTapWidget) - only shown after SDM validation               │
+    │ URL: ...?uid=04B7664A2F7080&ctr=000005&cmac=A1B2C3D4                            │
+    │ ✓ VALID - CMAC matches                                                          │
+    ├─────────────────────────────────────────────────────────────────────────────────┤
+    │ [Scan Tag] [Test Selected] [Restore to DB] [Set to Factory] [Refresh] [Back]   │
+    └─────────────────────────────────────────────────────────────────────────────────┘
+    """
 
     CSS = """
     KeyRecoveryScreen {
-        align: center middle;
+        min-height: 48;
+        height: 100%;
+        width: 100%;
     }
 
-    #recovery_container {
-        width: 100;
-        height: auto;
-        max-height: 95%;
+    #main_container {
+        width: 100%;
+        height: 100%;
+        min-height: 48;
         border: solid $primary;
-        padding: 1 2;
+        padding: 0 1;
+    }
+
+    #title_row {
+        width: 100%;
+        height: 1;
+        layout: horizontal;
     }
 
     #recovery_title {
-        width: 100%;
-        content-align: center middle;
+        width: 1fr;
         text-style: bold;
         color: $accent;
-        padding: 1;
     }
 
-    #summary_section {
+    #status_label {
+        width: 2fr;
+        text-align: right;
+        color: $text;
+    }
+
+    #top_section {
         width: 100%;
-        height: auto;
-        max-height: 5;
+        height: 6;
+        layout: horizontal;
+    }
+
+    #left_panel {
+        width: 1fr;
+        height: 100%;
         border: solid $primary;
         padding: 0 1;
-        margin-bottom: 1;
+    }
+
+    #right_panel {
+        width: 2fr;
+        height: 100%;
+        border: solid $accent;
+        padding: 0 1;
     }
 
     #candidates_section {
         width: 100%;
-        height: auto;
-        max-height: 30;
-        border: solid $primary;
-        padding: 1;
-        margin-bottom: 1;
-    }
-
-    #candidate_list {
-        width: 100%;
-        height: 20;
-        border: solid $accent;
-    }
-
-    #db_status_box {
-        width: 100%;
-        height: auto;
-        padding: 1;
-        margin-bottom: 1;
-        border: double $accent;
-    }
-
-    #status_label {
-        width: 100%;
-        padding: 1;
-        min-height: 2;
+        height: 1fr;
+        min-height: 15;
         border: solid $primary;
     }
 
-    #button_container {
+    #candidates_label {
+        height: 1;
+        color: $accent;
+        text-style: bold;
+    }
+
+    #candidates_table {
+        height: 1fr;
+    }
+
+    #phone_tap {
         width: 100%;
-        height: auto;
+        height: 6;
+    }
+
+    #result_section {
+        width: 100%;
+        height: 3;
+        border: double $warning;
+        padding: 0 1;
+    }
+
+    #button_row {
+        width: 100%;
+        height: 5;
         layout: grid;
-        grid-size: 3;
+        grid-size: 6;
         grid-gutter: 1;
-        padding: 1;
+        padding: 1 0;
     }
 
-    Button {
-        margin: 0 1;
+    #button_row Button {
+        width: 100%;
+        height: 3;
     }
 
-    .highlight {
-        background: $accent 30%;
-        color: $text;
+    .hidden {
+        display: none;
     }
     """
 
@@ -123,7 +181,6 @@ class KeyRecoveryScreen(Screen):
         self.key_manager = key_manager
 
         # Use project root to ensure we scan all directories including .history
-        # Walk up to find the project root (contains both tag_keys.csv and ntag424_sdm_provisioner/)
         project_root = Path.cwd()
         while project_root.parent != project_root:
             if (project_root / "tag_keys.csv").exists() or (project_root / "ntag424_sdm_provisioner").exists():
@@ -135,34 +192,42 @@ class KeyRecoveryScreen(Screen):
         self.scanned_uid: str | None = None
         self.total_files_scanned = 0
         self.total_keys_found = 0
-        self.last_successful_test: dict[str, Any] | None = None  # Store successful test results
+        self.last_successful_test: dict[str, Any] | None = None
+        self._selected_candidate_idx: int | None = None
 
     def compose(self) -> ComposeResult:
         yield Header()
-        with Container(id="recovery_container"):
-            yield Label("🔍 Key Recovery Tool", id="recovery_title")
+        with Container(id="main_container"):
+            # Title row with status
+            with Horizontal(id="title_row"):
+                yield Label("KEY RECOVERY TOOL", id="recovery_title")
+                yield Label("Status: Initializing...", id="status_label")
 
-            # Tag status widget - shows hardware + database state
-            yield TagStatusWidget(id="tag_status")
+            # Top section: Tag status (left) + Keys detail (right)
+            with Horizontal(id="top_section"):
+                with Vertical(id="left_panel"):
+                    yield TagStatusWidget(id="tag_status")
+                    yield Static("Scanning backups...", id="summary_display")
+                with Vertical(id="right_panel"):
+                    yield TagKeysDetailWidget(id="keys_detail")
 
-            # Summary section - compact aggregate stats
-            with Vertical(id="summary_section"):
-                yield Static("Scanning backup files...", id="summary_display")
-
-            # Database status box
-            yield Static("", id="db_status_box")
-
-            # Candidates section - shows detailed candidates for selected UID
+            # Candidates table section
             with Vertical(id="candidates_section"):
-                yield Label("Key Candidates (select one to test):", id="candidates_label")
-                yield OptionList(id="candidate_list")
+                yield Label("BACKUP KEY CANDIDATES (select one to test)", id="candidates_label")
+                yield KeyCandidatesTable(id="candidates_table")
 
-            yield Label("Status: Initializing...", id="status_label")
+            # SDM/Phone tap validation section
+            yield PhoneTapWidget(id="phone_tap")
 
-            with Vertical(id="button_container"):
+            # Result display section
+            yield Static("", id="result_section")
+
+            # Button row
+            with Horizontal(id="button_row"):
                 yield Button("Scan Tag", id="btn_scan", variant="primary")
-                yield Button("Test Selected Key", id="btn_recover", variant="success", disabled=True)
-                yield Button("Restore Key to DB", id="btn_restore", variant="warning", disabled=True)
+                yield Button("Test Selected", id="btn_test", variant="success", disabled=True)
+                yield Button("Restore to DB", id="btn_restore", variant="warning", disabled=True)
+                yield Button("Set to Factory", id="btn_factory", variant="error", disabled=True)
                 yield Button("Refresh", id="btn_refresh", variant="default")
                 yield Button("Back", id="btn_back", variant="default")
         yield Footer()
@@ -173,100 +238,18 @@ class KeyRecoveryScreen(Screen):
         self.query_one("#btn_scan", Button).focus()
         self._discover_all_tags()
 
-    def _scan_log_file_for_uid(self, log_file: Path, target_uid: str) -> list[KeyRecoveryCandidate]:
-        """Scan a log file for key information for a specific UID.
-
-        Args:
-            log_file: Path to log file
-            target_uid: UID to search for (uppercase, no spaces)
-
-        Returns:
-            List of key candidates found in the log for this UID
-        """
-        import re
-
-        candidates = []
-
-        try:
-            with log_file.open("r", encoding="utf-8", errors="ignore") as f:
-                content = f.read()
-
-            # Find all UID mentions
-            uid_pattern = r'Tag UID:\s*([0-9A-Fa-f]{14})'
-            uid_matches = list(re.finditer(uid_pattern, content))
-
-            for uid_match in uid_matches:
-                found_uid = uid_match.group(1).upper()
-
-                # Skip if not the target UID
-                if found_uid != target_uid:
-                    continue
-
-                # Search for auth keys within 50000 chars after this UID
-                # (provisioning logs can be verbose with full crypto traces)
-                start_pos = uid_match.start()
-                context = content[start_pos:start_pos + 50000]
-
-                # Look for: Auth key: <32 hex chars> (non-factory keys)
-                auth_key_pattern = r'Auth key:\s*([0-9a-fA-F]{32})'
-                for key_match in re.finditer(auth_key_pattern, context):
-                    picc_key_hex = key_match.group(1).upper()
-
-                    # Skip factory keys (all zeros)
-                    if picc_key_hex == "00000000000000000000000000000000":
-                        continue
-
-                    try:
-                        picc_key = bytes.fromhex(picc_key_hex)
-
-                        # Extract date from log filename
-                        file_date = self.recovery_service._extract_date_from_file(log_file)
-
-                        # Get relative path
-                        try:
-                            relative_path = log_file.relative_to(self.recovery_service.root_path)
-                        except ValueError:
-                            relative_path = log_file
-
-                        # Create candidate
-                        candidate = KeyRecoveryCandidate(
-                            uid=found_uid,
-                            source_file=f"{relative_path} (log)",
-                            picc_master_key=picc_key,
-                            app_read_key=bytes(16),  # Unknown from logs
-                            sdm_file_read_key=bytes(16),  # Unknown from logs
-                            status="log_extracted",
-                            provisioned_date=file_date,
-                            notes="Extracted from TUI log file - app keys unknown",
-                            file_date=file_date,
-                        )
-
-                        candidates.append(candidate)
-
-                    except (ValueError, IndexError):
-                        continue
-
-        except Exception as e:
-            log.debug(f"Error scanning log {log_file}: {e}")
-
-        return candidates
-
     def _discover_all_tags(self) -> None:
         """Scan all CSV and log files in tree, collect all UIDs and keys."""
         self._update_status("Scanning for CSV and log files...")
 
         try:
-            import csv
-            import os
-            import re
-
             # Group all candidates by UID
             all_candidates_by_uid: dict[str, list[KeyRecoveryCandidate]] = {}
             csv_count = 0
             log_count = 0
 
             # Single os.walk - collect from both CSV and log files
-            for dirpath, dirnames, filenames in os.walk(self.recovery_service.root_path):
+            for dirpath, _dirnames, filenames in os.walk(self.recovery_service.root_path):
                 for filename in filenames:
                     file_path = Path(dirpath) / filename
 
@@ -306,7 +289,7 @@ class KeyRecoveryScreen(Screen):
                         except Exception as e:
                             log.debug(f"Error reading CSV {file_path}: {e}")
 
-                    # Process log files - extract ALL keys (PICC, App Read, SDM MAC)
+                    # Process log files
                     elif filename.startswith('tui_') and filename.endswith('.log'):
                         log_count += 1
                         try:
@@ -317,11 +300,14 @@ class KeyRecoveryScreen(Screen):
                             uid_pattern = r'Tag UID:\s*([0-9A-Fa-f]{14})'
                             uid_csv_pattern = r"(?:UID|uid[=:])[\s']*([0-9A-Fa-f]{14})"
 
-                            all_uid_matches = []
-                            for m in re.finditer(uid_pattern, content):
-                                all_uid_matches.append((m.group(1).upper(), m.start()))
-                            for m in re.finditer(uid_csv_pattern, content):
-                                all_uid_matches.append((m.group(1).upper(), m.start()))
+                            all_uid_matches = [
+                                (m.group(1).upper(), m.start())
+                                for m in re.finditer(uid_pattern, content)
+                            ]
+                            all_uid_matches.extend(
+                                (m.group(1).upper(), m.start())
+                                for m in re.finditer(uid_csv_pattern, content)
+                            )
 
                             # Group by UID and dedupe positions
                             uid_positions: dict[str, list[int]] = {}
@@ -337,7 +323,6 @@ class KeyRecoveryScreen(Screen):
                                 relative_path = file_path
 
                             for uid, uid_pos_list in uid_positions.items():
-                                # Dedupe positions within 1000 chars
                                 sorted_positions = sorted(set(uid_pos_list))
                                 deduped = []
                                 for pos in sorted_positions:
@@ -346,11 +331,8 @@ class KeyRecoveryScreen(Screen):
 
                                 for start_pos in deduped:
                                     context = content[start_pos:start_pos + 50000]
-
-                                    # Extract all keys using the service's helper
                                     keys = self.recovery_service._extract_all_keys_from_context(context)
 
-                                    # Skip if no PICC key or factory key
                                     if not keys['picc'] or keys['picc'] == "00000000000000000000000000000000":
                                         continue
 
@@ -359,7 +341,6 @@ class KeyRecoveryScreen(Screen):
                                         app_key = bytes.fromhex(keys['app_read']) if keys['app_read'] and keys['app_read'] != "00000000000000000000000000000000" else bytes(16)
                                         sdm_key = bytes.fromhex(keys['sdm_mac']) if keys['sdm_mac'] and keys['sdm_mac'] != "00000000000000000000000000000000" else bytes(16)
 
-                                        # Determine status based on completeness
                                         app_is_zero = app_key == bytes(16)
                                         sdm_is_zero = sdm_key == bytes(16)
                                         if not app_is_zero and not sdm_is_zero:
@@ -397,7 +378,6 @@ class KeyRecoveryScreen(Screen):
             # Deduplicate and build summaries
             self.uid_summaries = {}
             for uid, candidates in all_candidates_by_uid.items():
-                # Deduplicate by all three keys (picc_master_key, app_read_key, sdm_file_read_key)
                 unique_keys = {}
                 for candidate in candidates:
                     key_tuple = (candidate.picc_master_key, candidate.app_read_key, candidate.sdm_file_read_key)
@@ -416,7 +396,6 @@ class KeyRecoveryScreen(Screen):
                     candidates=unique_candidates,
                 )
 
-            # Calculate total keys across all UIDs
             self.total_files_scanned = csv_count + log_count
             self.total_keys_found = sum(s.candidate_count for s in self.uid_summaries.values())
 
@@ -433,106 +412,67 @@ class KeyRecoveryScreen(Screen):
     def _update_summary_display(self) -> None:
         """Update the summary display with compact aggregate stats."""
         if not self.uid_summaries:
-            self.query_one("#summary_display", Static).update(
-                "No tags found - scan CSV/log files in project tree"
-            )
+            self.query_one("#summary_display", Static).update("No tags found")
             return
 
-        # Compact aggregate stats
-        display = f"📊 {len(self.uid_summaries)} tags | {self.total_keys_found} keys | {self.total_files_scanned} files scanned"
-
-        # Add scanned tag indicator if present
+        display = f"{len(self.uid_summaries)} tags | {self.total_keys_found} keys"
         if self.scanned_uid and self.scanned_uid in self.uid_summaries:
             summary = self.uid_summaries[self.scanned_uid]
-            display += f"\n🎯 Scanned: {self.scanned_uid} ({summary.candidate_count} candidate keys)"
+            display += f"\nScanned: {summary.candidate_count} candidates"
 
         self.query_one("#summary_display", Static).update(display)
 
-    def _update_candidates_display(self, uid: str | None = None) -> None:
-        """Update candidates display for a specific UID."""
-        option_list = self.query_one("#candidate_list", OptionList)
-        db_status_box = self.query_one("#db_status_box", Static)
+    def _update_candidates_table(self, uid: str | None = None) -> None:
+        """Update candidates table for a specific UID."""
+        table = self.query_one("#candidates_table", KeyCandidatesTable)
 
         if uid is None or uid not in self.uid_summaries:
-            option_list.clear_options()
-            option_list.add_option(Option("No candidates - scan a tag first", disabled=True))
-            db_status_box.update("")
+            table.load_candidates([])
             return
 
         summary = self.uid_summaries[uid]
 
-        # Check current key in main database
-        current_key_status = "Not set"
-        current_key_match = None
+        # Convert KeyRecoveryCandidate to KeyCandidate for the table
+        candidates = [
+            KeyCandidate(
+                source=c.source_file,
+                status=c.status,
+                date=c.file_date,
+                picc_key=c.picc_master_key.hex(),
+                app_key=c.app_read_key.hex(),
+                sdm_key=c.sdm_file_read_key.hex(),
+            )
+            for c in summary.candidates
+        ]
+        table.load_candidates(candidates)
+
+    def _update_keys_detail(self, uid: str | None = None) -> None:
+        """Update the keys detail widget from database."""
+        keys_detail = self.query_one("#keys_detail", TagKeysDetailWidget)
+
+        if uid is None:
+            keys_detail.clear()
+            return
+
         try:
-            current_keys = self.key_manager.get_tag_keys(uid)
-            if current_keys:
-                current_key_status = f"{current_keys.status}"
-                # Check if current key matches any candidate
-                for i, candidate in enumerate(summary.candidates, 1):
-                    if current_keys.picc_master_key == candidate.picc_master_key.hex():
-                        current_key_match = i
-                        break
+            tag_keys = self.key_manager.get_tag_keys(uid)
+            keys_detail.update_from_database(tag_keys)
         except Exception:
-            pass
-
-        # Update database status box
-        status_display = "═" * 50 + "\n"
-        status_display += f"DATABASE STATUS: {current_key_status.upper()}\n"
-        if current_key_match:
-            status_display += f"✓ KEY ALREADY SET - MATCHES CANDIDATE #{current_key_match}\n"
-            status_display += "  Recovery may not be needed!\n"
-        else:
-            status_display += "⚠ Current key does not match any backup candidates\n"
-            status_display += "  Recovery recommended if tag is not working\n"
-        status_display += "═" * 50
-        db_status_box.update(status_display)
-
-        # Populate OptionList with candidates
-        option_list.clear_options()
-        for i, candidate in enumerate(summary.candidates, 1):
-            match_marker = " ◀ CURRENT" if i == current_key_match else ""
-
-            # Determine if this is a complete or partial key set
-            app_is_zero = candidate.app_read_key.hex() == "00000000000000000000000000000000"
-            sdm_is_zero = candidate.sdm_file_read_key.hex() == "00000000000000000000000000000000"
-            is_complete = not app_is_zero and not sdm_is_zero
-            completeness_marker = " [COMPLETE]" if is_complete else " [PARTIAL]"
-
-            # Build option prompt showing ALL key details
-            prompt = f"#{i}: {candidate.source_file}{match_marker}{completeness_marker}\n"
-
-            # PICC Master Key (always present)
-            prompt += f"    PICC Master: ✓ {candidate.picc_master_key.hex().upper()}\n"
-
-            # App Read Key
-            if app_is_zero:
-                prompt += f"    App Read:    ✗ <UNKNOWN>\n"
-            else:
-                prompt += f"    App Read:    ✓ {candidate.app_read_key.hex().upper()}\n"
-
-            # SDM MAC Key
-            if sdm_is_zero:
-                prompt += f"    SDM MAC:     ✗ <UNKNOWN>\n"
-            else:
-                prompt += f"    SDM MAC:     ✓ {candidate.sdm_file_read_key.hex().upper()}\n"
-
-            prompt += f"    Status: {candidate.status} | Date: {candidate.file_date}\n"
-            if candidate.notes and "app keys unknown" not in candidate.notes.lower():
-                prompt += f"    Notes: {candidate.notes[:60]}...\n" if len(candidate.notes) > 60 else f"    Notes: {candidate.notes}\n"
-
-            option_list.add_option(Option(prompt.strip(), id=str(i)))
+            keys_detail.clear()
 
     def _update_status(self, text: str) -> None:
         """Update status label."""
         self.query_one("#status_label", Label).update(f"Status: {text}")
 
-    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
-        """Handle key candidate selection."""
-        # Enable the test button when a candidate is selected
-        self.query_one("#btn_recover", Button).disabled = False
-        selected_id = event.option.id
-        self._update_status(f"Selected candidate #{selected_id} - click 'Test Selected Key'")
+    def _update_result_section(self, text: str) -> None:
+        """Update the result display section."""
+        self.query_one("#result_section", Static).update(text)
+
+    def on_data_table_row_selected(self, event) -> None:
+        """Handle row selection in candidates table."""
+        self._selected_candidate_idx = event.cursor_row
+        self.query_one("#btn_test", Button).disabled = False
+        self._update_status(f"Selected candidate #{event.cursor_row + 1} - click 'Test Selected'")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button press events."""
@@ -542,35 +482,29 @@ class KeyRecoveryScreen(Screen):
             self._discover_all_tags()
         elif event.button.id == "btn_scan":
             self._scan_tag()
-        elif event.button.id == "btn_recover":
+        elif event.button.id == "btn_test":
             self._start_recovery()
         elif event.button.id == "btn_restore":
             self._restore_keys()
+        elif event.button.id == "btn_factory":
+            self._set_to_factory()
 
     def _scan_tag(self) -> None:
         """Scan tag to get UID and filter candidates."""
         self._update_status("Scanning tag...")
 
         try:
-            from ntag424_sdm_provisioner.card_factory import CardConnectionFactory
-            from ntag424_sdm_provisioner.commands.get_chip_version import GetChipVersion
-            from ntag424_sdm_provisioner.commands.get_key_version import GetKeyVersion
-            from ntag424_sdm_provisioner.commands.select_picc_application import (
-                SelectPiccApplication,
-            )
-            from ntag424_sdm_provisioner.sequence_logger import SequenceLogger
-
             with CardConnectionFactory.create(SequenceLogger()) as conn:
                 conn.send(SelectPiccApplication())
                 version_info = conn.send(GetChipVersion())
-                uid = version_info.uid.hex().upper()
+                uid = version_info.uid.uid
 
                 # Read key versions from hardware
                 key0_resp = conn.send(GetKeyVersion(key_no=0))
                 key1_resp = conn.send(GetKeyVersion(key_no=1))
                 key3_resp = conn.send(GetKeyVersion(key_no=3))
 
-                # Update tag status widget with hardware info
+                # Update tag status widget
                 tag_status = self.query_one("#tag_status", TagStatusWidget)
                 tag_status.update_from_hardware(
                     uid=uid,
@@ -578,28 +512,29 @@ class KeyRecoveryScreen(Screen):
                     key1_ver=key1_resp.version,
                     key3_ver=key3_resp.version
                 )
-
-                # Update tag status widget with database info
                 tag_status.update_from_database(self.key_manager, uid)
+
+                # Update keys detail widget
+                keys_detail = self.query_one("#keys_detail", TagKeysDetailWidget)
+                keys_detail.update_from_hardware(key0_resp.version, key1_resp.version, key3_resp.version)
+                self._update_keys_detail(uid)
 
                 self.scanned_uid = uid
                 self._update_summary_display()
-                self._update_candidates_display(uid)
+                self._update_candidates_table(uid)
+
+                # Enable factory button (can always set to factory)
+                self.query_one("#btn_factory", Button).disabled = False
 
                 if uid in self.uid_summaries:
                     summary = self.uid_summaries[uid]
-                    self._update_status(
-                        f"Tag {uid} found - {summary.candidate_count} key set(s) available"
-                    )
-                    # Enable recovery button
-                    self.query_one("#btn_recover", Button).disabled = False
+                    self._update_status(f"Tag {uid[:8]}... - {summary.candidate_count} candidate(s)")
                 else:
-                    self._update_status(f"Tag {uid} scanned - No keys found in backups")
-                    self.query_one("#btn_recover", Button).disabled = True
+                    self._update_status(f"Tag {uid[:8]}... - No backups found")
 
         except Exception as e:
             log.error(f"Error scanning tag: {e}")
-            self._update_status(f"Error scanning tag: {e}")
+            self._update_status(f"Error: {e}")
 
     def _start_recovery(self) -> None:
         """Start the key recovery process for the selected candidate."""
@@ -611,39 +546,40 @@ class KeyRecoveryScreen(Screen):
             self._update_status("No keys found for scanned tag")
             return
 
-        # Get selected candidate from OptionList
-        option_list = self.query_one("#candidate_list", OptionList)
-        selected = option_list.highlighted
-        if selected is None:
-            self._update_status("Please select a candidate key to test")
+        table = self.query_one("#candidates_table", KeyCandidatesTable)
+        if table.cursor_row is None:
+            self._update_status("Please select a candidate to test")
             return
 
-        # Get the candidate index from the option ID
-        try:
-            candidate_idx = int(str(option_list.get_option_at_index(selected).id)) - 1
-            summary = self.uid_summaries[self.scanned_uid]
-            selected_candidate = summary.candidates[candidate_idx]
+        candidate_idx = table.cursor_row
+        summary = self.uid_summaries[self.scanned_uid]
 
-            log.info(f"Testing selected candidate #{candidate_idx + 1} for UID {self.scanned_uid}")
-            self._update_status(f"Testing candidate #{candidate_idx + 1} from {selected_candidate.source_file}...")
+        if candidate_idx >= len(summary.candidates):
+            self._update_status("Invalid candidate selection")
+            return
 
-            # Disable buttons during recovery
-            self.query_one("#btn_recover", Button).disabled = True
-            self.query_one("#btn_scan", Button).disabled = True
-            self.query_one("#btn_refresh", Button).disabled = True
+        selected_candidate = summary.candidates[candidate_idx]
 
-            # Execute recovery command with only the selected candidate
-            command = KeyRecoveryCommand(
-                self.recovery_service,
-                self.key_manager,
-                selected_candidate=selected_candidate,
-            )
-            self._worker_mgr.execute_command(
-                command, _status_label_id="status_label", timer_label_id="status_label"
-            )
-        except (ValueError, IndexError) as e:
-            log.error(f"Failed to get selected candidate: {e}")
-            self._update_status("Error: Could not get selected candidate")
+        log.info(f"Testing candidate #{candidate_idx + 1} for UID {self.scanned_uid}")
+        self._update_status(f"Testing candidate #{candidate_idx + 1}...")
+
+        # Disable buttons during test
+        self.query_one("#btn_test", Button).disabled = True
+        self.query_one("#btn_scan", Button).disabled = True
+        self.query_one("#btn_refresh", Button).disabled = True
+
+        # Store index for updating test results later
+        self._selected_candidate_idx = candidate_idx
+
+        # Execute recovery command
+        command = KeyRecoveryCommand(
+            self.recovery_service,
+            self.key_manager,
+            selected_candidate=selected_candidate,
+        )
+        self._worker_mgr.execute_command(
+            command, _status_label_id="status_label", timer_label_id="status_label"
+        )
 
     def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
         """Handle worker state changes."""
@@ -667,80 +603,73 @@ class KeyRecoveryScreen(Screen):
         self.query_one("#btn_scan", Button).disabled = False
         self.query_one("#btn_refresh", Button).disabled = False
         if self.scanned_uid and self.scanned_uid in self.uid_summaries:
-            self.query_one("#btn_recover", Button).disabled = False
+            self.query_one("#btn_test", Button).disabled = False
 
     def _on_recovery_success(self, result: dict[str, Any]) -> None:
         """Handle successful key recovery."""
         log.info(f"Key recovery completed: {result}")
 
+        # Update test results in table and keys detail widget
+        if self._selected_candidate_idx is not None:
+            table = self.query_one("#candidates_table", KeyCandidatesTable)
+            keys_detail = self.query_one("#keys_detail", TagKeysDetailWidget)
+
+            if result.get("recovered"):
+                # PICC key works
+                table.update_test_results(self._selected_candidate_idx, picc_works=True)
+                keys_detail.update_test_results(picc_works=True)
+
         if result.get("recovered"):
             candidate = result["candidate"]
-
-            # Store successful test result for later restore
             self.last_successful_test = result
 
-            # Enable the "Restore Key to DB" button
+            # Enable restore button
             self.query_one("#btn_restore", Button).disabled = False
 
-            self._update_status("✓ Key test successful! Click 'Restore Key to DB' to save")
-            self._update_candidates_display(result["uid"])
-
-            # Show success message WITHOUT saying it's been restored yet
-            self.query_one("#candidates_display", Static).update(
-                f"✓ Working key found!\n\n"
-                f"UID: {result['uid']}\n"
+            self._update_status("✓ Key works! Click 'Restore to DB' to save")
+            self._update_result_section(
+                f"[green bold]✓ Working key found![/]\n"
                 f"Source: {candidate['source_file']}\n"
-                f"Status: {candidate['status']}\n"
-                f"Date: {candidate.get('provisioned_date', 'N/A')}\n\n"
-                f"⚠ NEXT STEP: Click 'Restore Key to DB' to save keys to database.\n"
-                f"Keys are NOT saved automatically - you must restore manually."
+                f"[yellow]Click 'Restore to DB' to save keys to database[/]"
             )
+
         elif result.get("is_factory"):
-            self._update_status("Tag is in factory state - no recovery needed")
-            self.query_one("#candidates_display", Static).update(
-                f"UID: {result['uid']}\n\n"
-                f"This tag is in FACTORY state (default keys).\n"
-                f"No key recovery needed.\n\n"
-                f"You can provision this tag using 'Configure Keys'."
+            self._update_status("Tag is in factory state")
+            self._update_result_section(
+                "[yellow]Tag is in FACTORY state[/]\n"
+                "Default keys are active. No recovery needed.\n"
+                "Use 'Configure Keys' to provision this tag."
             )
-        # Check if auth delay was encountered
+
         elif result.get("auth_delay"):
-            self._update_status("⚠ Authentication delay - tag in lockout mode")
-            self.query_one("#candidates_display", Static).update(
-                f"UID: {result['uid']}\n\n"
-                f"⚠ AUTHENTICATION DELAY DETECTED\n\n"
-                f"The tag is in lockout mode due to too many failed\n"
-                f"authentication attempts (possibly from previous operations).\n\n"
-                f"SOLUTION:\n"
-                f"• Wait ~30 seconds for the lockout to clear\n"
-                f"• Try 'Recover Keys' again\n"
-                f"• The keys in the database may already be correct\n\n"
-                f"Tested {result.get('candidates_tested', 0)} candidate(s) before lockout."
+            self._update_status("⚠ Auth delay - tag locked out")
+            self._update_result_section(
+                f"[red]⚠ AUTHENTICATION DELAY[/]\n"
+                f"Tag is in lockout mode. Wait ~30 seconds and try again.\n"
+                f"Tested {result.get('candidates_tested', 0)} candidate(s)."
             )
+
         else:
-            self._update_status("No working keys found")
-            self.query_one("#candidates_display", Static).update(
-                f"UID: {result['uid']}\n\n"
-                f"Tested {result.get('candidates_tested', 0)} key candidate(s)\n"
-                f"✗ No working keys found.\n\n"
-                f"This tag's keys may be permanently lost."
+            self._update_status("Key test failed")
+            self._update_result_section(
+                f"[red]✗ Key did not work[/]\n"
+                f"Tested {result.get('candidates_tested', 0)} candidate(s).\n"
+                f"Try another candidate from the table."
             )
 
     def _on_recovery_failure(self, error: Exception) -> None:
         """Handle key recovery failure."""
         log.error(f"Key recovery failed: {error}")
-        self._update_status(f"Recovery failed: {error}")
+        self._update_status(f"Error: {error}")
+        self._update_result_section(f"[red]Error: {error}[/]")
 
     def _restore_keys(self) -> None:
         """Restore the last successfully tested keys to the database."""
         if not self.last_successful_test:
-            self._update_status("No successful test to restore - test a key first")
+            self._update_status("No successful test to restore")
             return
 
         try:
-            from datetime import datetime
-            from ntag424_sdm_provisioner.csv_key_manager import TagKeys
-
             result = self.last_successful_test
             candidate = result["candidate"]
             uid = result["uid"]
@@ -750,34 +679,15 @@ class KeyRecoveryScreen(Screen):
             sdm_is_zero = candidate["sdm_file_read_key"] == "00000000000000000000000000000000"
 
             if app_is_zero and sdm_is_zero:
-                # PICC only - warn strongly
                 status = "picc_only"
-                notes = (
-                    f"WARNING: Only PICC Master Key verified from {candidate['source_file']} at {datetime.now().isoformat()}. "
-                    f"App Read Key and SDM MAC Key are UNKNOWN. SDM CMAC validation WILL FAIL until correct keys are found. "
-                    f"Try finding a complete key set in backups or re-provision the tag."
-                )
-                log.warning(f"[KEY RECOVERY] Restoring PARTIAL key set - SDM CMAC will fail!")
+                notes = f"PICC only from {candidate['source_file']} at {datetime.now().isoformat()}"
             elif app_is_zero or sdm_is_zero:
-                # Partial key set
                 status = "partial_keys"
-                missing = []
-                if app_is_zero:
-                    missing.append("App Read Key")
-                if sdm_is_zero:
-                    missing.append("SDM MAC Key")
-                notes = (
-                    f"PARTIAL: {', '.join(missing)} unknown. Verified from {candidate['source_file']} at {datetime.now().isoformat()}. "
-                    f"SDM CMAC validation may fail if SDM MAC key is wrong."
-                )
-                log.warning(f"[KEY RECOVERY] Restoring partial key set - missing: {missing}")
+                notes = f"Partial keys from {candidate['source_file']} at {datetime.now().isoformat()}"
             else:
-                # Complete key set
                 status = "provisioned"
-                notes = f"All 3 keys recovered from {candidate['source_file']} at {datetime.now().isoformat()}"
-                log.info(f"[KEY RECOVERY] Restoring COMPLETE key set")
+                notes = f"Recovered from {candidate['source_file']} at {datetime.now().isoformat()}"
 
-            # Create TagKeys from the successful test result
             recovered_keys = TagKeys(
                 uid=uid,
                 picc_master_key=candidate["picc_master_key"],
@@ -788,26 +698,61 @@ class KeyRecoveryScreen(Screen):
                 notes=notes,
             )
 
-            log.info(f"[KEY RECOVERY] Saving recovered keys to database:")
-            log.info(f"  UID: {uid}")
-            log.info(f"  PICC Master Key: {recovered_keys.picc_master_key}")
-            log.info(f"  App Read Key: {recovered_keys.app_read_key}")
-            log.info(f"  SDM MAC Key: {recovered_keys.sdm_mac_key}")
-            log.info(f"  Status: {recovered_keys.status}")
-            log.info(f"  Source: {candidate['source_file']}")
+            self.key_manager.save_tag_keys(recovered_keys)
+            log.info("✓ Keys saved to database")
 
-            self.key_manager.save_tag_keys(uid, recovered_keys)
-            log.info("✓ Recovered keys saved to database")
+            # Update widgets
+            self.query_one("#tag_status", TagStatusWidget).update_from_database(self.key_manager, uid)
+            self._update_keys_detail(uid)
 
-            # Update tag status widget to show new database state
-            tag_status = self.query_one("#tag_status", TagStatusWidget)
-            tag_status.update_from_database(self.key_manager, uid)
-
-            # Disable restore button (already restored)
+            # Disable restore button
             self.query_one("#btn_restore", Button).disabled = True
 
-            self._update_status(f"✓ Keys restored to database for UID {uid}")
+            self._update_status(f"✓ Keys saved for {uid[:8]}...")
+            self._update_result_section(
+                f"[green bold]✓ Keys restored to database[/]\n"
+                f"Status: {status}\n"
+                f"UID: {uid}"
+            )
 
         except Exception as e:
             log.error(f"Failed to restore keys: {e}")
-            self._update_status(f"Failed to restore keys: {e}")
+            self._update_status(f"Error: {e}")
+
+    def _set_to_factory(self) -> None:
+        """Set all keys to factory defaults (all zeros) in the database."""
+        if not self.scanned_uid:
+            self._update_status("Please scan a tag first")
+            return
+
+        try:
+            uid = self.scanned_uid
+            factory_key = "00000000000000000000000000000000"
+
+            factory_keys = TagKeys(
+                uid=uid,
+                picc_master_key=factory_key,
+                app_read_key=factory_key,
+                sdm_mac_key=factory_key,
+                provisioned_date=datetime.now().isoformat(),
+                status="factory",
+                notes=f"Set to factory defaults at {datetime.now().isoformat()}",
+            )
+
+            self.key_manager.save_tag_keys(factory_keys)
+            log.info(f"✓ Set {uid} to factory keys in database")
+
+            # Update widgets
+            self.query_one("#tag_status", TagStatusWidget).update_from_database(self.key_manager, uid)
+            self._update_keys_detail(uid)
+
+            self._update_status(f"✓ Set to factory for {uid[:8]}...")
+            self._update_result_section(
+                f"[yellow]Keys set to factory defaults[/]\n"
+                f"All keys are now 00000000...\n"
+                f"UID: {uid}"
+            )
+
+        except Exception as e:
+            log.error(f"Failed to set factory keys: {e}")
+            self._update_status(f"Error: {e}")

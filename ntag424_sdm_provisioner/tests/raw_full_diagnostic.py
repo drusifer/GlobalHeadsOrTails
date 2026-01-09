@@ -1,31 +1,30 @@
-"""
-RAW PYSCARD - Full Tag Diagnostic
+"""RAW PYSCARD - Full Tag Diagnostic
 
 Dumps all readable information about the tag state.
 Uses crypto_primitives for authenticated commands.
 """
 
-import os
-from smartcard.System import readers
-from smartcard.util import toHexString
-
 import logging
+import os
+
+from smartcard.System import readers
+
+
 # configure debug logging
 logging.basicConfig(level=logging.DEBUG)
 
 from ntag424_sdm_provisioner.crypto.crypto_primitives import (
     calculate_cmac,
-    derive_session_keys,
+    decrypt_auth_response,
     decrypt_rndb,
-    rotate_left,
+    derive_session_keys,
     encrypt_auth_response,
-    decrypt_auth_response
+    rotate_left,
 )
 
 
 def full_diagnostic():
     """Full tag diagnostic using raw pyscard."""
-    
     print("\n" + "="*70)
     print("NTAG424 DNA - FULL DIAGNOSTIC")
     print("="*70)

@@ -1,15 +1,15 @@
-"""
-Tests for Key Manager Interface
+"""Tests for Key Manager Interface
 
 These tests validate the key manager interface and simple implementation.
 """
 
 import pytest
+
 from ntag424_sdm_provisioner.key_manager_interface import (
+    KEY_DEFAULT_FACTORY,
     SimpleKeyManager,
     UniqueKeyManager,
     create_key_manager,
-    KEY_DEFAULT_FACTORY,
 )
 
 

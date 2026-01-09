@@ -1,7 +1,8 @@
 """Unit tests for DNA_Calc reference implementation."""
 
 import pytest
-from dna_calc_reference import CRC32, DNA_Calc
+
+from tests.dna_calc_reference import CRC32, DNA_Calc
 
 
 class TestCRC32:

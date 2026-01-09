@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
-"""
-Unit test to verify the two-session provisioning flow logic is correct.
+"""Unit test to verify the two-session provisioning flow logic is correct.
 
 This test uses mocks to prove the logic without needing a physical tag.
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock, call
+from unittest.mock import Mock
+
 from ntag424_sdm_provisioner.commands.change_key import ChangeKey
 
 
 def test_two_session_flow_logic():
-    """
-    Verify that two-session provisioning logic is correct.
+    """Verify that two-session provisioning logic is correct.
     
     Session 1: Auth with OLD Key 0, change Key 0
     Session 2: Auth with NEW Key 0, change Keys 1 and 3

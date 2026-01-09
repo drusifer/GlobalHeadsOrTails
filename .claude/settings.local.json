@@ -29,7 +29,11 @@
       "Bash(powershell -Command \"& .\\\\.venv\\\\Scripts\\\\python.exe -m ruff check src/ --fix --output-format=concise\")",
       "Bash(powershell -Command \"& .\\\\.venv\\\\Scripts\\\\python.exe -m ruff check src/ntag424_sdm_provisioner/constants.py:59 --output-format=text\")",
       "Bash(powershell -Command \"& .\\\\.venv\\\\Scripts\\\\python.exe -m ruff check src/ntag424_sdm_provisioner/constants.py --output-format=full 2>&1 | Select-String -Pattern ''ERA001''\")",
-      "Bash(pdftotext:*)"
+      "Bash(pdftotext:*)",
+      "Bash(powershell:*)",
+      "Bash(Out-String -Width 200)",
+      "Bash(..venvScriptspython.exe -m pytest tests/test_uid_type_consistency.py -v)",
+      "Bash(../.venv/Scripts/python.exe -m pytest tests/test_uid_type_consistency.py -v)"
     ],
     "deny": [],
     "ask": []

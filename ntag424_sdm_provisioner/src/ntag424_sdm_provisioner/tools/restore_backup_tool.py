@@ -4,7 +4,7 @@ import time
 
 from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccApplication
 from ntag424_sdm_provisioner.crypto.auth_session import AuthenticateEV2
-from ntag424_sdm_provisioner.csv_key_manager import BackupEntry, CsvKeyManager
+from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, TagKeys
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
 from ntag424_sdm_provisioner.tools.base import ConfirmationRequest, TagState, ToolResult
 
@@ -38,12 +38,13 @@ class RestoreBackupTool:
         self, tag_state: TagState, card: NTag424CardConnection, key_mgr: CsvKeyManager
     ) -> ToolResult:
         """Iterate through backup snapshots until authentication succeeds."""
-        backups: list[BackupEntry] = key_mgr.get_backup_entries(tag_state.uid)
+        # tag_state.uid is already a UID object
+        backups: list[TagKeys] = key_mgr.get_backup_entries(tag_state.uid)
         if not backups:
             return ToolResult(success=False, message="No backups found for this tag", details={})
 
         attempt_log = []
-        restored_entry: BackupEntry | None = None
+        restored_entry: TagKeys | None = None
 
         for index, entry in enumerate(backups, start=1):
             attempt_info = {
@@ -82,7 +83,7 @@ class RestoreBackupTool:
             )
 
         # Persist the matching keys back into the primary CSV
-        key_mgr.save_tag_keys(tag_state.uid, restored_entry.keys)
+        key_mgr.save_tag_keys(restored_entry.keys)
 
         return ToolResult(
             success=True,

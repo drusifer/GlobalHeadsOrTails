@@ -1,101 +1,89 @@
 """Utility functions for working with NTAG424 UIDs."""
 
+class UID:
+    """Reperesents a NTAG424 UID and provides utility methods."""
+    
+    def __init__(self, uid: bytes | str):
+        """Initialize UID from bytes or hex string."""
 
-def uid_to_asset_tag(uid: bytes) -> str:
-    """Convert UID to a short asset tag code for labeling.
+        if isinstance(uid, bytes):
+            self._uid_bytes = uid
+        else:
+            self._uid_bytes = bytes.fromhex(uid)
 
-    Format: XX-YYYY (7 chars with dash)
-    Uses bytes 3-6 of UID (skips manufacturer ID and batch suffix).
+        self.uid: str = self._uid_bytes.hex().upper()
 
-    Args:
-        uid: 7-byte UID
+        if len(self._uid_bytes) < 7:
+            raise ValueError(f"UID must be at least 7 bytes, got {len(self._uid_bytes)}: {self.uid}")
 
-    Returns:
-        7-character asset tag code (e.g., "6E-6B4A")
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, UID):
+            return False
+        return self.uid == other.uid 
 
-    Example:
-        >>> uid_to_asset_tag(bytes.fromhex('046E6B4A2F7080'))
-        '6E-6B4A'
-    """
-    if len(uid) < 7:
-        raise ValueError(f"UID must be at least 7 bytes, got {len(uid)}")
+    @property
+    def bytes(self) -> bytes:
+        """Get UID as bytes."""
+        return self._uid_bytes
+    
+    def __str__(self):
+        return f"UID({self.uid}, {self.asset_tag}, {self.short_hex})".upper()
 
-    # Use bytes 1-4 (skip manufacturer byte 0x04, skip batch suffix 2F7080)
-    # Format: uid[1] - uid[2]uid[3]uid[4]
-    return f"{uid[1]:02X}-{uid[2]:02X}{uid[3]:02X}"
+    @property
+    def asset_tag(self) -> str:
+        """Convert UID to a short asset tag code for labeling.
 
+        Format: XX-YYYY (7 chars with dash)
+        Uses bytes 3-6 of UID (skips manufacturer ID and batch suffix).
 
-def uid_to_short_hex(uid: bytes) -> str:
-    """Convert UID to compact hex string (last 3 bytes, 6 chars).
+        Args:
+            uid: 7-byte UID
 
-    Args:
-        uid: 7-byte UID
+        Returns:
+            7-character asset tag code (e.g., "6E-6B4A")
 
-    Returns:
-        6-character hex code (e.g., "2F7080")
-
-    Example:
-        >>> uid_to_short_hex(bytes.fromhex('046E6B4A2F7080'))
-        '2F7080'
-    """
-    if len(uid) < 7:
-        raise ValueError(f"UID must be at least 7 bytes, got {len(uid)}")
-
-    # Last 3 bytes
-    return uid[-3:].hex().upper()
-
-
-def asset_tag_matches_uid(asset_tag: str, uid: bytes) -> bool:
-    """Check if an asset tag code matches a UID.
-
-    Args:
-        asset_tag: Asset tag code (format: "XX-YYYY" or "XXYYY")
-        uid: 7-byte UID to check
-
-    Returns:
-        True if asset tag matches the UID's bytes 1-3
-
-    Example:
-        >>> asset_tag_matches_uid("6E-6B4A", bytes.fromhex('046E6B4A2F7080'))
-        True
-    """
-    # Remove dash if present
-    code = asset_tag.replace("-", "").upper()
-
-    if len(code) != 6:
-        return False
-
-    # Get bytes 1-3 of UID
-    expected = uid[1:4].hex().upper()
-
-    return code == expected
+        Example:
+            >>> UID(bytes.fromhex('046E6B4A2F7080')).asset_tag
+            '6E-6B4A'
+        """
+        # Use bytes 1-4 (skip manufacturer byte 0x04, skip batch suffix 2F7080)
+        # Format: uid[1] - uid[2]uid[3]uid[4]
+        return f"{self._uid_bytes[1]:02X}-{self._uid_bytes[2]:02X}{self._uid_bytes[3]:02X}".upper()
 
 
-def format_uid_with_asset_tag(uid: bytes) -> str:
-    """Format UID with asset tag for display.
+    @property
+    def short_hex(self) -> str:
+        """Convert UID to compact hex string (last 3 bytes, 6 chars).
 
-    Args:
-        uid: 7-byte UID
+        Args:
+            uid: 7-byte UID
 
-    Returns:
-        Formatted string (e.g., "046E6B4A2F7080 [4A2F-7080]")
+        Returns:
+            6-character hex code (e.g., "2F7080")
 
-    Example:
-        >>> format_uid_with_asset_tag(bytes.fromhex('046E6B4A2F7080'))
-        '046E6B4A2F7080 [4A2F-7080]'
-    """
-    full_uid = uid.hex().upper()
-    asset_tag = uid_to_asset_tag(uid)
-    return f"{full_uid} [Tag: {asset_tag}]"
+        Example:
+            >>> uid_to_short_hex(bytes.fromhex('046E6B4A2F7080'))
+            >>> UID(bytes.fromhex('046E6B4A2F7080')).short
+            '2F7080'
+        """
+
+        # Last 3 bytes
+        return self._uid_bytes[-3:].hex().upper()
 
 
-def get_uid_string(uid: bytes) -> str:
-    """Convert UID bytes to a hex string.
+    def matches(self, asset_tag: str) -> bool:
+        """Check if an asset tag code matches a UID.
 
-    Args:
-        uid: UID bytes
+        Args:
+            asset_tag: Asset tag code (format: "XX-YYYY" or "XXYYY")
+            uid: 7-byte UID to check
 
-    Returns:
-        Hex string representation (uppercase)
-    """
-    return uid.hex().upper()
+        Returns:
+            True if asset tag matches the UID's bytes 1-3
+
+        Example:
+            >>> UID('046E6B4A2F7080').matches("6E-6B4A")
+            True
+        """
+
+        return asset_tag == self.asset_tag

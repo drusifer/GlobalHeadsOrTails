@@ -1,21 +1,18 @@
-"""
-Test if our session keys match Arduino by using hardcoded RndA/RndB.
+"""Test if our session keys match Arduino by using hardcoded RndA/RndB.
 
 If we use the SAME RndA/RndB as Arduino and get DIFFERENT session keys,
 that's the bug!
 """
 
-from Crypto.Hash import CMAC
 from Crypto.Cipher import AES
+from Crypto.Hash import CMAC
 
 
 def test_session_key_derivation():
-    """
-    Derive session keys using same RndA/RndB as Arduino would use.
+    """Derive session keys using same RndA/RndB as Arduino would use.
     
     This will help us verify if our key derivation matches Arduino.
     """
-    
     print("\n=== SESSION KEY DERIVATION TEST ===\n")
     
     # From our last run
@@ -46,7 +43,7 @@ def test_session_key_derivation():
     cmac_mac.update(sv2 + b'\x00' * 8)
     session_mac_key = cmac_mac.digest()
     
-    print(f"\nDerived Session Keys:")
+    print("\nDerived Session Keys:")
     print(f"  ENC: {session_enc_key.hex()}")
     print(f"  MAC: {session_mac_key.hex()}")
     
@@ -54,7 +51,7 @@ def test_session_key_derivation():
     expected_enc = bytes.fromhex("9c85e77d9463f16f624efbf931f93baa")
     expected_mac = bytes.fromhex("ed62527ca0e6b3521ebd3e30c85eda0a")
     
-    print(f"\nExpected from log:")
+    print("\nExpected from log:")
     print(f"  ENC: {expected_enc.hex()}")
     print(f"  MAC: {expected_mac.hex()}")
     

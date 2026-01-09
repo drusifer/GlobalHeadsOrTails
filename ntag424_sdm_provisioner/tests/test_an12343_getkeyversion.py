@@ -1,5 +1,4 @@
-"""
-Test GetKeyVersion CMAC against AN12343 exact test vector.
+"""Test GetKeyVersion CMAC against AN12343 exact test vector.
 
 This verifies our crypto_primitives.calculate_cmac() produces
 the exact CMAC from AN12343 Table 39 (GetKeyVersion example).
@@ -10,7 +9,6 @@ from ntag424_sdm_provisioner.crypto.crypto_primitives import calculate_cmac
 
 def test_an12343_getkeyversion_cmac():
     """Test against AN12343 Table 39, Row 13-14."""
-    
     print("\n=== AN12343 GetKeyVersion CMAC Test ===\n")
     
     # From AN12343 Table 39

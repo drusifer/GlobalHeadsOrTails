@@ -1,16 +1,13 @@
-"""
-Read tag state using plain (unauthenticated) commands.
+"""Read tag state using plain (unauthenticated) commands.
 
 This shows what's on the tag without authentication.
 """
 
 from smartcard.System import readers
-from smartcard.util import toHexString
 
 
 def read_tag_state():
     """Read tag state using plain commands."""
-    
     print("\n" + "="*70)
     print("READ TAG STATE - PLAIN COMMANDS (No Auth)")
     print("="*70)

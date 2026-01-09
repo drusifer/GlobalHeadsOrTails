@@ -10,6 +10,7 @@ from ntag424_sdm_provisioner.constants import FileNo, TagStatus
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, TagKeys
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
 from ntag424_sdm_provisioner.tools.tool_helpers import read_ndef_file
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
@@ -32,9 +33,9 @@ class TagDiagnosticsService:
     def __init__(self, card: NTag424CardConnection, key_mgr: CsvKeyManager):
         self.card = card
         self.key_mgr = key_mgr
-        self._cached_uid: bytes | None = None
         self._cached_keys: TagKeys | None = None
         self._keys_checked = False
+        self._cached_uid: UID | None = None
 
     def _ensure_uid_and_keys_loaded(self) -> None:
         """Load UID and check key manager for available keys.
@@ -49,8 +50,8 @@ class TagDiagnosticsService:
         if not self._cached_uid:
             try:
                 version = self.card.send(GetChipVersion())
-                self._cached_uid = version.uid
-                log.info(f"Tag UID: {self._cached_uid.hex().upper()}")
+                self._cached_uid = version.uid  # Already a UID object
+                log.info(f"Tag UID: {self._cached_uid.uid}")
             except Exception as e:
                 log.error(f"Failed to get UID: {e}")
                 self._keys_checked = True
@@ -58,6 +59,7 @@ class TagDiagnosticsService:
 
         # Check if we have keys for this UID
         try:
+            # Convert bytes UID to hex string for key manager
             self._cached_keys = self.key_mgr.get_tag_keys(self._cached_uid)
             if self._cached_keys:
                 log.info(f"Found keys in database (status={self._cached_keys.status})")
@@ -78,11 +80,11 @@ class TagDiagnosticsService:
         try:
             # Try to read UID to ensure we are connected
             version = self.card.send(GetChipVersion())
-            uid_bytes = version.uid
 
             # Check if keys exist in our database
             try:
-                tag_keys = self.key_mgr.get_tag_keys(uid_bytes)
+                # version.uid is already a UID object
+                tag_keys = self.key_mgr.get_tag_keys(version.uid)
                 if tag_keys and tag_keys.status != "factory":
                     return TagStatus.PROVISIONED
             except Exception:
@@ -225,7 +227,7 @@ class TagDiagnosticsService:
         version = self.get_chip_info()
         if version:
             diagnostics["chip"] = {
-                "uid": version.uid.hex().upper(),
+                "uid": version.uid,
                 "hw_version": f"{version.hw_major_version}.{version.hw_minor_version}",
                 "sw_version": f"{version.sw_major_version}.{version.sw_minor_version}",
                 "hw_storage": version.hw_storage_size,
@@ -349,12 +351,12 @@ class TagDiagnosticsService:
             result["has_url"] = True
             result["url"] = sdm_config.url
             result["sdm_config"] = sdm_config
-            log.info(f"[PHONE TAP]   ✓ URL extracted successfully")
+            log.info("[PHONE TAP]   ✓ URL extracted successfully")
             log.info(f"[PHONE TAP]   Full URL: {sdm_config.url}")
 
             # Check if URL has SDM parameters
             result["has_sdm"] = sdm_config.has_sdm_parameters
-            log.info(f"[PHONE TAP] Step 3: Checking for SDM parameters...")
+            log.info("[PHONE TAP] Step 3: Checking for SDM parameters...")
             log.info(f"[PHONE TAP]   Has SDM parameters: {sdm_config.has_sdm_parameters}")
 
             if not sdm_config.has_sdm_parameters:
@@ -362,7 +364,7 @@ class TagDiagnosticsService:
                 log.info("[PHONE TAP]   (No SDM validation needed)")
             else:
                 # Log the parsed SDM parameters
-                log.info(f"[PHONE TAP] Step 4: SDM Parameters extracted from URL:")
+                log.info("[PHONE TAP] Step 4: SDM Parameters extracted from URL:")
                 log.info(f"[PHONE TAP]   UID:     {sdm_config.uid}")
                 log.info(f"[PHONE TAP]   Counter: {sdm_config.counter} (decimal)")
                 log.info(f"[PHONE TAP]   Counter: {sdm_config.counter:06X} (hex)")
@@ -370,18 +372,20 @@ class TagDiagnosticsService:
 
                 # Log offset information if available
                 if sdm_config.offsets:
-                    log.info(f"[PHONE TAP]   SDM Offsets in NDEF file:")
+                    log.info("[PHONE TAP]   SDM Offsets in NDEF file:")
                     log.info(f"[PHONE TAP]     UID offset:     {sdm_config.offsets.uid_offset}")
                     log.info(f"[PHONE TAP]     Counter offset: {sdm_config.offsets.read_ctr_offset}")
                     log.info(f"[PHONE TAP]     CMAC offset:    {sdm_config.offsets.mac_offset}")
 
                 # Validate SDM using key manager
-                log.info(f"[PHONE TAP] Step 5: Validating SDM CMAC...")
-                validation = self.key_mgr.validate_sdm_url(sdm_config.uid, sdm_config.counter, sdm_config.cmac)
+                log.info("[PHONE TAP] Step 5: Validating SDM CMAC...")
+                # Convert string UID to UID object for validate_sdm_url
+                uid_obj = UID(sdm_config.uid)
+                validation = self.key_mgr.validate_sdm_url(uid_obj, sdm_config.counter, sdm_config.cmac)
                 result["validation"] = validation
 
                 # Log validation summary
-                log.info(f"[PHONE TAP] Step 6: Validation result summary:")
+                log.info("[PHONE TAP] Step 6: Validation result summary:")
                 log.info(f"[PHONE TAP]   Valid:           {validation.get('valid', False)}")
                 log.info(f"[PHONE TAP]   CMAC received:   {validation.get('cmac_received', 'N/A')}")
                 log.info(f"[PHONE TAP]   CMAC calculated: {validation.get('cmac_calculated', 'N/A')}")
@@ -391,7 +395,7 @@ class TagDiagnosticsService:
                     log.info(f"[PHONE TAP]   Session key:     {validation.get('session_key')}")
 
             # === ANDROID NFC DETECTION CHECKS ===
-            log.info(f"[PHONE TAP] Step 7: Running Android NFC detection checks...")
+            log.info("[PHONE TAP] Step 7: Running Android NFC detection checks...")
             result["android_nfc_checks"] = self._check_android_nfc_conditions(ndef_data, sdm_config)
 
         except Exception as e:
@@ -415,12 +419,7 @@ class TagDiagnosticsService:
         """
         from ntag424_sdm_provisioner.constants import (
             AccessRight,
-            CCFileData,
             CCFileTLV,
-            NdefRecordHeader,
-            NdefTLV,
-            NdefUriPrefix,
-            NdefWellKnownType,
             parse_ndef_file_data,
             validate_ndef_uri_record,
         )

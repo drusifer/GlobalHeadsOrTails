@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
-"""
-Compare spec-based SDM payload calculation vs code-generated payload.
+"""Compare spec-based SDM payload calculation vs code-generated payload.
 
 This script calculates what the ChangeFileSettings payload SHOULD be
 according to the NXP spec, and compares it to what our code generates.
 """
 
-from ntag424_sdm_provisioner.constants import (
-    GAME_COIN_BASE_URL, SDMUrlTemplate, SDMConfiguration, SDMOffsets,
-    AccessRights, AccessRight, CommMode, FileOption
+from ntag424_sdm_provisioner.commands.sdm_helpers import (
+    build_sdm_settings_payload,
+    calculate_sdm_offsets,
 )
-from ntag424_sdm_provisioner.commands.sdm_helpers import calculate_sdm_offsets, build_sdm_settings_payload
+from ntag424_sdm_provisioner.constants import (
+    GAME_COIN_BASE_URL,
+    AccessRight,
+    AccessRights,
+    CommMode,
+    FileOption,
+    SDMConfiguration,
+    SDMUrlTemplate,
+)
 
 
 def calculate_spec_based_offsets():
     """Calculate offsets based purely on URL structure and NDEF format."""
-
     # URL Template
     BASE_URL = GAME_COIN_BASE_URL
 
@@ -54,7 +60,7 @@ def calculate_spec_based_offsets():
     ctr_pos_in_url = url_without_prefix.find('ctr=') + 4
     cmac_pos_in_url = url_without_prefix.find('cmac=') + 5  # +5 to skip 'cmac='
 
-    print(f'\n--- Offset calculations (from start of NDEF file) ---')
+    print('\n--- Offset calculations (from start of NDEF file) ---')
     uid_offset = NDEF_HEADER_SIZE + uid_pos_in_url
     ctr_offset = NDEF_HEADER_SIZE + ctr_pos_in_url
     cmac_offset = NDEF_HEADER_SIZE + cmac_pos_in_url
@@ -62,7 +68,7 @@ def calculate_spec_based_offsets():
     print(f'UID position in URL content: {uid_pos_in_url}')
     print(f'CTR position in URL content: {ctr_pos_in_url}')
     print(f'CMAC position in URL content: {cmac_pos_in_url}')
-    print(f'')
+    print()
     print(f'UIDOffset (file offset): {uid_offset} (0x{uid_offset:02X})')
     print(f'SDMReadCtrOffset (file offset): {ctr_offset} (0x{ctr_offset:02X})')
     print(f'SDMMACOffset (file offset): {cmac_offset} (0x{cmac_offset:02X})')
@@ -73,8 +79,7 @@ def calculate_spec_based_offsets():
 
 def build_spec_based_payload(uid_offset, ctr_offset, cmac_offset):
     """Build payload based purely on NXP spec Table 69."""
-
-    print(f'\n' + '='*70)
+    print('\n' + '='*70)
     print('SPEC-BASED ChangeFileSettings PAYLOAD')
     print('='*70)
 
@@ -115,21 +120,21 @@ def build_spec_based_payload(uid_offset, ctr_offset, cmac_offset):
     print(f'SDMReadCtrOffset: {ctr_offset_bytes.hex()} (decimal {ctr_offset})')
 
     # Field 8: PICCDataOffset - NOT present (MetaRead=E)
-    print(f'PICCDataOffset: NOT PRESENT')
+    print('PICCDataOffset: NOT PRESENT')
 
     # Field 9: SDMMACInputOffset (3 bytes, LE)
     mac_input_offset_bytes = uid_offset.to_bytes(3, 'little')
     print(f'SDMMACInputOffset: {mac_input_offset_bytes.hex()} (decimal {uid_offset})')
 
     # Field 10-11: SDMENCOffset/Length - NOT present (Bit 4 = 0)
-    print(f'SDMENCOffset/Length: NOT PRESENT')
+    print('SDMENCOffset/Length: NOT PRESENT')
 
     # Field 12: SDMMACOffset (3 bytes, LE)
     cmac_offset_bytes = cmac_offset.to_bytes(3, 'little')
     print(f'SDMMACOffset: {cmac_offset_bytes.hex()} (decimal {cmac_offset})')
 
     # Field 13: SDMReadCtrLimit - NOT present (Bit 5 = 0)
-    print(f'SDMReadCtrLimit: NOT PRESENT')
+    print('SDMReadCtrLimit: NOT PRESENT')
 
     # Build payload
     payload = bytes([
@@ -145,7 +150,6 @@ def build_spec_based_payload(uid_offset, ctr_offset, cmac_offset):
 
 def get_code_generated_payload():
     """Get what our code actually generates."""
-
     template = SDMUrlTemplate(
         base_url=GAME_COIN_BASE_URL,
         uid_placeholder='00000000000000',

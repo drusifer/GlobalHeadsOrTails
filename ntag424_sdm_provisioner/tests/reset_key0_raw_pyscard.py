@@ -1,20 +1,19 @@
-"""
-Reset Key 0 to factory defaults using raw pyscard - exact Arduino replication.
+"""Reset Key 0 to factory defaults using raw pyscard - exact Arduino replication.
 
 This script manually implements authentication and ChangeKey following
 the Arduino MFRC522_NTAG424DNA library exactly.
 """
 
 import os
-from smartcard.System import readers
-from smartcard.util import toHexString
+
 from Crypto.Cipher import AES
 from Crypto.Hash import CMAC
+from smartcard.System import readers
+from smartcard.util import toHexString
 
 
 def reset_key0_raw():
     """Reset Key 0 to factory using raw pyscard, following Arduino exactly."""
-    
     print("\n" + "="*70)
     print("RESET KEY 0 - RAW PYSCARD (Arduino Method)")
     print("="*70)
@@ -40,7 +39,7 @@ def reset_key0_raw():
     print(f"  <<< SW={sw1:02X}{sw2:02X}")
     
     if (sw1, sw2) != (0x90, 0x00):
-        print(f"  [FAILED]")
+        print("  [FAILED]")
         return False
     print("  [OK]\n")
     
@@ -66,7 +65,7 @@ def reset_key0_raw():
     print(f"    <<< {len(response)} bytes, SW={sw1:02X}{sw2:02X}")
     
     if (sw1, sw2) != (0x91, 0xAF):
-        print(f"    [FAILED] Expected 91AF")
+        print("    [FAILED] Expected 91AF")
         return False
     
     # Decrypt RndB (Arduino line 60-65)
@@ -108,7 +107,7 @@ def reset_key0_raw():
     print(f"    <<< {len(response)} bytes, SW={sw1:02X}{sw2:02X}")
     
     if (sw1, sw2) != (0x91, 0x00):
-        print(f"    [FAILED] Expected 9100")
+        print("    [FAILED] Expected 9100")
         return False
     
     # Decrypt response (Arduino line 95-97)

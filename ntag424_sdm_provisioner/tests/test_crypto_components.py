@@ -1,5 +1,4 @@
-"""
-Unit tests for crypto components using NXP specification test vectors.
+"""Unit tests for crypto components using NXP specification test vectors.
 
 Test vectors from:
 - AN12196 Table 26: ChangeKey example (Key 0, counter=3)
@@ -7,14 +6,14 @@ Test vectors from:
 """
 
 import pytest
+
 from ntag424_sdm_provisioner.crypto.crypto_primitives import (
+    build_changekey_apdu,
+    build_key_data,
+    calculate_cmac_full,
     calculate_iv_for_command,
     encrypt_key_data,
-    calculate_cmac_full,
     truncate_cmac,
-    calculate_cmac,
-    build_key_data,
-    build_changekey_apdu,
 )
 
 

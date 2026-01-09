@@ -11,6 +11,7 @@ from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
 from ntag424_sdm_provisioner.sequence_logger import SequenceLogger
 from ntag424_sdm_provisioner.tui.clock import Clock, RealClock
 from ntag424_sdm_provisioner.tui.nfc_command import NFCCommand
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 class TagStatusCommand(NFCCommand):
@@ -37,8 +38,8 @@ class TagStatusCommand(NFCCommand):
             # 1. Get Version & UID
             version = connection.send(GetChipVersion())
             results["version"] = version
-            uid = version.uid
-            results["uid"] = uid.hex().upper()
+            uid = version.uid  # Already a UID object
+            results["uid"] = uid.uid
             log.info(f"UID: {results['uid']}")
 
             # 2. Check Factory State (Auth with Key 0 = 00...00)

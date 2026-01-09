@@ -1245,13 +1245,13 @@ Generated via AST parsing for easy code navigation.
       > Cleanup resources (call from on_worker_state_changed).
 
 ## `src/ntag424_sdm_provisioner/uid_utils.py`
-- `def uid_to_asset_tag` (Line 6)
+- `class UID`
   > Convert UID to a short asset tag code for labeling.
-- `def uid_to_short_hex` (Line 31)
+- `uid.short_hex` 
   > Convert UID to compact hex string (last 3 bytes, 6 chars).
-- `def asset_tag_matches_uid` (Line 52)
+- `uid.asset_tag` (Line 52)
   > Check if an asset tag code matches a UID.
-- `def format_uid_with_asset_tag` (Line 79)
+- `uid.matches(asset_tag)` (Line 79)
   > Format UID with asset tag for display.
-- `def get_uid_string` (Line 98)
-  > Convert UID bytes to a hex string.
+- `uid.bytes  | uid.uid` (Line 98)
+  > get UID bytes or string represenstaion.

@@ -1,5 +1,4 @@
-"""
-Test: Provisioning Sequence Validation
+"""Test: Provisioning Sequence Validation
 
 Uses SequenceLogger to validate that the provisioning flow executes
 commands in the correct order per the spec (SUCCESSFUL_PROVISION_FLOW.md).
@@ -19,18 +18,16 @@ Date: 2025-12-01
 """
 
 import pytest
-from tests.mock_hal import MockCardConnection
 
 from ntag424_sdm_provisioner.sequence_logger import (
-    SequenceLogger,
     StepResult,
     create_sequence_logger,
 )
+from tests.mock_hal import MockCardConnection
 
 
 class TestProvisioningSequence:
-    """
-    Test suite for validating provisioning command sequence.
+    """Test suite for validating provisioning command sequence.
     
     These tests use SequenceLogger to capture and validate the order
     of APDU commands sent during provisioning operations.
@@ -51,8 +48,7 @@ class TestProvisioningSequence:
         assert step.result == StepResult.SUCCESS
 
     def test_expected_provision_sequence_order(self):
-        """
-        Validates that the expected provisioning sequence is defined correctly.
+        """Validates that the expected provisioning sequence is defined correctly.
         
         Per SUCCESSFUL_PROVISION_FLOW.md, the factory provision sequence is:
         1. SelectPiccApplication (select PICC app)
@@ -134,8 +130,7 @@ class TestProvisioningSequence:
         assert "2 commands" in diagram
 
     def test_sequence_validates_key_change_two_session_pattern(self):
-        """
-        Documents the two-session pattern for key changes per spec.
+        """Documents the two-session pattern for key changes per spec.
         
         Per SUCCESSFUL_PROVISION_FLOW.md:
         - Session 1: Change Key 0 only (session invalidates after)
@@ -161,14 +156,12 @@ class TestProvisioningSequence:
 
 
 class TestSequenceValidation:
-    """
-    Integration tests that validate actual command sequences.
+    """Integration tests that validate actual command sequences.
     These use the mock HAL to simulate provisioning.
     """
 
     def test_mock_hal_get_chip_version_sequence(self):
         """Mock HAL returns correct GetChipVersion sequence (3 frames)."""
-        
         # Create sequence logger to capture commands
         seq = create_sequence_logger("GetChipVersion")
         
@@ -265,8 +258,7 @@ class TestSequenceValidation:
 
 
 class TestSequenceLoggerMethods:
-    """
-    Tests for SequenceLogger methods including log_to_file().
+    """Tests for SequenceLogger methods including log_to_file().
     
     Bug fix: log_to_file() was previously unreachable due to wrong indentation.
     These tests ensure the methods are accessible and work correctly.
@@ -377,14 +369,12 @@ class TestSequenceLoggerMethods:
 
 
 class TestSequenceSpecCompliance:
-    """
-    Tests that validate spec compliance for provisioning sequences.
+    """Tests that validate spec compliance for provisioning sequences.
     Cross-references with SUCCESSFUL_PROVISION_FLOW.md.
     """
 
     def test_spec_key_takeaways_auth_success_pattern(self):
-        """
-        Per spec: Auth success = Phase 1 (91AF) + Phase 2 (9100).
+        """Per spec: Auth success = Phase 1 (91AF) + Phase 2 (9100).
         """
         # Document expected status words
         auth_phase1_success = "91AF"  # MORE_DATA_AVAILABLE with 16-byte RndB
@@ -394,8 +384,7 @@ class TestSequenceSpecCompliance:
         assert auth_phase2_success == "9100"
 
     def test_spec_key_takeaways_changekey_success_pattern(self):
-        """
-        Per spec: ChangeKey success = SW=9100, may have 8-byte CMAC.
+        """Per spec: ChangeKey success = SW=9100, may have 8-byte CMAC.
         """
         changekey_success = "9100"
         
@@ -404,8 +393,7 @@ class TestSequenceSpecCompliance:
         assert changekey_success == "9100"
 
     def test_spec_known_issues(self):
-        """
-        Document known issues from spec that tests should expect.
+        """Document known issues from spec that tests should expect.
         """
         # SDM Configuration may return 917E (LENGTH_ERROR) but doesn't block provisioning
         sdm_config_known_error = "917E"

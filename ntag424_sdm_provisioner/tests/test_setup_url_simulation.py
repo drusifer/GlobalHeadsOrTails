@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Test Setup URL provisioning traces from SUCCESSFUL NDEF TUI.log.txt.
+"""Test Setup URL provisioning traces from SUCCESSFUL NDEF TUI.log.txt.
 
 Verifies that the simulator has the correct traces loaded for:
 1. UID matching the successful provisioning run
@@ -10,10 +9,12 @@ Verifies that the simulator has the correct traces loaded for:
 """
 
 import logging
+
 from ntag424_sdm_provisioner.commands.get_chip_version import GetChipVersion
-from ntag424_sdm_provisioner.commands.iso_commands import ISOSelectFile, ISOFileID
+from ntag424_sdm_provisioner.commands.iso_commands import ISOFileID, ISOSelectFile
 from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccApplication
 from tests.trace_based_simulator import MockCardManager, TraceBasedSimulator
+
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ def test_simulator_has_correct_uid():
     with MockCardManager() as card:
         card.send(SelectPiccApplication())
         version = card.send(GetChipVersion())
-        actual_uid = version.uid.hex().upper()
+        actual_uid = version.uid.uid
 
         assert actual_uid == expected_uid, f"UID mismatch: {actual_uid} != {expected_uid}"
         log.info(f"✓ Simulator UID verified: {actual_uid}")

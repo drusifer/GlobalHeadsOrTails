@@ -9,7 +9,7 @@ from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccA
 from ntag424_sdm_provisioner.crypto.auth_session import AuthenticateEV2
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
-from ntag424_sdm_provisioner.uid_utils import get_uid_string
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
@@ -62,9 +62,7 @@ class FormatService:
 
             self._log("[Step 1] Reading tag UID...")
             version = self.card.send(GetChipVersion())
-            uid_bytes = version.uid
-            uid = get_uid_string(uid_bytes)
-            self._log(f"  Tag UID: {uid}")
+            self._log(f"  Tag UID: {version.uid}")
             log.debug(f"Full version info: {version}", stacklevel=2)
 
             # STEP 2: PRE-FLIGHT AUTH TEST
@@ -109,7 +107,8 @@ class FormatService:
 
             # STEP 5: UPDATE DATABASE
             self._log("[Step 5] Updating database...")
-            log.debug(f"Attempting to update database for UID: {uid}", stacklevel=2)
+            uid = version.uid  # Already a UID object
+            log.debug(f"Attempting to update database for UID: {uid.uid}", stacklevel=2)
             try:
                 # Try to get existing entry
                 existing_keys = self.key_mgr.get_tag_keys(uid)
@@ -120,9 +119,9 @@ class FormatService:
                 existing_keys.app_read_key = "00000000000000000000000000000000"
                 existing_keys.sdm_mac_key = "00000000000000000000000000000000"
                 existing_keys.status = "reformatted"
-                existing_keys.notes = f"Factory reset via FormatPICC - all keys now 0x00*16"
+                existing_keys.notes = "Factory reset via FormatPICC - all keys now 0x00*16"
 
-                self.key_mgr.save_tag_keys(uid, existing_keys)
+                self.key_mgr.save_tag_keys(existing_keys)
                 log.debug("Database save completed successfully", stacklevel=2)
                 self._log("  ✓ Database updated - tag marked as reformatted")
             except Exception as e:

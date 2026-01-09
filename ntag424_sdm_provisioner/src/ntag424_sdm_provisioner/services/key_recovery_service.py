@@ -378,10 +378,7 @@ class KeyRecoveryService:
 
                             # Deduplicate by all three keys
                             key_tuple = (picc_key, app_read_key, sdm_file_read_key)
-                            if key_tuple not in candidates_dict:
-                                candidates_dict[key_tuple] = candidate
-                            # If duplicate, keep the one with newer date
-                            elif candidate.file_date > candidates_dict[key_tuple].file_date:
+                            if key_tuple not in candidates_dict or candidate.file_date > candidates_dict[key_tuple].file_date:
                                 candidates_dict[key_tuple] = candidate
 
             except Exception as e:

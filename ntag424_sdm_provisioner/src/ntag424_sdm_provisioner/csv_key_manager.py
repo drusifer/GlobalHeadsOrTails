@@ -16,7 +16,7 @@ from typing import ClassVar
 
 from ntag424_sdm_provisioner.crypto.crypto_primitives import calculate_cmac_full, truncate_cmac
 from ntag424_sdm_provisioner.key_manager_interface import KEY_DEFAULT_FACTORY
-from ntag424_sdm_provisioner.uid_utils import uid_to_asset_tag
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 class TagKeys:
     """Keys and metadata for a single NTAG424 DNA tag."""
 
-    uid: str  # Hex string (e.g., "04B3664A2F7080")
+    uid: UID  # UID object
     picc_master_key: str  # Key 0 (hex string, 32 chars)
     app_read_key: str  # Key 1 (hex string, 32 chars)
     sdm_mac_key: str  # Key 3 (hex string, 32 chars)
@@ -33,6 +33,11 @@ class TagKeys:
     status: str  # 'factory', 'provisioned', 'locked', 'error'
     notes: str = ""
     last_used_date: str = ""  # ISO format timestamp of last use
+
+    def __post_init__(self):
+        """Convert string UID to UID object if needed."""
+        if isinstance(self.uid, str):
+            self.uid = UID(self.uid)
 
     def get_picc_master_key_bytes(self) -> bytes:
         """Get PICC master key as bytes."""
@@ -48,14 +53,13 @@ class TagKeys:
 
     def get_asset_tag(self) -> str:
         """Get short asset tag code from UID."""
-        return uid_to_asset_tag(bytes.fromhex(self.uid))
+        return self.uid.asset_tag
 
     def __str__(self) -> str:
         """Format TagKeys for display."""
-        asset_tag = uid_to_asset_tag(bytes.fromhex(self.uid))
         return (
             f"TagKeys(\n"
-            f"  UID: {self.uid} [Tag: {asset_tag}]\n"
+            f"  UID: {self.uid}\n"
             f"  Status: {self.status}\n"
             f"  Provisioned: {self.provisioned_date}\n"
             f"  Notes: {self.notes[:50]}{'...' if len(self.notes) > 50 else ''}\n"
@@ -67,7 +71,7 @@ class TagKeys:
         )
 
     @staticmethod
-    def from_factory_keys(uid: str) -> "TagKeys":
+    def from_factory_keys(uid: UID) -> "TagKeys":
         """Create TagKeys entry with factory default keys."""
         factory_key = "00000000000000000000000000000000"
         return TagKeys(
@@ -80,7 +84,7 @@ class TagKeys:
             notes="Factory default keys",
         )
 
-def build_system_vector(uid_str: str, ctr: int) -> bytes:
+def build_system_vector(uid: UID, ctr: int) -> bytes:
     """Constructs the 16-byte System Vector for NTAG 424 DNA SDM.
 
     Per NXP AN12196 Section 9.3.9.1 line 898:
@@ -98,24 +102,23 @@ def build_system_vector(uid_str: str, ctr: int) -> bytes:
     ctr_str = f"{ctr:06X}"
     # Counter is little-endian in the SV (LSB first)
     ctr_bytes_le = bytes.fromhex(ctr_str)[::-1]
-    uid_bytes = bytes.fromhex(uid_str)
 
-    full_vec: bytes = (bytes.fromhex(sv_header_hex) + uid_bytes + ctr_bytes_le)
+    full_vec: bytes = (bytes.fromhex(sv_header_hex) + uid.bytes + ctr_bytes_le)
 
-    log.info(f"[SV2 BUILD] System Vector construction:")
-    log.info(f"  Input UID (hex):     {uid_str}")
+    log.info("[SV2 BUILD] System Vector construction:")
+    log.info(f"  Input UID (hex):     {uid.uid}")
     log.info(f"  Input Counter (dec): {ctr}")
     log.info(f"  Counter (hex BE):    {ctr_str}")
     log.info(f"  Counter (hex LE):    {ctr_bytes_le.hex().upper()}")
     log.info(f"  SV2 Header:          {sv_header_hex}")
-    log.info(f"  SV2 = Header || UID || Counter(LE)")
-    log.info(f"  SV2 = {sv_header_hex} || {uid_str} || {ctr_bytes_le.hex().upper()}")
+    log.info("  SV2 = Header || UID || Counter(LE)")
+    log.info(f"  SV2 = {sv_header_hex} || {uid.uid} || {ctr_bytes_le.hex().upper()}")
     log.info(f"  SV2 Final (16 bytes): {full_vec.hex().upper()}")
 
     # Sanity Check: SV must be exactly 16 bytes for standard SDM
     if len(full_vec) != 16:
         raise ValueError(f"Invalid SV length: {len(full_vec)}. Expected 16. Hex: {full_vec.hex().upper()}, "
-                         f"uid: {uid_str}, ctr: {ctr_str}")
+                         f"uid: {uid.uid}, ctr: {ctr_str}")
 
     return full_vec
 
@@ -176,7 +179,7 @@ class CsvKeyManager:
             self.timestamped_backup_dir.mkdir(parents=True, exist_ok=True)
             print(f"[INFO] Created timestamped backup directory: {self.timestamped_backup_dir}")
 
-    def get_key(self, uid: str, key_no: int) -> bytes:
+    def get_key(self, uid: UID, key_no: int) -> bytes:
         """Get key for a specific tag and key number (implements KeyManager protocol).
 
         Args:
@@ -205,7 +208,7 @@ class CsvKeyManager:
             # For other key numbers, return factory key (we don't use them yet)
             return KEY_DEFAULT_FACTORY
 
-    def get_tag_keys(self, uid: str) -> TagKeys:
+    def get_tag_keys(self, uid: UID) -> TagKeys:
         """Get all keys for a specific tag UID.
 
         Searches:
@@ -221,7 +224,6 @@ class CsvKeyManager:
         Returns:
             TagKeys object with tag's keys
         """
-        uid_str = uid.upper()
 
         # 1. Search main CSV first
         if self.csv_path.exists():
@@ -229,17 +231,17 @@ class CsvKeyManager:
             with self.csv_path.open(newline="") as f:
                 reader = csv.DictReader(f, fieldnames=self.FIELDNAMES)
                 for row in reader:
-                    if row["uid"].upper() == uid_str:
+                    if row["uid"].upper() == uid.uid:
                         print(
-                            f"[OK] Found keys for {uid_str} in main database (status={row.get('status', '?')})"
+                            f"[OK] Found keys for {uid} in main database (status={row.get('status', '?')})"
                         )
                         return TagKeys(**row)
 
-        print(f"[WARNING] UID {uid_str} not found in database") 
+        print(f"[WARNING] UID {uid} not found in database") 
         print("[INFO] Using factory default keys")
-        return TagKeys.from_factory_keys(uid_str)
+        return TagKeys.from_factory_keys(uid)
         
-    def search_for_tag_keys(self, uid: str) -> TagKeys:
+    def search_for_tag_keys(self, uid: UID) -> TagKeys:
         """Search for tag keys in main and backup CSV files."""
         # 2. Search backup CSV for historical keys
         if self.backup_path.exists():
@@ -249,7 +251,7 @@ class CsvKeyManager:
             with self.backup_path.open(newline="") as f:
                 reader = csv.DictReader(f, fieldnames=self.FIELDNAMES)
                 for row in reader:
-                    if row["uid"].upper() == uid:
+                    if row["uid"].upper() == uid.uid:
                         # Get the most recent entry for this UID
                         date_str = row.get("backup_timestamp") or row.get("provisioned_date", "")
                         if best_match is None or date_str > (best_date or ""):
@@ -266,9 +268,9 @@ class CsvKeyManager:
         # 3. UID not found anywhere - return factory keys
         print(f"[WARNING] UID {uid} not found in database OR backup")
         print("[INFO] Using factory default keys")
-        return TagKeys.from_factory_keys(uid)
+        return TagKeys.from_factory_keys(uid.uid)
 
-    def validate_sdm_url(self, uid: str, counter: int, cmac: str) -> dict:
+    def validate_sdm_url(self, uid: UID, counter: int, cmac: str) -> dict:
         """Validate an SDM cmac the CMAC values from the parsed configuration.
 
         This simulates what a server does when it verifies a request from a tag.
@@ -277,7 +279,7 @@ class CsvKeyManager:
             Dict with validation results:
             {
                 "valid": bool,
-                "uid": str,
+                "uid": UID,
                 "counter": int,
                 "cmac_received": str,
                 "cmac_calculated": str (if validation attempted),
@@ -297,17 +299,17 @@ class CsvKeyManager:
             "error": None,
         }
 
-        log.info(f"[STEP 1] Input parameters from tag URL:")
+        log.info("[STEP 1] Input parameters from tag URL:")
         log.info(f"  UID (from URL):     {uid}")
         log.info(f"  Counter (decimal):  {counter}")
         log.info(f"  Counter (hex):      {counter:06X}")
         log.info(f"  CMAC (from URL):    {cmac}")
 
-        log.info(f"[STEP 2] Building System Vector (SV2)...")
+        log.info("[STEP 2] Building System Vector (SV2)...")
         sv_bytes = build_system_vector(uid, counter)
         result["sv2"] = sv_bytes.hex().upper()
 
-        log.info(f"[STEP 3] Loading keys from database...")
+        log.info("[STEP 3] Loading keys from database...")
         keys: TagKeys = self.get_tag_keys(uid)
         log.info(f"  Database path:      {self.csv_path}")
         log.info(f"  Key status:         {keys.status}")
@@ -316,10 +318,10 @@ class CsvKeyManager:
         log.info(f"  SDM MAC Key (K3):   {keys.sdm_mac_key}")
 
         sdm_mac_key_bytes = keys.get_sdm_mac_key_bytes()
-        log.info(f"[STEP 4] Deriving Session MAC Key...")
+        log.info("[STEP 4] Deriving Session MAC Key...")
         log.info(f"  SDM MAC Key (bytes): {sdm_mac_key_bytes.hex().upper()}")
         log.info(f"  SV2 (bytes):         {sv_bytes.hex().upper()}")
-        log.info(f"  Session Key = CMAC(SV2, SDM_MAC_Key)")
+        log.info("  Session Key = CMAC(SV2, SDM_MAC_Key)")
 
         # Derive session MAC key using SDM MAC key (Key 3), not App Read key (Key 1)
         session_key = calculate_cmac_full(sv_bytes, sdm_mac_key_bytes)
@@ -329,9 +331,9 @@ class CsvKeyManager:
         # Build CMAC message: UID&ctr=COUNTER&cmac=
         # Counter must be formatted as 6-character hex string (uppercase)
         counter_hex = f"{counter:06X}"
-        cmac_message = f"{uid}&ctr={counter_hex}&cmac=".encode('ascii')
-        log.info(f"[STEP 5] Building CMAC input message...")
-        log.info(f"  Message format:      UID&ctr=COUNTER&cmac=")
+        cmac_message = f"{uid.uid}&ctr={counter_hex}&cmac=".encode('ascii')
+        log.info("[STEP 5] Building CMAC input message...")
+        log.info("  Message format:      UID&ctr=COUNTER&cmac=")
         log.info(f"  Message (ASCII):     {cmac_message.decode('ascii')}")
         log.info(f"  Message (hex):       {cmac_message.hex().upper()}")
         log.info(f"  Message length:      {len(cmac_message)} bytes")
@@ -339,16 +341,16 @@ class CsvKeyManager:
         result["cmac_message_hex"] = cmac_message.hex().upper()
 
         # Calculate CMAC over the message
-        log.info(f"[STEP 6] Calculating full CMAC...")
-        log.info(f"  Full CMAC = CMAC(message, session_key)")
+        log.info("[STEP 6] Calculating full CMAC...")
+        log.info("  Full CMAC = CMAC(message, session_key)")
         full_cmac = calculate_cmac_full(cmac_message, session_key)
         log.info(f"  Full CMAC (16 bytes): {full_cmac.hex().upper()}")
         result["full_cmac"] = full_cmac.hex().upper()
 
         # SDM uses special truncation: take every other byte starting at index 1
         # Indices: 1, 3, 5, 7, 9, 11, 13, 15 (per AN12196)
-        log.info(f"[STEP 7] Truncating CMAC (AN12196 spec)...")
-        log.info(f"  NXP 'even-numbered bytes' (1-indexed) = indices 1,3,5,7,9,11,13,15")
+        log.info("[STEP 7] Truncating CMAC (AN12196 spec)...")
+        log.info("  NXP 'even-numbered bytes' (1-indexed) = indices 1,3,5,7,9,11,13,15")
         log.info(f"  Full CMAC bytes:  {' '.join(f'{b:02X}' for b in full_cmac)}")
         log.info(f"  Byte positions:   {' '.join(f'{i:2d}' for i in range(16))}")
         log.info(f"  Selected (odd idx): {full_cmac[1]:02X} {full_cmac[3]:02X} {full_cmac[5]:02X} {full_cmac[7]:02X} {full_cmac[9]:02X} {full_cmac[11]:02X} {full_cmac[13]:02X} {full_cmac[15]:02X}")
@@ -357,20 +359,20 @@ class CsvKeyManager:
         log.info(f"  Truncated CMAC:     {calc_mac.hex().upper()}")
         result["cmac_calculated"] = calc_mac.hex().upper()
 
-        log.info(f"[STEP 8] Comparing CMACs...")
+        log.info("[STEP 8] Comparing CMACs...")
         log.info(f"  CMAC from URL:      {cmac.upper()}")
         log.info(f"  CMAC calculated:    {calc_mac.hex().upper()}")
 
         result["valid"] = (calc_mac.hex().upper() == cmac.upper())
 
         if result["valid"]:
-            log.info(f"  ✓ MATCH - Validation PASSED")
+            log.info("  ✓ MATCH - Validation PASSED")
         else:
-            log.info(f"  ✗ MISMATCH - Validation FAILED")
+            log.info("  ✗ MISMATCH - Validation FAILED")
             # Show byte-by-byte comparison for debugging
             received_bytes = bytes.fromhex(cmac) if len(cmac) == 16 else b''
             if len(received_bytes) == 8:
-                log.info(f"  Byte comparison:")
+                log.info("  Byte comparison:")
                 for i in range(8):
                     match = "✓" if received_bytes[i] == calc_mac[i] else "✗"
                     log.info(f"    [{i}] received={received_bytes[i]:02X} calc={calc_mac[i]:02X} {match}")
@@ -419,16 +421,12 @@ class CsvKeyManager:
 
         return sorted(list(unique_keys))
 
-    def save_tag_keys(self, uid: str, keys: TagKeys):
+    def save_tag_keys(self, keys: TagKeys):
         """Save or update all keys for a tag.
 
         Args:
-            uid: Tag UID as bytes
             keys: TagKeys object to save
         """
-        uid_str = uid.upper()
-        keys.uid = uid_str  # Ensure UID matches
-
         # Backup existing keys before updating
         self._create_timestamped_backup()
 
@@ -436,15 +434,20 @@ class CsvKeyManager:
         rows = []
         found = False
 
+        # Get UID string for comparison and storage
+        uid_str = keys.uid.uid if hasattr(keys.uid, 'uid') else str(keys.uid)
+
         if self.csv_path.exists():
             log.debug(f"[CSV READ] Reading from: {self.csv_path.absolute()}")
             with self.csv_path.open(newline="") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    if row["uid"].upper() == uid_str:
-                        # Update existing row
+                    if row["uid"].upper() == uid_str.upper():
+                        # Update existing row - convert TagKeys to dict with string UID
                         log.debug(f"[CSV UPDATE] Updating existing row for UID {uid_str}: {keys=}")
-                        rows.append(asdict(keys))
+                        row_dict = asdict(keys)
+                        row_dict["uid"] = uid_str  # Ensure UID is string, not UID object
+                        rows.append(row_dict)
                         found = True
                     else:
                         rows.append(row)
@@ -452,7 +455,9 @@ class CsvKeyManager:
         # Append new row if not found
         if not found:
             log.debug(f"[CSV INSERT] Adding new row for UID {uid_str}")
-            rows.append(asdict(keys))
+            new_row = asdict(keys)
+            new_row["uid"] = uid_str  # Ensure UID is string, not UID object
+            rows.append(new_row)
 
         # Write back
         log.debug(f"[CSV WRITE] Writing to: {self.csv_path.absolute()}")
@@ -461,7 +466,7 @@ class CsvKeyManager:
             writer.writeheader()
             writer.writerows(rows)
 
-        log.info(f"[OK] Saved keys for UID {uid_str} (status: {keys.status})")
+        log.info(f"[OK] Saved keys for UID {keys.uid} (status: {keys.status})")
 
 
     def _create_timestamped_backup(self):
@@ -486,20 +491,18 @@ class CsvKeyManager:
 
         log.info(f"Created timestamped backup: {backup_filepath}")
 
-    def _load_backups_for_uid(self, uid: str) -> list[TagKeys]:
+    def _load_backups_for_uid(self, uid: UID) -> list[TagKeys]:
         """Load all backup entries for the given UID (newest first)."""
         entries: list[TagKeys] = []
 
         if not self.backup_path.exists():
             return entries
 
-        uid_str = uid.upper()
-
         with self.backup_path.open(newline="") as f:
             fieldnames = [field.name for field in fields(TagKeys)]
             reader = csv.DictReader(f, fieldnames=fieldnames )
             for row in reader:
-                if row.get("uid", "").upper() != uid_str:
+                if row.get("uid", "").upper() != uid.uid:
                     continue
 
                 data = {field: row.get(field, "") for field in self.FIELDNAMES}
@@ -509,15 +512,15 @@ class CsvKeyManager:
         entries.sort(key=lambda entry: entry.timestamp, reverse=True)
         return entries
 
-    def get_backup_entries(self, uid: str) -> list[TagKeys]:
+    def get_backup_entries(self, uid: UID) -> list[TagKeys]:
         """Return backup entries for the UID, sorted newest first."""
         return self._load_backups_for_uid(uid)
 
-    def restore_from_backup(self, uid: str) -> TagKeys | None:
+    def restore_from_backup(self, uid: UID) -> TagKeys | None:
         """Restore the most recent backup entry for the UID back into the main CSV.
 
         Args:
-            uid: Tag UID as bytes
+            uid: Tag UID
 
         Returns:
             TagKeys of restored entry if a backup exists, otherwise None.
@@ -528,7 +531,7 @@ class CsvKeyManager:
 
         # Save restored keys back to primary CSV (this will backup current entry first)
         selected = backups[0]
-        self.save_tag_keys(uid, selected.keys)
+        self.save_tag_keys(selected.keys)
 
         return selected.keys
 
@@ -544,19 +547,18 @@ class CsvKeyManager:
 
         return tags
 
-    def generate_random_keys(self, uid: str) -> TagKeys:
+    def generate_random_keys(self, uid: UID) -> TagKeys:
         """Generate random keys for a tag.
 
         Args:
-            uid: Tag UID as bytes
+            uid: Tag UID
 
         Returns:
             TagKeys with randomly generated keys
         """
-        uid_str = uid.upper()
 
         return TagKeys(
-            uid=uid_str,
+            uid=uid,
             picc_master_key=secrets.token_hex(16),  # 16 bytes = 32 hex chars
             app_read_key=secrets.token_hex(16),
             sdm_mac_key=secrets.token_hex(16),
@@ -566,7 +568,7 @@ class CsvKeyManager:
         )
 
     @contextmanager
-    def provision_tag(self, uid: str, url: str | None = None):
+    def provision_tag(self, uid: UID, url: str | None = None):
         """Context manager for two-phase commit of tag provisioning.
 
         TWO-PHASE PROVISIONING:
@@ -578,7 +580,7 @@ class CsvKeyManager:
           - Tag must already have status='keys_configured'
 
         Args:
-            uid: Tag UID as bytes
+            uid: Tag UID
             url: Base URL for NDEF. If None, only keys are set (keys_configured).
                  If provided, SDM/NDEF configured (provisioned).
 
@@ -611,7 +613,7 @@ class CsvKeyManager:
         new_keys = self.generate_random_keys(uid)
         new_keys.status = "pending"
         new_keys.notes = "Provisioning in progress..."
-        self.save_tag_keys(uid, new_keys)
+        self.save_tag_keys(new_keys)
 
         success = False
         try:
@@ -624,13 +626,13 @@ class CsvKeyManager:
             if old_keys:
                 old_keys.status = "failed"
                 old_keys.notes = f"Provisioning failed: {e!s}"
-                self.save_tag_keys(uid, old_keys)
+                self.save_tag_keys(old_keys)
             else:
                 # No old keys - was factory, still is factory
-                factory_keys = TagKeys.from_factory_keys(uid.hex().upper())
+                factory_keys = TagKeys.from_factory_keys(uid)
                 factory_keys.status = "failed"
                 factory_keys.notes = f"Provisioning failed: {e!s}"
-                self.save_tag_keys(uid, factory_keys)
+                self.save_tag_keys(factory_keys)
             raise  # Re-raise exception
         finally:
             if success:
@@ -643,7 +645,7 @@ class CsvKeyManager:
                     # Phase 2: Full provisioning with URL
                     new_keys.status = "provisioned"
                     new_keys.notes = url
-                self.save_tag_keys(uid, new_keys)
+                self.save_tag_keys(new_keys)
 
     def print_summary(self):
         """Print summary of all tags in database."""

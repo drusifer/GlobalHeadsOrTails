@@ -4,8 +4,6 @@ from logging import getLogger
 from typing import Final
 from urllib.parse import parse_qs, urlparse
 
-from ntag424_sdm_provisioner.uid_utils import uid_to_asset_tag
-
 
 log = getLogger(__name__)
 
@@ -708,54 +706,8 @@ class AuthenticationResponse:
         return f"AuthenticationResponse(ti={self.ti.hex().upper()}, rnda_rotated={self.rnda_rotated.hex().upper()[:8]}..., pdcap_len={len(self.pdcap)}, pcdcap_len={len(self.pcdcap)})"
 
 
-# NOTE: Ntag424VersionInfo moved to commands/get_chip_version.py
-# Import directly: from ntag424_sdm_provisioner.commands.get_chip_version import Ntag424VersionInfo
-
-
-@dataclass
-class Ntag424VersionInfo:
-    """Version information from NTAG424 DNA chip."""
-
-    hw_vendor_id: int
-    hw_type: int
-    hw_subtype: int
-    hw_major_version: int
-    hw_minor_version: int
-    hw_storage_size: int
-    hw_protocol: int
-    sw_vendor_id: int
-    sw_type: int
-    sw_subtype: int
-    sw_major_version: int
-    sw_minor_version: int
-    sw_storage_size: int
-    sw_protocol: int
-    uid: bytes
-    batch_no: bytes
-    fab_week: int
-    fab_year: int
-
-    def __str__(self) -> str:
-        asset_tag = uid_to_asset_tag(self.uid)
-        return (
-            f"Ntag424VersionInfo(\n"
-            f"  UID: {self.uid.hex().upper()} [Tag: {asset_tag}],\n"
-            f"  Hardware: {self.hw_major_version}.{self.hw_minor_version} ({self.hw_storage_size}B),\n"
-            f"  Software: {self.sw_major_version}.{self.sw_minor_version} ({self.sw_storage_size}B),\n"
-            f"  Batch: {self.batch_no.hex().upper()},\n"
-            f"  Fab: Week {self.fab_week}, Year {self.fab_year}\n"
-            f"  {'=' * 60}\n"
-            f"\n"
-            f"CHIP INFORMATION:\n"
-            f"  UID: {self.uid.hex().upper()}\n"
-            f"  Asset Tag: {asset_tag} <- Write on label\n"
-            f"  Hardware Protocol: {self.hw_protocol}\n"
-            f"  Software Protocol: {self.sw_protocol}\n"
-            f"  Hardware Type: {self.hw_type}\n"
-            f"  Software Type: {self.sw_type}\n"
-            f"\n"
-            f")"
-        )
+# NOTE: Ntag424VersionInfo is defined in commands/get_chip_version.py
+# Import: from ntag424_sdm_provisioner.commands.get_chip_version import Ntag424VersionInfo
 
 
 @dataclass

@@ -1,28 +1,27 @@
-"""
-RAW PYSCARD TEST - with CORRECT session key derivation per datasheet.
+"""RAW PYSCARD TEST - with CORRECT session key derivation per datasheet.
 
 Implements the CORRECT 32-byte SV formula from NXP datasheet Section 9.1.7:
 SV1 = A5||5A||00||01||00||80||RndA[15..14]||(RndA[13..8] XOR RndB[15..10])||RndB[9..0]||RndA[7..0]
 """
 
 import os
+
 from smartcard.System import readers
 from smartcard.util import toHexString
 
 # All crypto from verified primitives module
 from ntag424_sdm_provisioner.crypto.crypto_primitives import (
     calculate_cmac,
-    derive_session_keys,
+    decrypt_auth_response,
     decrypt_rndb,
-    rotate_left,
+    derive_session_keys,
     encrypt_auth_response,
-    decrypt_auth_response
+    rotate_left,
 )
 
 
 def test_with_correct_derivation():
     """Test GetKeyVersion with CORRECT session key derivation."""
-    
     print("\n" + "="*70)
     print("RAW PYSCARD - CORRECT SESSION KEY DERIVATION")
     print("="*70)

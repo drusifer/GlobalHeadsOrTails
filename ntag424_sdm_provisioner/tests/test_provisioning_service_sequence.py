@@ -1,5 +1,4 @@
-"""
-Test: Provisioning Service Command Sequence
+"""Test: Provisioning Service Command Sequence
 
 Validates that the ProvisioningService executes commands in the correct
 sequence and on the correct connection type (authenticated vs. unauthenticated).
@@ -47,8 +46,7 @@ def test_change_file_settings_is_unauthenticated(
     mock_auth_connection,
     key_manager,
 ):
-    """
-    Verify that ChangeFileSettings is sent on the unauthenticated connection,
+    """Verify that ChangeFileSettings is sent on the unauthenticated connection,
     while other commands are sent on the authenticated connection.
     """
     # Arrange: Make the AuthenticateEV2 context manager return our mock auth_conn

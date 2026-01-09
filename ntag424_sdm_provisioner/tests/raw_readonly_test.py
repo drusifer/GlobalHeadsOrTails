@@ -1,26 +1,24 @@
-"""
-RAW PYSCARD TEST A - READ ONLY
+"""RAW PYSCARD TEST A - READ ONLY
 
 Uses ONLY crypto_primitives.py, no other production code.
 Tests if authenticated commands work with fresh tag.
 """
 
 import os
-from smartcard.System import readers
-from smartcard.util import toHexString
+
 from Crypto.Cipher import AES
 from Crypto.Hash import CMAC
+from smartcard.System import readers
+from smartcard.util import toHexString
 
 # Import ONLY crypto_primitives
 from ntag424_sdm_provisioner.crypto.crypto_primitives import calculate_cmac
 
 
 def raw_readonly_test():
-    """
-    Authenticate and try GetKeyVersion using raw pyscard + crypto_primitives only.
+    """Authenticate and try GetKeyVersion using raw pyscard + crypto_primitives only.
     Safe - does NOT modify tag.
     """
-    
     print("\n" + "="*70)
     print("RAW PYSCARD TEST A - READ ONLY")
     print("="*70)

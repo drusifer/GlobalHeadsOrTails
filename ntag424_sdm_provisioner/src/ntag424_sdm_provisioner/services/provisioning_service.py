@@ -27,7 +27,7 @@ from ntag424_sdm_provisioner.constants import (
 from ntag424_sdm_provisioner.crypto.auth_session import AuthenticateEV2
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, TagKeys
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
-from ntag424_sdm_provisioner.uid_utils import get_uid_string
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
@@ -92,9 +92,7 @@ class ProvisioningService:
 
             self._log("[Step 1] Reading tag UID...")
             version = self.card.send(GetChipVersion())
-            uid_bytes = version.uid
-            uid = get_uid_string(uid_bytes)
-            self._log(f"  Tag UID: {uid}")
+            self._log(f"  Tag UID: {version.uid}")
 
             # Check key versions
             self._log("[Step 1] Reading key versions...")
@@ -105,12 +103,13 @@ class ProvisioningService:
 
             # Check database state
             self._log("[Step 1] Checking key state in database...")
+            uid = version.uid  # Already a UID object
             try:
                 current_keys = self.key_mgr.get_tag_keys(uid)
-                self._log(f"  {uid} Found in database (status={current_keys.status}): {current_keys=}")
+                self._log(f"  {uid.uid} Found in database (status={current_keys.status}): {current_keys=}")
             except Exception:
                 current_keys = None
-                self._log(f"  {uid} Not in database - assuming factory state")
+                self._log(f"  {uid.uid} Not in database - assuming factory state")
 
             # Detect tag state - HARDWARE IS SOURCE OF TRUTH
             is_factory = self._is_factory_state(
@@ -131,7 +130,7 @@ class ProvisioningService:
                     if picc_is_set:
                         # We have a verified PICC key - override hardware "factory" detection
                         self._log(
-                            f"  INFO: Hardware shows key versions 0x00 but DB has verified PICC Master Key"
+                            "  INFO: Hardware shows key versions 0x00 but DB has verified PICC Master Key"
                         )
                         self._log(f"  DB status: {current_keys.status}")
                         self._log("  Key version 0x00 doesn't mean factory - it means version not incremented")
@@ -183,7 +182,7 @@ class ProvisioningService:
             # STEP 2: SET KEYS
             self._log("[Step 2] Starting key provisioning...")
 
-            with self.key_mgr.provision_tag(uid, url=None) as new_keys:
+            with self.key_mgr.provision_tag(version.uid, url=None) as new_keys:
                 self._log("  New keys generated (status='pending')")
                 self._log(f"  PICC Master: {new_keys.picc_master_key[:16]}...")
                 self._log(f"  App Read:    {new_keys.app_read_key[:16]}...")
@@ -303,9 +302,8 @@ class ProvisioningService:
 
             self._log("[Step 1] Reading tag UID...")
             version = self.card.send(GetChipVersion())
-            uid_bytes = version.uid
-            uid = get_uid_string(uid_bytes)
-            self._log(f"  Tag UID: {uid}")
+            uid = version.uid  # Already a UID object
+            self._log(f"  Tag UID: {uid.uid}")
 
             # Get keys from database
             self._log("[Step 1] Loading keys from database...")
@@ -313,7 +311,7 @@ class ProvisioningService:
                 current_keys = self.key_mgr.get_tag_keys(uid)
                 self._log(f"  Found in database (status={current_keys.status})")
                 # DEBUG: Log all keys that will be used
-                self._log(f"[URL PROVISIONING] Keys loaded from database:")
+                self._log("[URL PROVISIONING] Keys loaded from database:")
                 self._log(f"  PICC Master Key: {current_keys.picc_master_key}")
                 self._log(f"  App Read Key: {current_keys.app_read_key}")
                 self._log(f"  SDM MAC Key (Key 3): {current_keys.sdm_mac_key}")
@@ -364,7 +362,7 @@ class ProvisioningService:
             # Update URL and status in database
             current_keys.status = "provisioned"
             current_keys.notes = base_url
-            self.key_mgr.save_tag_keys(uid, current_keys)
+            self.key_mgr.save_tag_keys(current_keys)
 
             self._log("URL provisioning complete! Tag status: provisioned")
             return True
@@ -401,9 +399,8 @@ class ProvisioningService:
             # 1b. Get Chip Info (UID)
             self._log("[Step 1] Reading tag UID...")
             version = self.card.send(GetChipVersion())
-            uid_bytes = version.uid
-            uid = get_uid_string(uid_bytes)
-            self._log(f"  Tag UID: {uid}")
+            uid = version.uid  # Already a UID object
+            self._log(f"  Tag UID: {uid.uid}")
 
             # 1c. Get File Settings (detect current SDM configuration)
             self._log("[Step 1] Reading file settings...")
@@ -475,7 +472,7 @@ class ProvisioningService:
             # STEP 2: IF FACTORY → SET KEYS
             self._log("[Step 2] Starting two-phase key provisioning...")
 
-            with self.key_mgr.provision_tag(uid, url=base_url) as new_keys:
+            with self.key_mgr.provision_tag(version.uid, url=base_url) as new_keys:
                 self._log("  New keys generated (status='pending')")
                 self._log(f"  PICC Master: {new_keys.picc_master_key[:16]}...")
                 self._log(f"  App Read:    {new_keys.app_read_key[:16]}...")

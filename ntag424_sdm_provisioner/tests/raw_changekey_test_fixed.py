@@ -1,15 +1,14 @@
-"""
-RAW PYSCARD - ChangeKey with CORRECT session key derivation.
+"""RAW PYSCARD - ChangeKey with CORRECT session key derivation.
 
 Uses fixed 32-byte SV formula from datasheet.
 """
 
+import logging
 import os
+
 from smartcard.System import readers
 from smartcard.util import toHexString
 
-
-import logging
 
 # Configure logging
 logging.basicConfig(
@@ -21,14 +20,14 @@ log = logging.getLogger(__name__)
 # All crypto from verified primitives module
 from ntag424_sdm_provisioner.crypto.crypto_primitives import (
     build_key_data,
-    calculate_iv_for_command,
-    encrypt_key_data,
     calculate_cmac,
-    derive_session_keys,
+    calculate_iv_for_command,
+    decrypt_auth_response,
     decrypt_rndb,
-    rotate_left,
+    derive_session_keys,
     encrypt_auth_response,
-    decrypt_auth_response
+    encrypt_key_data,
+    rotate_left,
 )
 
 # Key manager for saved keys
@@ -37,7 +36,6 @@ from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
 
 def test_changekey_with_correct_keys():
     """Test ChangeKey with CORRECT session keys."""
-    
     log.info("="*70)
     log.info("RAW PYSCARD - CHANGEKEY WITH FIXED SESSION KEYS")
     log.info("="*70)
@@ -114,7 +112,7 @@ def test_changekey_with_correct_keys():
     log.debug(f"  RndA (generated): {rnda.hex()}")
     
     # Phase 2
-    log.debug(f"  Phase 2: Building encrypted response...")
+    log.debug("  Phase 2: Building encrypted response...")
     plaintext = rnda + rndb_rotated
     log.debug(f"  Plaintext: {plaintext.hex()}")
     

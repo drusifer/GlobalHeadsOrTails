@@ -3,7 +3,7 @@
 WARNING: This command ERASES all data and resets all keys to factory defaults!
 """
 
-from ntag424_sdm_provisioner.commands.base import AuthApduCommand, AuthenticatedConnection
+from ntag424_sdm_provisioner.commands.base import AuthApduCommand
 from ntag424_sdm_provisioner.constants import SuccessResponse
 
 

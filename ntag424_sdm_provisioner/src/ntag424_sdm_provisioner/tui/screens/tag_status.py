@@ -13,7 +13,6 @@ from ntag424_sdm_provisioner.sequence_logger import (
     create_sequence_logger,
     format_step_line,
 )
-from ntag424_sdm_provisioner.services.diagnostics_service import TagDiagnosticsService
 from ntag424_sdm_provisioner.tui.logging_handler import TextualLogHandler
 from ntag424_sdm_provisioner.tui.widgets import TagStatusWidget
 from ntag424_sdm_provisioner.tui.worker_manager import WorkerManager

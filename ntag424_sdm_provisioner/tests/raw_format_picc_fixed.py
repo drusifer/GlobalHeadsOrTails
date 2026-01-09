@@ -1,25 +1,24 @@
-"""
-RAW PYSCARD - FORMAT_PICC with CORRECT session key derivation.
+"""RAW PYSCARD - FORMAT_PICC with CORRECT session key derivation.
 """
 
 import os
+
 from smartcard.System import readers
 from smartcard.util import toHexString
 
 # All crypto from verified primitives module
 from ntag424_sdm_provisioner.crypto.crypto_primitives import (
     calculate_cmac,
-    derive_session_keys,
+    decrypt_auth_response,
     decrypt_rndb,
-    rotate_left,
+    derive_session_keys,
     encrypt_auth_response,
-    decrypt_auth_response
+    rotate_left,
 )
 
 
 def test_format_picc():
     """Test FORMAT_PICC with corrected session keys."""
-    
     print("\n" + "="*70)
     print("RAW PYSCARD - FORMAT_PICC (0xFC)")
     print("="*70)

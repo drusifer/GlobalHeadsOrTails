@@ -1,9 +1,9 @@
 import os
 
 from ntag424_sdm_provisioner.key_manager import (
+    DerivedKeyManager,
     DerivingKeyGenerator,
     InMemoryKeyStorage,
-    DerivedKeyManager,
 )
 
 

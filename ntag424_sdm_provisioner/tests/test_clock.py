@@ -1,5 +1,4 @@
 """Unit tests for Clock abstraction."""
-import pytest
 from ntag424_sdm_provisioner.tui.clock import FakeClock, RealClock
 
 

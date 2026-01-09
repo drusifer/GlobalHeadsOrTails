@@ -1,5 +1,4 @@
-"""
-DNA_Calc Reference Implementation
+"""DNA_Calc Reference Implementation
 
 This is the Arduino-based reference implementation for ChangeKey operations.
 Kept in test package for validation and comparison with production implementation.
@@ -9,9 +8,10 @@ Purpose: Verify our production ChangeKey implementation is correct
 Coverage: 99% (from original testing)
 """
 
+import zlib
+
 from Crypto.Cipher import AES
 from Crypto.Hash import CMAC
-import zlib
 
 
 def memcpy(dest: bytearray, src: bytearray, num_bytes: int, src_start=0, dest_start=0):
@@ -24,8 +24,7 @@ class CRC32Z:
     
     @staticmethod
     def calculate(data: bytearray, length: int) -> int:
-        """
-        Calculate the CRC32 checksum of a byte array.
+        """Calculate the CRC32 checksum of a byte array.
         
         Args:
             data: bytearray to calculate checksum for
@@ -51,8 +50,7 @@ class CRC32:
     
     @staticmethod
     def calculate(data: bytearray, length: int) -> int:
-        """
-        Calculate the CRC32 checksum of a byte array.
+        """Calculate the CRC32 checksum of a byte array.
         
         Args:
             data: bytearray to calculate checksum for
@@ -75,8 +73,7 @@ class CRC32:
 
 
 class DNA_Calc:
-    """
-    DNA calculation helper for NTAG424 change key operations.
+    """DNA calculation helper for NTAG424 change key operations.
     
     Reference implementation based on Arduino MFRC522_NTAG424DNA library.
     Used for testing and validating the production implementation.

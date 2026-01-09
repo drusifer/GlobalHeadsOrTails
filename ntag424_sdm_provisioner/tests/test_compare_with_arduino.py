@@ -1,5 +1,4 @@
-"""
-Compare our ChangeKey APDU with Arduino-captured APDU using SAME session keys.
+"""Compare our ChangeKey APDU with Arduino-captured APDU using SAME session keys.
 
 We'll hardcode session keys from a known good Arduino session and verify
 our APDU construction matches byte-for-byte.
@@ -9,12 +8,10 @@ from ntag424_sdm_provisioner.crypto.crypto_primitives import build_changekey_apd
 
 
 def test_compare_with_arduino_capture():
-    """
-    Use session keys from Arduino to build ChangeKey APDU and compare.
+    """Use session keys from Arduino to build ChangeKey APDU and compare.
     
     This tests if our APDU construction matches Arduino when using IDENTICAL inputs.
     """
-    
     print("\n=== COMPARING WITH ARDUINO WIRE CAPTURE ===\n")
     
     # These values should be captured from Arduino Serial.print()

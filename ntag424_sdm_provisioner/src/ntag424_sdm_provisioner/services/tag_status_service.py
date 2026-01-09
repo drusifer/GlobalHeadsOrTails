@@ -8,6 +8,7 @@ from ntag424_sdm_provisioner.commands.get_key_version import GetKeyVersion
 from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccApplication
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, TagKeys
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ class TagStatusService:
         # Select application and read chip version
         self.card.send(SelectPiccApplication())
         version_info = self.card.send(GetChipVersion())
-        uid = version_info.uid.hex().upper()
+        uid = version_info.uid.uid  # version_info.uid is already a UID object
 
         # Read key versions from hardware
         key0_resp = self.card.send(GetKeyVersion(key_no=0))

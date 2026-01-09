@@ -1,7 +1,10 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from ntag424_sdm_provisioner.tui.commands.tag_status_command import TagStatusCommand
+
+import pytest
+
 from ntag424_sdm_provisioner.constants import FACTORY_KEY
+from ntag424_sdm_provisioner.tui.commands.tag_status_command import TagStatusCommand
+
 
 class TestTagStatusCommand:
     

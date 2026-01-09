@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""
-Example demonstrating the trace utilities for debugging.
+"""Example demonstrating the trace utilities for debugging.
 """
 
 import logging
+
 
 # Setup logging to see trace output
 logging.basicConfig(
@@ -11,12 +11,7 @@ logging.basicConfig(
     format='%(levelname)-8s [%(name)s] %(message)s'
 )
 
-from ntag424_sdm_provisioner.trace_util import (
-    trace_calls,
-    trace_block,
-    trace_apdu,
-    trace_crypto
-)
+from ntag424_sdm_provisioner.trace_util import trace_apdu, trace_block, trace_calls, trace_crypto
 
 
 # Example 1: Trace function calls
@@ -31,7 +26,6 @@ def calculate_session_keys(rnda: bytes, rndb: bytes, key: bytes):
 # Example 2: Trace code blocks
 def example_with_blocks():
     """Example using trace_block context manager."""
-    
     with trace_block("Authentication Phase 1"):
         rndb_encrypted = bytes([0x12, 0x34, 0x56, 0x78] * 4)
         print(f"Received encrypted RndB: {rndb_encrypted.hex()}")
@@ -50,7 +44,6 @@ def example_with_blocks():
 # Example 3: Trace APDUs
 def example_apdu_tracing():
     """Example of APDU tracing."""
-    
     # Command APDU
     select_apdu = [0x00, 0xA4, 0x04, 0x00, 0x07, 
                    0xD2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01, 0x00]

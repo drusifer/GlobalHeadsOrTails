@@ -1,5 +1,4 @@
-"""
-RAW PYSCARD - FORMAT_PICC (0xFC)
+"""RAW PYSCARD - FORMAT_PICC (0xFC)
 
 Uses ONLY crypto_primitives.py, no other production code.
 Sends FORMAT_PICC to reset tag to factory defaults.
@@ -8,25 +7,24 @@ WARNING: This ERASES all keys and data!
 """
 
 import os
-from smartcard.System import readers
-from smartcard.util import toHexString
+
 from Crypto.Cipher import AES
 from Crypto.Hash import CMAC
+from smartcard.System import readers
+from smartcard.util import toHexString
 
 # Import ONLY crypto_primitives
 from ntag424_sdm_provisioner.crypto.crypto_primitives import calculate_cmac
 
 
 def raw_format_picc():
-    """
-    Format PICC using raw pyscard + crypto_primitives only.
+    """Format PICC using raw pyscard + crypto_primitives only.
     
     Command sequence:
     1. Select PICC
     2. Authenticate with current key (factory or known key)
     3. Send FORMAT_PICC (0xFC)
     """
-    
     print("\n" + "="*70)
     print("RAW PYSCARD - FORMAT_PICC")
     print("="*70)

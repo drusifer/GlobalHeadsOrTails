@@ -571,7 +571,7 @@ classDiagram
         +csv_file: str
         +backup_dir: str
         +get_tag_keys(uid) TagKeys
-        +save_tag_keys(uid, keys)
+        +save_tag_keys(keys)
         +delete_tag(uid)
         +provision_tag(uid, url) ContextManager
     }

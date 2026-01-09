@@ -1,10 +1,8 @@
-"""
-Tests for Phase 1: Core SDM Commands
+"""Tests for Phase 1: Core SDM Commands
 
 Simple tests to verify GetFileCounters command structure and basic functionality.
 """
 
-import pytest
 from ntag424_sdm_provisioner.commands.get_file_counters import GetFileCounters
 from ntag424_sdm_provisioner.constants import APDUInstruction
 

@@ -12,7 +12,6 @@ from ntag424_sdm_provisioner.tools.tool_helpers import (
     configure_sdm_with_offsets,
 )
 from ntag424_sdm_provisioner.trace_util import trace_block
-from ntag424_sdm_provisioner.uid_utils import uid_to_asset_tag
 
 
 class ConfigureSdmTool:
@@ -41,7 +40,7 @@ class ConfigureSdmTool:
     def get_confirmation_request(self, tag_state: TagState) -> ConfirmationRequest:
         """Request confirmation before configuring SDM."""
         return ConfirmationRequest(
-            title=f"Configure SDM on {uid_to_asset_tag(tag_state.uid)}",
+            title=f"Configure SDM on {tag_state.uid}",
             items=[
                 f"Base URL: {self.base_url[:60]}{'...' if len(self.base_url) > 60 else ''}",
                 "Enable UID mirroring",
@@ -66,6 +65,7 @@ class ConfigureSdmTool:
 
         # Authenticate and configure SDM
         with trace_block("Configure SDM"):
+            # TagKeys normalizes bytes to string in __post_init__
             tag_keys = key_mgr.get_tag_keys(tag_state.uid)
             picc_key = tag_keys.get_picc_master_key_bytes()
 
@@ -78,15 +78,12 @@ class ConfigureSdmTool:
                 card.send(ISOSelectFile(ISOFileID.NDEF_FILE))
                 card.send(WriteNdefMessage(ndef_record))
 
-        # Backup keys
-        key_mgr.backup_keys(tag_state.uid)
-
         # Return structured result
         return ToolResult(
             success=True,
             message="SDM Configuration Complete!",
             details={
-                "asset_tag": uid_to_asset_tag(tag_state.uid),
+                "asset_tag": tag_state.uid.asset_tag,
                 "url_template": url_template,
                 "template_length": len(url_template),
                 "uid_offset": sdm_config.offsets.uid_offset,

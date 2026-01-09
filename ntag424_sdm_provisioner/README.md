@@ -573,7 +573,7 @@ with AuthenticateEV2(factory_key, key_no=0)(card) as auth:
     auth.send(ChangeKey(3, factory_key, keys.get_sdm_mac_key_bytes(), 0x00))
 
 # Update database
-key_mgr.save_tag_keys(uid, TagKeys.from_factory_keys(uid.hex().upper()))
+key_mgr.save_tag_keys(TagKeys.from_factory_keys(uid))
 ```
 
 ---

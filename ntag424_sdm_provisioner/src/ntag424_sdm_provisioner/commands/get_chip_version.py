@@ -1,10 +1,10 @@
 """GetChipVersion command for NTAG424 DNA."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import ClassVar
 
 from ntag424_sdm_provisioner.commands.base import ApduCommand
-from ntag424_sdm_provisioner.uid_utils import uid_to_asset_tag
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 @dataclass
@@ -25,16 +25,15 @@ class Ntag424VersionInfo:
     sw_minor_version: int
     sw_storage_size: int
     sw_protocol: int
-    uid: bytes
     batch_no: bytes
     fab_week: int
     fab_year: int
+    uid: UID
 
     def __str__(self) -> str:
-        asset_tag = uid_to_asset_tag(self.uid)
         return (
             f"Ntag424VersionInfo(\n"
-            f"  UID: {self.uid.hex().upper()} [Tag: {asset_tag}],\n"
+            f"  UID: {self.uid}\n"
             f"  Hardware: {self.hw_major_version}.{self.hw_minor_version} ({self.hw_storage_size}B),\n"
             f"  Software: {self.sw_major_version}.{self.sw_minor_version} ({self.sw_storage_size}B),\n"
             f"  Batch: {self.batch_no.hex().upper()},\n"
@@ -42,8 +41,7 @@ class Ntag424VersionInfo:
             f"  {'=' * 60}\n"
             f"\n"
             f"CHIP INFORMATION:\n"
-            f"  UID: {self.uid.hex().upper()}\n"
-            f"  Asset Tag: {asset_tag} <- Write on label\n"
+            f"  UID: {self.uid}\n"
             f"  Hardware Protocol: {self.hw_protocol}\n"
             f"  Software Protocol: {self.sw_protocol}\n"
             f"  Hardware Type: {self.hw_type}\n"
@@ -111,7 +109,7 @@ class GetChipVersion(ApduCommand):
         sw_protocol = data[13]
 
         # Part 3: Production info (bytes 14-27)
-        uid = data[14:21]  # 7 bytes
+        uid = UID(data[14:21])  # 7 bytes
         batch_no = data[21:25]  # 4 bytes
         cw_prod = data[26]  # Calendar week
         year_prod = data[27]  # Year

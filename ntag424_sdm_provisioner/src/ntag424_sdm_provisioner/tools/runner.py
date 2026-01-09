@@ -22,7 +22,7 @@ from ntag424_sdm_provisioner.tools.restore_backup_tool import RestoreBackupTool
 from ntag424_sdm_provisioner.tools.tool_helpers import has_ndef_content as check_ndef_content
 from ntag424_sdm_provisioner.tools.tool_helpers import read_ndef_file
 from ntag424_sdm_provisioner.trace_util import trace_block
-from ntag424_sdm_provisioner.uid_utils import uid_to_asset_tag
+from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
@@ -260,16 +260,15 @@ class ToolRunner:
         """
         # Get UID and version
         version_info = card.send(GetChipVersion())
-        uid = version_info.uid
-        asset_tag = uid_to_asset_tag(uid)
+        asset_tag = version_info.uid.asset_tag
 
-        log.info(f"Assessing tag state for UID: {uid.hex().upper()} [{asset_tag}]")
+        log.info(f"Assessing tag state for UID: {version_info.uid}")
 
         # Check database
         in_database = False
         keys = None
         try:
-            keys = self.key_mgr.get_tag_keys(uid)
+            keys = self.key_mgr.get_tag_keys(version_info.uid)
             in_database = True
             log.debug(f"Tag in database: status={keys.status}")
         except KeyError:
@@ -285,20 +284,20 @@ class ToolRunner:
             log.debug(f"Could not read NDEF: {e}")
 
         # Check backups
-        backups = self._get_backups_for_uid(uid)
+        backups = self._get_backups_for_uid(version_info.uid)
         has_successful_backup = any(b.get("status") == "provisioned" for b in backups)
 
         log.debug(f"Backups: {len(backups)} total, successful={has_successful_backup}")
 
         return TagState(
-            uid=uid,
+            uid=version_info.uid,
             in_database=in_database,
             keys=keys,
             has_ndef=ndef_has_content,
             backup_count=len(backups),
         )
 
-    def _get_backups_for_uid(self, uid: bytes) -> list:
+    def _get_backups_for_uid(self, uid: UID) -> list:
         """Load all backups for a specific UID."""
         backups: list[dict[str, str]] = []
         backup_path = self.key_mgr.backup_path
@@ -306,12 +305,10 @@ class ToolRunner:
         if not backup_path.exists():
             return backups
 
-        uid_hex = uid.hex().upper()
-
         try:
             with backup_path.open(newline="") as f:
                 reader = csv.DictReader(f)
-                backups = [row for row in reader if row["uid"].upper() == uid_hex]
+                backups = [row for row in reader if row["uid"].upper() == uid.uid]
         except Exception as e:
             log.warning(f"Error reading backups: {e}")
 
@@ -329,7 +326,7 @@ class ToolRunner:
         print("\n" + "=" * 70)
         print("NTAG424 Tag Tool Menu")
         print("=" * 70)
-        print(f"Tag: {uid_to_asset_tag(tag_state.uid)} (UID: {tag_state.uid.hex().upper()})")
+        print(f"Tag: {tag_state.uid})")
 
         if tag_state.in_database:
             status = tag_state.keys.status if tag_state.keys else "unknown"
