@@ -13,6 +13,8 @@ from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from pathlib import Path
 from typing import ClassVar
+from enum import Enum
+import json
 
 from ntag424_sdm_provisioner.crypto.crypto_primitives import calculate_cmac_full, truncate_cmac
 from ntag424_sdm_provisioner.key_manager_interface import KEY_DEFAULT_FACTORY
@@ -20,6 +22,10 @@ from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
+class Outcome(Enum):
+    HEADS = "heads"
+    TAILS = "tails"
+    INVALID = "invalid"
 
 @dataclass
 class TagKeys:
@@ -29,6 +35,7 @@ class TagKeys:
     picc_master_key: str  # Key 0 (hex string, 32 chars)
     app_read_key: str  # Key 1 (hex string, 32 chars)
     sdm_mac_key: str  # Key 3 (hex string, 32 chars)
+    outcome: Outcome # heads or tails
     provisioned_date: str  # ISO format timestamp
     status: str  # 'factory', 'provisioned', 'locked', 'error'
     notes: str = ""
@@ -59,13 +66,14 @@ class TagKeys:
         """Format TagKeys for display."""
         return (
             f"TagKeys(\n"
-            f"  UID: {self.uid}\n"
-            f"  Status: {self.status}\n"
-            f"  Provisioned: {self.provisioned_date}\n"
-            f"  Notes: {self.notes[:50]}{'...' if len(self.notes) > 50 else ''}\n"
+            f"  UID: {self.uid} [Tag: {asset_tag}]\n"
             f"  PICC Master Key: {self.picc_master_key}\n"
             f"  App Read Key: {self.app_read_key}\n"
             f"  SDM MAC Key: {self.sdm_mac_key}\n"
+            f"  Outcome: {self.outcome.value}\n"
+            f"  Provisioned: {self.provisioned_date}\n"
+            f"  Status: {self.status}\n"
+            f"  Notes: {self.notes[:50]}{'...' if len(self.notes) > 50 else ''}\n"
             f"  Last Used: {self.last_used_date}\n"
             f")"
         )
@@ -79,9 +87,11 @@ class TagKeys:
             picc_master_key=factory_key,
             app_read_key=factory_key,
             sdm_mac_key=factory_key,
+            outcome=Outcome.INVALID,
             provisioned_date=datetime.now().isoformat(),
             status="factory",
             notes="Factory default keys",
+            last_used_date="",
         )
 
 def build_system_vector(uid: UID, ctr: int) -> bytes:
@@ -207,6 +217,18 @@ class CsvKeyManager:
         else:
             # For other key numbers, return factory key (we don't use them yet)
             return KEY_DEFAULT_FACTORY
+    
+    def get_outcome(self, uid: str) -> Outcome:
+        """Get the outcome for a specific tag UID.
+
+        Args:
+            uid: Tag UID as bytes       
+        Returns:
+            Outcome enum value
+        """
+        tag_keys = self.get_tag_keys(uid)
+        log.debug(f"[GET OUTCOME] UID: {uid}, Outcome: {tag_keys.outcome}, Keys: {tag_keys}")
+        return tag_keys.outcome
 
     def get_tag_keys(self, uid: UID) -> TagKeys:
         """Get all keys for a specific tag UID.
@@ -233,9 +255,11 @@ class CsvKeyManager:
                 for row in reader:
                     if row["uid"].upper() == uid.uid:
                         print(
-                            f"[OK] Found keys for {uid} in main database (status={row.get('status', '?')})"
+                            f"[OK] Found keys for {uid_str} in main database ({json.dumps(row)})"
                         )
-                        return TagKeys(**row)
+                        tk = TagKeys(**row)
+                        tk.outcome = Outcome(row.get("outcome", "Invalid"))
+                        return tk
 
         print(f"[WARNING] UID {uid} not found in database") 
         print("[INFO] Using factory default keys")

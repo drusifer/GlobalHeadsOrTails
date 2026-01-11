@@ -38,12 +38,11 @@
     "deny": [],
     "ask": []
   },
-  "enableAllProjectMcpServers": false,
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "filesystem",
     "github",
     "memory",
-    "sequential-thinking",
-    "sqlite"
+    "sequential-thinking"
   ]
 }

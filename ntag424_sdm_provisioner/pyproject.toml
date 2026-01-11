@@ -8,14 +8,18 @@ version = "0.1.0"
 description = "A Python tool to provision NTAG424 DNA tags for SDM."
 authors = [{ name = "Drew's Coding Partner" }]
 requires-python = ">=3.8"
-dependencies = [
+dependencies = []
+
+[project.optional-dependencies]
+provisioner = [
     "pyscard>=2.0.0",
-    "pycryptodome>=3.12.0",
     "textual>=0.40.0",
     "packaging>=23.0",
 ]
-
-[project.optional-dependencies]
+server = [
+    "flask>=3.0.0",
+    "pycryptodome>=3.12.0",
+]
 dev = [
     # Testing
     "pytest>=7.0.0",
@@ -33,6 +37,7 @@ dev = [
     "prospector>=1.10.0",     # Meta-linter (combines multiple tools)
     # Task Runner
     "poethepoet>=0.24.0",     # Task automation
+    "pyopenssl",
 ]
 docs = [
     "PyMuPDF>=1.20.0",
