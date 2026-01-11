@@ -37,6 +37,7 @@ dev = [
     "prospector>=1.10.0",     # Meta-linter (combines multiple tools)
     # Task Runner
     "poethepoet>=0.24.0",     # Task automation
+    "pyopenssl",
 ]
 docs = [
     "PyMuPDF>=1.20.0",

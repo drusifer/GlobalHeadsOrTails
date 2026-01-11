@@ -1,4 +1,5 @@
 import sys
+from os import getenv
 import logging
 from flask import Flask, request, render_template
 from pathlib import Path
@@ -46,6 +47,7 @@ def index():
         return render_template('index.html', error="Invalid Counter Format", params=params_display, totals=totals)
 
     validation_result = key_manager.validate_sdm_url(uid, ctr_int, cmac)
+    log.debug(f"[VALIDATION] UID: {uid}, CTR: {ctr_int}, CMAC: {cmac}, Result: {validation_result}")
     
     if not validation_result['valid']:
         return render_template('index.html', error="CMAC Verification Failed", params=params_display, totals=totals)
@@ -57,22 +59,24 @@ def index():
     if ctr_int <= state.last_counter:
         msg = f"Replay Detected! Old Counter {state.last_counter} >= New {ctr_int}"
         log.warning(f"[REPLAY] {msg}")
-        return render_template('index.html', error=msg, params=params_display, outcome=state.outcome, totals=totals)
+        return render_template('index.html', error=msg, params=params_display, outcome='Invalid', totals=totals)
 
     # 3. Determine Outcome (Pre-determined based on UID from Keys DB)
     new_outcome = key_manager.get_outcome(uid)
     
     # Update State
-    game_manager.update_state(uid, ctr_int, new_outcome, cmac)
+    game_manager.update_state(uid, ctr_int, new_outcome.value, cmac)
     
     # Update display
     params_display['outcome'] = new_outcome
     params_display['counter_int'] = ctr_int
     totals = game_manager.get_totals() # Refresh totals after insert
 
-    return render_template('index.html', outcome=new_outcome, params=params_display, totals=totals)
+    return render_template('index.html', outcome=new_outcome.value, params=params_display, totals=totals)
 
 if __name__ == '__main__':
     # Ensure data directory exists
     Path("data").mkdir(exist_ok=True)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = getenv("PORT", "5000")
+    log.info(f"Starting Flask app on port {port}...")
+    app.run(host='0.0.0.0', port=int(port), debug=True)

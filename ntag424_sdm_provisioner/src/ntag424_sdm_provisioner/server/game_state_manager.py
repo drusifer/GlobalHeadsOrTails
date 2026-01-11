@@ -175,6 +175,6 @@ class SqliteGameStateManager(IGameStateManager):
 
     def get_totals(self) -> Dict[str, int]:
         with self._get_conn() as conn:
-            heads = conn.execute("SELECT COUNT(*) FROM scan_logs WHERE outcome = 'Heads'").fetchone()[0]
-            tails = conn.execute("SELECT COUNT(*) FROM scan_logs WHERE outcome = 'Tails'").fetchone()[0]
+            heads = conn.execute("SELECT COUNT(*) FROM scan_logs WHERE outcome = 'heads'").fetchone()[0]
+            tails = conn.execute("SELECT COUNT(*) FROM scan_logs WHERE outcome = 'tails'").fetchone()[0]
             return {"heads": heads, "tails": tails}

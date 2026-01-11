@@ -15,7 +15,7 @@ export PYTHONPYCACHEPREFIX := $(CURDIR)/.cache/pycache
 VENV_ACTIVATE := $(VENV)/bin/activate
 DEPS_MARKER := $(VENV)/.deps_updated
 
-.PHONY: all clean dist pkg test run deps_test test_server deps docker-run uninstall logs
+.PHONY: all clean dist pkg test run deps_test test_server deps docker-run uninstall logs pull-db
 
 all: clean test
 
@@ -64,7 +64,7 @@ test: deps_test
 
 run: deps
 	@echo "Starting Flask app..."
-	. $(VENV_ACTIVATE) && PYTHONPATH=$(CURDIR)/src FLASK_APP=$(FLASK_APP) $(PYTHON) -m flask run --host=0.0.0.0 --debug
+	. $(VENV_ACTIVATE) && env PYTHONPATH=$(CURDIR)/src FLASK_APP=$(FLASK_APP) flask run --host=0.0.0.0 --port=5001 --debug --cert=adhoc
 
 
 pkg: dist
@@ -72,6 +72,7 @@ pkg: dist
 	sudo docker build -t ntag424-sdm-provisioner .
 
 docker-run:
+	@mkdir -p data
 	@echo "Running Docker container..."
 	sudo docker run -d \
 		--name ntag424-sdm-provisioner \
@@ -81,6 +82,7 @@ docker-run:
 		--cpus="1.0" \
 		--read-only \
 		--tmpfs /tmp \
+		-v $(CURDIR)/data:/app/data \
 		ntag424-sdm-provisioner
 
 uninstall:
