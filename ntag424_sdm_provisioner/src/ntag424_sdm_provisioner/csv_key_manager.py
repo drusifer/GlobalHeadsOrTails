@@ -217,8 +217,8 @@ class CsvKeyManager:
         else:
             # For other key numbers, return factory key (we don't use them yet)
             return KEY_DEFAULT_FACTORY
-    
-    def get_outcome(self, uid: str) -> Outcome:
+
+    def get_outcome(self, uid: UID) -> Outcome:
         """Get the outcome for a specific tag UID.
 
         Args:
@@ -229,7 +229,7 @@ class CsvKeyManager:
         tag_keys = self.get_tag_keys(uid)
         log.debug(f"[GET OUTCOME] UID: {uid}, Outcome: {tag_keys.outcome}, Keys: {tag_keys}")
         return tag_keys.outcome
-
+    
     def get_tag_keys(self, uid: UID) -> TagKeys:
         """Get all keys for a specific tag UID.
 
