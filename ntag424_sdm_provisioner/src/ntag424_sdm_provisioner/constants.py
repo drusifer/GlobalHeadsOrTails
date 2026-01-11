@@ -952,7 +952,8 @@ class SDMUrl:
             Complete URL string
         """
         enc_str = f"&enc={self.enc}" if self.enc else ""
-        url = f"{self.base_url}?uid={self.uid}&ctr={self.read_ctr}{enc_str}&cmac={self.cmac}"
+        sep = "?" if "?" not in self.base_url else "&"
+        url = f"{self.base_url}{sep}uid={self.uid}&ctr={self.read_ctr}{enc_str}&cmac={self.cmac}"
         log.debug(f"URL is: {url}")
         return url
 
@@ -1620,7 +1621,7 @@ FACTORY_KEY: Final[bytes] = bytes(16)  # 16 bytes of 0x00
 
 # Default base URL for game coin provisioning
 #GAME_COIN_BASE_URL = "https://script.google.com/a/macros/gutsteins.com/s/AKfycbz2gCQYl_OjEJB26jiUL8253I0bX4czxykkcmt-MnF41lIyX18SLkRgUcJ_VJRJbiwh/exec"
-GAME_COIN_BASE_URL = "https://flip.globalheadsortails.com"
+GAME_COIN_BASE_URL = "https://flip.globalheadsortails.com?target=flip"
 
 
 # ============================================================================

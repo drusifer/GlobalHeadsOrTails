@@ -255,11 +255,10 @@ class CsvKeyManager:
                 for row in reader:
                     if row["uid"].upper() == uid.uid:
                         print(
-                            f"[OK] Found keys for {uid_str} in main database ({json.dumps(row)})"
+                            f"[OK] Found keys for {uid.uid} in main database ({json.dumps(row)})"
                         )
-                        tk = TagKeys(**row)
-                        tk.outcome = Outcome(row.get("outcome", "Invalid"))
-                        return tk
+                        row["outcome"] = Outcome(row.get("outcome", "invalid"))
+                        return TagKeys(**row)
 
         print(f"[WARNING] UID {uid} not found in database") 
         print("[INFO] Using factory default keys")
@@ -471,6 +470,7 @@ class CsvKeyManager:
                         log.debug(f"[CSV UPDATE] Updating existing row for UID {uid_str}: {keys=}")
                         row_dict = asdict(keys)
                         row_dict["uid"] = uid_str  # Ensure UID is string, not UID object
+                        row_dict["outcome"] = keys.outcome.value  # Convert Outcome enum to string
                         rows.append(row_dict)
                         found = True
                     else:
@@ -481,6 +481,7 @@ class CsvKeyManager:
             log.debug(f"[CSV INSERT] Adding new row for UID {uid_str}")
             new_row = asdict(keys)
             new_row["uid"] = uid_str  # Ensure UID is string, not UID object
+            new_row["outcome"] = keys.outcome.value  # Convert Outcome enum to string
             rows.append(new_row)
 
         # Write back
@@ -586,6 +587,7 @@ class CsvKeyManager:
             picc_master_key=secrets.token_hex(16),  # 16 bytes = 32 hex chars
             app_read_key=secrets.token_hex(16),
             sdm_mac_key=secrets.token_hex(16),
+            outcome=Outcome.INVALID,
             provisioned_date=datetime.now().isoformat(),
             status="provisioned",
             notes="Randomly generated keys",
