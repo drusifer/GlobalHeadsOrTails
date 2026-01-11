@@ -328,7 +328,7 @@ class ProvisioningService:
                 sdm_url=SDMUrlTemplate(base_url=base_url)
             )
             
-            self._log("[Step 2] Calculating SDM offsets...")
+            self._log(f"Calculated SDM offsets...{config.offsets}")
             template = config.sdm_url
             offsets = config.offsets
             ndef_message = config.build_ndef_record()
