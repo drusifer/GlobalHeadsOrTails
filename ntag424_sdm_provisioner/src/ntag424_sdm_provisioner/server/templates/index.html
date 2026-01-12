@@ -7,7 +7,8 @@
     body { font-family: 'Courier New', monospace; background: #f0f2f5; color: #333; padding: 20px; display: flex; flex-direction: column; align-items: center; }
     .header { background: linear-gradient(135deg, #007BFF 0%, #00BFFF 100%); color: white; padding: 20px 40px; border-radius: 12px; text-align: center; width: 100%; max-width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; }
     .header h1 { margin: 0 0 15px 0; font-size: 2.2em; font-weight: 600; }
-    .params-table { margin-top: 15px; border-collapse: collapse; width: 100%; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: rgba(255,255,255,0.1); }
+    @keyframes chrome-shimmer { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .params-table { margin-top: 15px; border-collapse: collapse; width: 100%; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: linear-gradient(120deg, rgba(255,255,255,0.1), rgba(0,255,255,0.15), rgba(255,0,255,0.15), rgba(255,255,0,0.15), rgba(255,255,255,0.1)); background-size: 200% 200%; animation: chrome-shimmer 3s ease 1; }
     .params-table td { padding: 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.2); color: #fff; }
     .results-table { border-collapse: collapse; width: 100%; max-width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; background: white; }
     .results-table td { padding: 18px; font-size: 2.0rem; font-weight: bold; border-bottom: 1px solid #e0e0e0; }
