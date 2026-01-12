@@ -72,7 +72,7 @@ pkg: dist
 	sudo docker build -t ntag424-sdm-provisioner .
 
 docker-run:
-	@mkdir -p data
+	@mkdir -p data_prod
 	@echo "Running Docker container..."
 	sudo docker run -d \
 		--name ntag424-sdm-provisioner \
@@ -82,7 +82,7 @@ docker-run:
 		--cpus="1.0" \
 		--read-only \
 		--tmpfs /tmp \
-		-v $(CURDIR)/data:/app/data \
+		-v $(CURDIR)/data_prod:/app/data \
 		ntag424-sdm-provisioner
 
 uninstall:
