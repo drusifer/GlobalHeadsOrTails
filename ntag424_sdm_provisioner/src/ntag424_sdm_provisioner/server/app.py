@@ -5,7 +5,7 @@ from flask import Flask, request, render_template
 from pathlib import Path
 
 # Import from sibling modules in the same package
-from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
+from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, UID
 from .game_state_manager import SqliteGameStateManager
 
 app = Flask(__name__)
@@ -21,12 +21,12 @@ game_manager = SqliteGameStateManager(db_path="data/app.db")
 
 @app.route('/')
 def index():
-    uid = request.args.get('uid', '')
+    uid_str = request.args.get('uid', '')
     ctr = request.args.get('ctr', '')
     cmac = request.args.get('cmac', '')
 
     params_display = {
-        "uid": uid,
+        "uid": uid_str,
         "ctr": ctr,
         "cmac": cmac
     }
@@ -34,8 +34,11 @@ def index():
     # Get current totals for display regardless of validation outcome
     totals = game_manager.get_totals()
 
-    if not uid or not ctr or not cmac:
+    if not uid_str or not ctr or not cmac:
         return render_template('index.html', error="Missing Parameters", params=params_display, totals=totals)
+
+    uid = UID(uid_str)
+    params_display['tag'] = uid.asset_tag
 
     # 1. Validate Keys & CMAC (Read-Only access to KeyManager)
     try:
@@ -53,7 +56,7 @@ def index():
         return render_template('index.html', error="CMAC Verification Failed", params=params_display, totals=totals)
 
     # 2. Game Logic & Replay Protection
-    state = game_manager.get_state(uid)
+    state = game_manager.get_state(uid_str)
     
     # Replay Check
     if ctr_int <= state.last_counter:
@@ -65,14 +68,15 @@ def index():
     new_outcome = key_manager.get_outcome(uid)
     
     # Update State
-    game_manager.update_state(uid, ctr_int, new_outcome.value, cmac)
+    game_manager.update_state(uid_str, ctr_int, 
+                              new_outcome.value, cmac)
     
     # Update display
-    params_display['outcome'] = new_outcome
+    params_display['outcome'] = new_outcome.value.upper()
     params_display['counter_int'] = ctr_int
     totals = game_manager.get_totals() # Refresh totals after insert
 
-    return render_template('index.html', outcome=new_outcome.value, params=params_display, totals=totals)
+    return render_template('index.html', outcome=new_outcome.value.upper(), params=params_display, totals=totals)
 
 if __name__ == '__main__':
     # Ensure data directory exists

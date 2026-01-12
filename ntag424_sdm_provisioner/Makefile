@@ -71,7 +71,7 @@ pkg: dist
 	@echo "Building Docker image..."
 	sudo docker build -t ntag424-sdm-provisioner .
 
-docker-run:
+docker-run: pkg
 	@mkdir -p data_prod
 	@echo "Running Docker container..."
 	sudo docker run -d \

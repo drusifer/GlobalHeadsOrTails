@@ -66,7 +66,7 @@ class TagKeys:
         """Format TagKeys for display."""
         return (
             f"TagKeys(\n"
-            f"  UID: {self.uid} [Tag: {asset_tag}]\n"
+            f"  UID: {self.uid} [Tag: {self.uid.asset_tag}]\n"
             f"  PICC Master Key: {self.picc_master_key}\n"
             f"  App Read Key: {self.app_read_key}\n"
             f"  SDM MAC Key: {self.sdm_mac_key}\n"
