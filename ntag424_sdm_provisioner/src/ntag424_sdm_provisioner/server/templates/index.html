@@ -5,17 +5,55 @@
   <title>Heads vs Tails</title>
   <style>
     body { font-family: 'Courier New', monospace; background: #f0f2f5; color: #333; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-    .header { background: linear-gradient(135deg, #007BFF 0%, #00BFFF 100%); color: white; padding: 20px 40px; border-radius: 12px; text-align: center; width: 100%; max-width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; }
+    .header { background: linear-gradient(135deg, #007BFF 0%, #00BFFF 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; width: 100%; max-width: 700px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; }
     .header h1 { margin: 0 0 15px 0; font-size: 2.2em; font-weight: 600; }
     @keyframes chrome-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
     @keyframes text-reveal { 0% { color: transparent; } 100% { color: white; } }
     .params-table { margin-top: 15px; border-collapse: collapse; width: 100%; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: rgba(255,255,255,0.1); }
     .params-table tr { background: linear-gradient(120deg, transparent 40%, rgba(0,255,255,0.2) 45%, rgba(255,0,255,0.2) 50%, rgba(255,255,0,0.2) 55%, transparent 60%) no-repeat; background-size: 300% 100%; color: transparent; animation: chrome-shimmer 0.4s linear 1, text-reveal 0.4s ease-in 1 forwards; }
     .params-table td { padding: 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.2); color: inherit; }
-    .results-table { border-collapse: collapse; width: 100%; max-width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; background: white; }
-    .results-table td { padding: 18px; font-size: 2.0rem; font-weight: bold; border-bottom: 1px solid #e0e0e0; }
     .fancy-text { padding: 10px; font-family: monospace; font-size: 4rem; font-weight: bold; color: #ff6347; text-shadow: 2px 2px 0 #fff; }
     .error-text { color: #ffcccc; font-weight: bold; margin-top: 10px; font-size: 1.2em; }
+    .new-row-animation { animation: fadeInAndSlide 0.5s ease-out; }
+    @keyframes fadeInAndSlide { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
+    .highlight-row { background-color: #e6f7ff !important; font-weight: bold; }
+
+    /* Tab container styles */
+    .tab-container { width: 100%; max-width: 700px; margin-top: 20px; }
+    .tab-buttons { display: flex; background-color: #f1f1f1; border-radius: 12px 12px 0 0; overflow: hidden; border: 1px solid #e0e0e0; border-bottom: none; }
+    .tab-button { flex-grow: 1; background-color: inherit; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: background-color 0.3s; font-size: 1rem; font-family: 'Courier New', monospace; font-weight: bold; color: #6c757d; }
+    .tab-button:hover { background-color: #e9e9e9; }
+    .tab-button.active { background-color: white; color: #333; }
+    .tab-content { display: none; padding: 0; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 12px 12px; background: white; }
+    .tab-content .results-table, .tab-content .stats-table, .tab-content .recent-flips-table {
+      width: 100%;
+      max-width: none;
+      box-shadow: none;
+      border-radius: 0;
+      margin-top: 0;
+      overflow: visible;
+      background: transparent;
+    }
+    .tab-content .results-table td { padding: 18px; font-size: 2.0rem; font-weight: bold; border-bottom: 1px solid #e0e0e0; }
+    .tab-content .stats-table td { padding: 10px; font-size: 1.0rem; border-bottom: 1px solid #e0e0e0; }
+    .tab-content .recent-flips-table { margin-top: 0; }
+    .tab-content .recent-flips-table th { background-color: #f8f9fa; padding: 12px; text-align: left; font-size: 1rem; color: #6c757d; border-bottom: 2px solid #dee2e6; }
+    .tab-content .recent-flips-table td { padding: 12px; font-size: 1rem; border-bottom: 1px solid #e0e0e0; }
+    .tab-content tr:last-child td { border-bottom: none; }
+
+
+    .increment-animation {
+      animation: number-increment 0.7s ease-out;
+    }
+    @keyframes number-increment {
+      0% { transform: scale(1); }
+      50% {
+        transform: scale(1.6) rotate(-5deg);
+        color: #007BFF;
+        text-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
+      }
+      100% { transform: scale(1); }
+    }
   </style>
 </head>
 <body>
@@ -44,19 +82,108 @@
     {% endif %}
   </div>
 
-  <table class="results-table">
-    <tbody>
-      <tr>
-        <td>Heads:</td>
-        <td>{{ totals.heads if totals else 0 }}</td>
-      </tr>
-      <tr>
-        <td>Tails:</td>
-        <td>{{ totals.tails if totals else 0 }}</td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="tab-container">
+    <div class="tab-buttons">
+      <button class="tab-button active" onclick="openTab(event, 'Totals')">Totals</button>
+      <button class="tab-button" onclick="openTab(event, 'Analysis')">Analysis</button>
+    </div>
+
+    <div id="Totals" class="tab-content" style="display: block;">
+      <table class="results-table">
+        <tbody>
+          <tr>
+            <td>Heads:</td>
+            <td id="heads-total">{{ totals.heads if totals else 0 }}</td>
+          </tr>
+          <tr>
+            <td>Tails:</td>
+            <td id="tails-total">{{ totals.tails if totals else 0 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="Analysis" class="tab-content">
+      {% if randomness_stats and randomness_stats.total_bits > 0 %}
+      <table class="stats-table">
+        <tbody>
+          <tr><td colspan="2" style="text-align: center; font-weight: bold; background-color: #f8f9fa;">Global Randomness Analysis</td></tr>
+          <tr><td>Total Flips Analyzed:</td><td>{{ randomness_stats.total_bits }}</td></tr>
+          <tr><td>Shannon Entropy (bits/byte):</td><td>{{ "%.4f"|format(randomness_stats.entropy) }} (ideal: 8.0)</td></tr>
+          <tr><td>NIST Monobit Test (P-value):</td><td>{{ "%.6f"|format(randomness_stats.nist_monobit_p_value) if randomness_stats.nist_monobit_p_value is not none else 'N/A' }} (pass >= 0.01)</td></tr>
+        </tbody>
+      </table>
+      {% else %}
+        <div style="padding: 20px; text-align: center; color: #6c757d;">Not enough data for analysis.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="tab-container" style="margin-top: 30px;">
+    <div class="tab-buttons">
+      <button class="tab-button active" onclick="openTab(event, 'RecentFlips')">Recent Flips</button>
+      <button class="tab-button" onclick="openTab(event, 'Leaderboard')">Leaderboard</button>
+    </div>
+
+    <div id="RecentFlips" class="tab-content" style="display: block;">
+      {% if recent_flips %}
+      <table class="recent-flips-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Coin ID</th>
+            <th>Outcome</th>
+          </tr>
+        </thead>
+        <tbody id="recent-flips-body">
+          {% for flip in recent_flips %}
+          <tr data-timestamp="{{ flip.timestamp }}" {% if params and flip.asset_tag == params["Coin ID"] %}class="highlight-row"{% endif %}>
+            <td>{{ flip.timestamp.split(' ')[1].split('.')[0] }}</td>
+            <td>{{ flip.asset_tag }}</td>
+            <td>{{ flip.outcome.upper() }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+
+    <div id="Leaderboard" class="tab-content">
+      {% if leaderboard_stats %}
+      <table class="recent-flips-table">
+        <thead>
+          <tr><th>Rank</th><th>Coin ID</th><th>Flips</th><th>Entropy</th><th>NIST P-value</th></tr>
+        </thead>
+        <tbody>
+          {% for coin in leaderboard_stats %}
+          <tr {% if params and coin.coin_id == params["Coin ID"] %}class="highlight-row"{% endif %}>
+            <td>{{ loop.index }}</td><td>{{ coin.coin_id }}</td><td>{{ coin.total_bits }}</td><td>{{ "%.4f"|format(coin.entropy) }}</td><td>{{ "%.4f"|format(coin.nist_monobit_p_value) if coin.nist_monobit_p_value is not none else 'N/A' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </div>
+
   <script>
+    const currentAssetTag = '{{ params["Coin ID"] if params else "" }}';
+
+    function openTab(evt, tabName) {
+      let i, tabcontent, tabbuttons;
+      const parentContainer = evt.currentTarget.closest('.tab-container');
+      tabcontent = parentContainer.getElementsByClassName("tab-content");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      tabbuttons = parentContainer.getElementsByClassName("tab-button");
+      for (i = 0; i < tabbuttons.length; i++) {
+        tabbuttons[i].className = tabbuttons[i].className.replace(" active", "");
+      }
+      parentContainer.querySelector('#' + tabName).style.display = "block";
+      evt.currentTarget.className += " active";
+    }
+
     document.querySelectorAll('.params-table tr').forEach(el => {
       const min = 0.8;
       const max = 1.0;
@@ -67,25 +194,99 @@
 
     const outcomeEl = document.getElementById('outcome-text');
     if (outcomeEl) {
-      const finalText = outcomeEl.getAttribute('data-outcome');
+      let finalText = outcomeEl.getAttribute('data-outcome');
+      const originalOutcome = finalText; // Keep original for logic
+
+      // Pad "HEADS" or "TAILS" to be 7 chars wide to match "INVALID"
+      if (finalText === "HEADS" || finalText === "TAILS") {
+        finalText = ` ${finalText} `;
+      }
+
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      let iteration = 0;
+      const revealedIndices = new Set();
+      const unrevealedIndices = Array.from(Array(finalText.length).keys());
+
       let interval = setInterval(() => {
+        // Reveal one new random character each frame
+        if (unrevealedIndices.length > 0) {
+          const randomIndex = Math.floor(Math.random() * unrevealedIndices.length);
+          const indexToReveal = unrevealedIndices.splice(randomIndex, 1)[0];
+          revealedIndices.add(indexToReveal);
+        }
+
         outcomeEl.innerText = finalText
           .split('')
           .map((letter, index) => {
-            if(index < iteration) return finalText[index];
-            return chars[Math.floor(Math.random() * chars.length)];
+            return revealedIndices.has(index) ? finalText[index] : chars[Math.floor(Math.random() * chars.length)];
           })
           .join('');
         
-        if(iteration >= finalText.length) { 
-          clearInterval(interval);
-          outcomeEl.innerText = finalText;
-        }
-        iteration += 1 / 3;
+        if (unrevealedIndices.length === 0) clearInterval(interval);
       }, 80);
+
+      // Animate the corresponding total
+      if (originalOutcome === "HEADS") {
+        const headsTotalEl = document.getElementById('heads-total');
+        if (headsTotalEl) headsTotalEl.classList.add('increment-animation');
+      } else if (originalOutcome === "TAILS") {
+        const tailsTotalEl = document.getElementById('tails-total');
+        if (tailsTotalEl) tailsTotalEl.classList.add('increment-animation');
+      }
     }
+
+    // Real-time updates for recent flips
+    const MAX_ROWS = 88;
+    const recentFlipsBody = document.getElementById('recent-flips-body');
+    let lastKnownTimestamp = recentFlipsBody ? (recentFlipsBody.querySelector('tr')?.dataset.timestamp || '') : '';
+
+    setInterval(async () => {
+      if (!recentFlipsBody) return;
+
+      const response = await fetch('/api/recent_flips' + window.location.search);
+      const data = await response.json();
+      const newFlips = data.recent_flips;
+      const newTotals = data.totals;
+
+      if (newFlips.length > 0 && newFlips[0].timestamp !== lastKnownTimestamp) {
+        const existingTimestamps = new Set(Array.from(recentFlipsBody.querySelectorAll('tr')).map(tr => tr.dataset.timestamp));
+        const newRows = [];
+
+        for (const flip of newFlips) {
+          if (!existingTimestamps.has(flip.timestamp)) {
+            const tr = document.createElement('tr');
+            tr.dataset.timestamp = flip.timestamp;
+            tr.innerHTML = `
+              <td>${flip.timestamp.split(' ')[1].split('.')[0]}</td>
+              <td>${flip.asset_tag}</td>
+              <td>${flip.outcome.toUpperCase()}</td>
+            `;
+            if (currentAssetTag && flip.asset_tag === currentAssetTag) {
+              tr.classList.add('highlight-row');
+            }
+            tr.classList.add('new-row-animation');
+            newRows.push(tr);
+          } else {
+            // Stop once we see a flip we already have
+            break;
+          }
+        }
+
+        // Add new rows to the top of the table
+        newRows.reverse().forEach(tr => {
+          recentFlipsBody.prepend(tr);
+          tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // Trim old rows
+        while (recentFlipsBody.rows.length > MAX_ROWS) {
+          recentFlipsBody.deleteRow(recentFlipsBody.rows.length - 1);
+        }
+
+        lastKnownTimestamp = newFlips[0].timestamp;
+        document.getElementById('heads-total').innerText = newTotals.heads;
+        document.getElementById('tails-total').innerText = newTotals.tails;
+      }
+    }, 500);
   </script>
 </body>
 </html>

@@ -1,12 +1,16 @@
-import csv
 import logging
 import sqlite3
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
+from typing import Dict
 
-
+from ntag424_sdm_provisioner.csv_key_manager import UID
+from ntag424_sdm_provisioner.crypto.crypto_primitives import (
+    calculate_entropy,
+    nist_frequency_monobit_test,
+)
 log = logging.getLogger(__name__)
 
 @dataclass
@@ -21,109 +25,23 @@ class TagGameState:
 class IGameStateManager(ABC):
     """Interface for game state persistence."""
 
-    @abstractmethod
-    def get_state(self, uid: str) -> TagGameState:
-        pass
-
-    @abstractmethod
-    def update_state(self, uid: str, counter: int, outcome: str, coin_name: str = "", cmac: str = ""):
-        pass
-
-    @abstractmethod
-    def get_totals(self) -> dict[str, int]:
-        pass
-
-class CsvGameStateManager(IGameStateManager):
-    """Manages game state persistence for tags using CSV (Legacy)."""
-
     FIELDNAMES = ["uid", "outcome", "coin_name", "last_counter", "last_seen"]
 
-    def __init__(self, csv_path: str = "data/game_state.csv"):
-        self.csv_path = Path(csv_path)
-        self._ensure_csv_exists()
-
-    def _ensure_csv_exists(self):
-        """Create CSV file with headers if it doesn't exist."""
-        if not self.csv_path.parent.exists():
-            self.csv_path.parent.mkdir(parents=True, exist_ok=True)
-
-        if not self.csv_path.exists():
-            with self.csv_path.open("w", newline="") as f:
-                writer = csv.DictWriter(f, fieldnames=self.FIELDNAMES)
-                writer.writeheader()
-            log.info(f"[GAME STATE] Created new game state database: {self.csv_path}")
-
+    @abstractmethod
     def get_state(self, uid: str) -> TagGameState:
-        """Get game state for a UID, or create default if not found."""
-        uid = uid.upper()
+        pass
 
-        # Simple linear scan (fine for small CSVs)
-        if self.csv_path.exists():
-            with self.csv_path.open(newline="") as f:
-                # If fieldnames is omitted, the first row of the file is used as the header
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if row["uid"].upper() == uid:
-                        return TagGameState(
-                            uid=row["uid"],
-                            outcome=row.get("outcome", ""),
-                            coin_name=row.get("coin_name", ""),
-                            last_counter=int(row.get("last_counter", 0)),
-                            last_seen=row.get("last_seen", "")
-                        )
-
-        return TagGameState(uid=uid)
-
+    @abstractmethod
     def update_state(self, uid: str, counter: int, outcome: str, coin_name: str = "", cmac: str = ""):
-        """Update state for a UID."""
-        uid = uid.upper()
+        pass
 
-        # Read all states
-        states: dict[str, TagGameState] = {}
-        if self.csv_path.exists():
-            with self.csv_path.open(newline="") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    states[row["uid"].upper()] = TagGameState(
-                        uid=row["uid"],
-                        outcome=row.get("outcome", ""),
-                        coin_name=row.get("coin_name", ""),
-                        last_counter=int(row.get("last_counter", 0)),
-                        last_seen=row.get("last_seen", "")
-                    )
+    @abstractmethod
+    def get_totals(self, include_test: bool = False) -> Dict[str, int]:
+        pass
 
-        # Update specific state
-        states[uid] = TagGameState(
-            uid=uid,
-            outcome=outcome,
-            coin_name=coin_name,
-            last_counter=counter,
-            last_seen=datetime.now().isoformat()
-        )
-
-        # Write all back
-        with self.csv_path.open("w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=self.FIELDNAMES)
-            writer.writeheader()
-            for state in states.values():
-                writer.writerow(asdict(state))
-
-        log.info(f"[GAME STATE] Updated state for {uid}: coin={coin_name}, outcome={outcome}, ctr={counter}")
-
-    def get_totals(self) -> dict[str, int]:
-        """Calculate totals from current state snapshot."""
-        heads = 0
-        tails = 0
-        if self.csv_path.exists():
-            with self.csv_path.open(newline="") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    o = row.get("outcome", "").lower()
-                    if o == "heads":
-                        heads += 1
-                    elif o == "tails":
-                        tails += 1
-        return {"heads": heads, "tails": tails}
+    @abstractmethod
+    def analyze_flip_sequence_randomness(self, include_test: bool = False, uid: str | None = None) -> Dict:
+        pass
 
 
 class SqliteGameStateManager(IGameStateManager):
@@ -135,6 +53,25 @@ class SqliteGameStateManager(IGameStateManager):
 
     def _get_conn(self):
         return sqlite3.connect(self.db_path)
+
+    def fix_db(self, conn: sqlite3.Connection):
+        """Migration: Add coin_name column if it doesn't exist (for existing databases)"""
+
+        cursor = conn.execute("PRAGMA table_info(scan_logs)")
+        columns = [row[1] for row in cursor.fetchall()]
+
+        if 'is_test' not in columns:
+            conn.execute("ALTER TABLE scan_logs ADD COLUMN coin_name TEXT DEFAULT ''")
+            log.info("[MIGRATION] Added coin_name column to scan_logs")
+        else:
+            log.info("[MIGRATION] coin_name column already exists in scan_logs")
+            # Column already exists
+        
+        if "coin_name" not in columns:
+            conn.execute("ALTER TABLE scan_logs ADD COLUMN coin_name TEXT DEFAULT ''")
+            log.info("[MIGRATION] Added coin_name column to scan_logs")
+
+            conn.execute("ALTER TABLE scan_logs ADD COLUMN is_test BOOLEAN NOT NULL DEFAULT FALSE")
 
     def _init_db(self):
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -149,20 +86,24 @@ class SqliteGameStateManager(IGameStateManager):
                     outcome TEXT NOT NULL,
                     cmac TEXT,
                     coin_name TEXT DEFAULT ''
+                    is_test BOOLEAN NOT NULL DEFAULT FALSE
                 )
             """)
             # Index for faster lookups
             conn.execute("CREATE INDEX IF NOT EXISTS idx_uid_counter ON scan_logs (uid, counter)")
 
-            # Migration: Add coin_name column if it doesn't exist (for existing databases)
-            try:
-                conn.execute("ALTER TABLE scan_logs ADD COLUMN coin_name TEXT DEFAULT ''")
-                log.info("[MIGRATION] Added coin_name column to scan_logs")
-            except sqlite3.OperationalError:
-                # Column already exists
-                pass
-
+            # Add new columns  if it doesn't exist (for backward compatibility)
+            self.fix_db(conn)
             conn.commit()
+
+    def _query(self, sql: str, params: tuple = ()):
+        with self._get_conn() as conn:
+            # Get the latest scan for this UID
+            log.debug(f"[GAME STATE SQLITE] Executing query: {sql}")
+            cursor = conn.execute( sql, params)
+            rows = cursor.fetchall()
+            log.debug(f"[GAME STATE SQLITE] - Rows fetched: {len(rows)}")
+            return rows
 
     def get_state(self, uid: str) -> TagGameState:
         uid = uid.upper()
@@ -174,13 +115,16 @@ class SqliteGameStateManager(IGameStateManager):
             )
             row = cursor.fetchone()
 
-            if row:
-                return TagGameState(
-                    uid=uid,
-                    outcome=row[0],
-                    coin_name=row[3] if len(row) > 3 else "",
-                    last_counter=row[1],
-                    last_seen=row[2]
+            tags = []
+            for row in cursor:
+                tags.append(
+                    TagGameState(
+                        uid=uid,
+                        outcome=row[0],
+                        last_counter=row[1],
+                        last_seen=row[2],
+                        coin_name=row[3] 
+                    )
                 )
             else:
                 return TagGameState(uid=uid)
@@ -195,19 +139,18 @@ class SqliteGameStateManager(IGameStateManager):
             conn.commit()
         log.info(f"[GAME STATE SQLITE] Logged scan for {uid}: coin={coin_name}, outcome={outcome}, ctr={counter}")
 
-    def get_totals(self) -> dict[str, int]:
-        """Count unique coins by outcome, not individual scans."""
-        with self._get_conn() as conn:
-            # Count distinct coin_names for each outcome
-            # A coin counts as "heads" if it has any heads scans
-            # A coin counts as "tails" if it has any tails scans
-            heads = conn.execute(
-                "SELECT COUNT(DISTINCT coin_name) FROM scan_logs WHERE outcome = 'heads' AND coin_name != ''"
-            ).fetchone()[0]
-            tails = conn.execute(
-                "SELECT COUNT(DISTINCT coin_name) FROM scan_logs WHERE outcome = 'tails' AND coin_name != ''"
-            ).fetchone()[0]
-            return {"heads": heads, "tails": tails}
+    def get_totals(self) -> Dict[str, int]:
+        """Get total heads and tails across all coints."""
+        heads = self._query(
+            "SELECT COUNT(*) FROM scan_logs WHERE LOWER(outcome) = ?",
+            ('heads',)
+        )[0][0]
+        tails = self._query(
+            "SELECT COUNT(*) FROM scan_logs WHERE LOWER(outcome) = ?",
+            ('tails',)
+        )[0][0]
+
+        return {"heads": heads, "tails": tails} 
 
     def get_totals_by_coin(self) -> dict[str, dict[str, int]]:
         """Get per-coin statistics showing scan counts for each outcome."""
@@ -215,7 +158,7 @@ class SqliteGameStateManager(IGameStateManager):
             cursor = conn.execute("""
                 SELECT coin_name, outcome, COUNT(*) as count
                 FROM scan_logs
-                WHERE coin_name != ''
+                WHERE coin_name != '' and LOWER(outcome) IN ('heads', 'tails')
                 GROUP BY coin_name, outcome
             """)
 
@@ -227,3 +170,111 @@ class SqliteGameStateManager(IGameStateManager):
                 coins[coin_name][outcome] = count
 
             return coins
+
+    def update_state(self, uid: str, counter: int, outcome: str, cmac: str = "", is_test: bool = False):
+        uid = uid.upper()
+        with self._get_conn() as conn:
+            conn.execute(
+                "INSERT INTO scan_logs (uid, counter, outcome, cmac, is_test) VALUES (?, ?, ?, ?, ?)",
+                (uid, counter, outcome.lower(), cmac, is_test)
+            )
+            conn.commit()
+        log_prefix = "[TEST] " if is_test else ""
+        log.info(f"{log_prefix}[GAME STATE SQLITE] Logged scan for {uid}: outcome={outcome.lower()}, ctr={counter}")
+
+    def get_recent_flips(self, limit: int = 88) -> list[dict]:
+        rows = self._query(
+            "SELECT coin_name, uid, LOWER(outcome), timestamp FROM scan_logs ORDER BY id DESC LIMIT ?",
+            (limit,)
+        )
+        recent_flips = []
+        for row in rows:
+            coin_name, uid_str, outcome, timestamp = row
+            recent_flips.append({
+                "coin_name": coin_name,
+                "asset_tag": UID(uid_str).asset_tag,
+                "outcome": outcome,
+                "timestamp": timestamp
+            })
+        return recent_flips
+
+
+    def analyze_flip_sequence_randomness(self, include_test: bool = False, coin_name: str | None = None) -> Dict:
+        """ Fetches all flip outcomes, converts them to a binary sequence (HEADS=1, TAILS=0),
+        and runs randomness tests (Shannon entropy, NIST Monobit).
+
+        Args:
+            include_test: If True, includes test data in the analysis.
+            coin_name: If provided, analyzes flips only for this coin.
+
+        Returns:
+            A dictionary with the analysis results.
+        """
+
+        conditions = ["LOWER(outcome) IN ('heads', 'tails')"]
+        params = []
+
+        if coin_name:
+            conditions.append("coin_name = ?")
+            params.append(coin_name.upper())
+
+        if not include_test:
+            conditions.append("is_test IS FALSE")
+
+        query = f"SELECT LOWER(outcome) FROM scan_logs WHERE {' AND '.join(conditions)} ORDER BY id ASC"
+
+        rows = self._query(query, tuple(params))
+
+        if not rows:
+            return {"total_bits": 0, "entropy": 0.0, "nist_monobit_p_value": None, "nist_monobit_passed": None, "error": "No flips to analyze."}
+
+        # Convert sequence to a string of bits
+        bit_string = "".join(['1' if row[0] == 'heads' else '0' for row in rows])
+        total_bits = len(bit_string)
+
+        if total_bits == 0:
+            return {"total_bits": 0, "entropy": 0.0, "nist_monobit_p_value": None, "nist_monobit_passed": None, "error": "No flips to analyze."}
+
+        # Convert bit string to bytes
+        if total_bits % 8 != 0:
+            bit_string += '0' * (8 - total_bits % 8) # Pad to nearest byte
+        byte_sequence = int(bit_string, 2).to_bytes(len(bit_string) // 8, byteorder='big')
+
+        entropy = calculate_entropy(byte_sequence)
+        p_value, passed, error = None, None, None
+        try:
+            p_value, passed = nist_frequency_monobit_test(byte_sequence)
+        except ValueError as e:
+            error = str(e)
+
+        return {"total_bits": total_bits, "entropy": entropy, "nist_monobit_p_value": p_value, "nist_monobit_passed": passed, "nist_error": error}
+
+    def get_leaderboard_stats(self, include_test: bool = False) -> list[dict]:
+        """ Calculates randomness stats for each coin and returns a ranked list.
+
+        Args:
+            include_test: If True, includes test data in the analysis.
+        """
+        
+        # 1. Get all unique UIDs
+        query = "SELECT DISTINCT coin_name FROM scan_logs"
+        params = ()
+        if not include_test:
+            query += " WHERE is_test IS FALSE AND LOWER(outcome) IN ('heads', 'tails')"
+        
+        results = self._query(query, params)
+        coin_names = [row[0] for row in results]
+
+        leaderboard = []
+        for coin_name in coin_names:
+            # 2. Get stats for each UID
+            stats = self.analyze_flip_sequence_randomness(include_test=include_test, coin_name=coin_name)
+            if stats and stats.get("total_bits", 0) > 0:
+                leaderboard.append({
+                    "coin_name": coin_name,
+                    **stats
+                })
+
+        # 3. Sort by entropy, descending
+        leaderboard.sort(key=lambda x: x.get('entropy', 0), reverse=True)
+        return leaderboard

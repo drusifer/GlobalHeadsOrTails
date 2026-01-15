@@ -7,6 +7,8 @@ All functions follow the NTAG424 DNA / MIFARE DESFire EV2 specifications.
 """
 
 import zlib
+import math
+from collections import Counter
 
 from Crypto.Cipher import AES  # nosec
 from Crypto.Hash import CMAC  # nosec
@@ -448,3 +450,88 @@ def build_changekey_apdu(
     ]
 
     return apdu
+
+
+def calculate_entropy(data: bytes) -> float:
+    """Calculates the Shannon entropy of a sequence based on its bit distribution.
+
+    Entropy is a measure of the uncertainty or randomness in the data.
+    This function calculates the fundamental entropy in "bits per bit" (a value
+    between 0.0 for non-random data and 1.0 for perfectly random data) and then
+    scales it to the more intuitive "bits per byte" range (0.0 to 8.0).
+
+    A high entropy value (e.g., > 7.9 bits per byte) is a good indicator of
+    cryptographic-quality randomness.
+
+    Args:
+        data: The input byte sequence.
+
+    Returns:
+        The calculated entropy as a float, in bits per byte.
+    """
+    if not data:
+        return 0.0
+
+    total_bits = len(data) * 8
+    # Count the total number of set bits (1s) in the byte sequence
+    count_of_ones = sum(bin(byte).count('1') for byte in data)
+
+    # Handle the edge case of all 0s or all 1s, where entropy is 0
+    if count_of_ones == 0 or count_of_ones == total_bits:
+        return 0.0
+
+    # Calculate probabilities of 0 and 1
+    p1 = count_of_ones / total_bits
+    p0 = 1.0 - p1
+
+    # Calculate entropy in bits per bit
+    entropy_per_bit = - (p0 * math.log2(p0) + p1 * math.log2(p1))
+
+    # Scale to bits per byte for a standard 0-8 range
+    return entropy_per_bit * 8
+
+
+def nist_frequency_monobit_test(data: bytes, significance_level: float = 0.01) -> tuple[float, bool]:
+    """Performs the NIST SP 800-22 Frequency (Monobit) Test.
+
+    This test checks for the proportion of zeros and ones in a sequence. A truly
+    random sequence is expected to have approximately the same number of zeros
+    and ones.
+
+    The test calculates a P-value, which is the probability that a perfect random
+    number generator would produce a sequence less random than the one being tested.
+
+    Args:
+        data: The byte sequence to test. Must be at least 100 bits long.
+        significance_level: The P-value threshold for passing the test.
+                            Defaults to 0.01 per NIST recommendation.
+
+    Returns:
+        A tuple containing:
+        - The calculated P-value (float).
+        - A boolean indicating if the test passed (P-value >= significance_level).
+
+    Reference:
+        NIST Special Publication 800-22, Section 2.1.
+    """
+    n = len(data) * 8
+    if n < 100:
+        raise ValueError("Data must be at least 100 bits long for the Monobit test.")
+
+    # 1. Convert the sequence of 0s and 1s to a sequence of -1s and +1s.
+    #    S_n is the sum of this new sequence.
+    #    A more direct way to calculate S_n is (count_of_ones - count_of_zeros).
+    count_of_ones = sum(bin(byte).count('1') for byte in data)
+    count_of_zeros = n - count_of_ones
+    s_n = count_of_ones - count_of_zeros
+
+    # 2. Compute the test statistic s_obs.
+    s_obs = abs(s_n) / math.sqrt(n)
+
+    # 3. Compute the P-value using the complementary error function (erfc).
+    p_value = math.erfc(s_obs / math.sqrt(2))
+
+    # 4. Determine if the test passed.
+    passed = (p_value >= significance_level)
+
+    return p_value, passed

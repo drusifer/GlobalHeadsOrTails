@@ -15,13 +15,9 @@ from datetime import datetime
 from enum import Enum, StrEnum
 from pathlib import Path
 from typing import ClassVar
-
-
-try:
-    import coolname
-    COOLNAME_AVAILABLE = True
-except ImportError:
-    COOLNAME_AVAILABLE = False
+import coolname
+from enum import Enum, StrEnum
+import json
 
 from ntag424_sdm_provisioner.crypto.crypto_primitives import calculate_cmac_full, truncate_cmac
 from ntag424_sdm_provisioner.key_manager_interface import KEY_DEFAULT_FACTORY
@@ -29,7 +25,6 @@ from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
-
 
 def generate_coin_name() -> str:
     """Generate a unique, memorable coin name.
@@ -40,17 +35,12 @@ def generate_coin_name() -> str:
     Returns:
         A unique coin name string
     """
-    if COOLNAME_AVAILABLE:
-        # Generate 2-word name with number suffix (e.g., "swift-falcon-42")
-        name = coolname.generate_slug(2)
-        # Add random number suffix for uniqueness
-        suffix = secrets.randbelow(1000)
-        return f"{name}-{suffix}".upper()
-    else:
-        # Fallback: Use timestamp-based name
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        suffix = secrets.token_hex(2).upper()  # 4 hex chars
-        return f"COIN-{timestamp}-{suffix}"
+    # Generate 2-word name with number suffix (e.g., "swift-falcon-42")
+    name = coolname.generate_slug(2)
+    # Add random number suffix for uniqueness
+    suffix = secrets.randbelow(1000)
+    return f"{name}-{suffix}".upper()
+
 class Outcome(StrEnum):
     HEADS = "heads"
     TAILS = "tails"
