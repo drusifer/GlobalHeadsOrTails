@@ -13,7 +13,7 @@ from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from pathlib import Path
 from typing import ClassVar
-from enum import Enum
+from enum import Enum, StrEnum
 import json
 
 from ntag424_sdm_provisioner.crypto.crypto_primitives import calculate_cmac_full, truncate_cmac
@@ -22,7 +22,7 @@ from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
-class Outcome(Enum):
+class Outcome(StrEnum):
     HEADS = "heads"
     TAILS = "tails"
     INVALID = "invalid"
