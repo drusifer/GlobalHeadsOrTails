@@ -54,6 +54,28 @@
       }
       100% { transform: scale(1); }
     }
+
+    /* Mobile-friendly layout */
+    @media screen and (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      .header, .tab-container {
+        max-width: 100%;
+        margin-bottom: 20px;
+      }
+      .header {
+        padding: 15px;
+      }
+      .header h1 {
+        font-size: 1.8em;
+      }
+      .fancy-text {
+        font-size: 3.5rem;
+      }
+      .tab-content .results-table td { font-size: 1.8rem; }
+      .tab-content .stats-table td, .tab-content .recent-flips-table td, .tab-content .recent-flips-table th { font-size: 1rem; }
+    }
   </style>
 </head>
 <body>
