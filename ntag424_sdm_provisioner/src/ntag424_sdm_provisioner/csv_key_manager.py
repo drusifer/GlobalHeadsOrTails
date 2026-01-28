@@ -12,7 +12,7 @@ import shutil
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, fields
 from datetime import datetime
-from enum import Enum
+from enum import Enum, StrEnum
 from pathlib import Path
 from typing import ClassVar
 
@@ -51,7 +51,7 @@ def generate_coin_name() -> str:
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         suffix = secrets.token_hex(2).upper()  # 4 hex chars
         return f"COIN-{timestamp}-{suffix}"
-class Outcome(Enum):
+class Outcome(StrEnum):
     HEADS = "heads"
     TAILS = "tails"
     INVALID = "invalid"
