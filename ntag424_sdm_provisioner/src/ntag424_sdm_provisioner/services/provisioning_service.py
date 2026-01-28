@@ -25,9 +25,8 @@ from ntag424_sdm_provisioner.constants import (
     SDMUrlTemplate,
 )
 from ntag424_sdm_provisioner.crypto.auth_session import AuthenticateEV2
-from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, TagKeys
+from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, Outcome, TagKeys
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
-from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
@@ -372,7 +371,12 @@ class ProvisioningService:
             log.error(traceback.format_exc())
             return False
 
-    def provision(self, base_url: str = GAME_COIN_BASE_URL) -> bool:
+    def provision(
+        self,
+        base_url: str = GAME_COIN_BASE_URL,
+        coin_name: str = "",
+        outcome: Outcome = Outcome.INVALID,
+    ) -> bool:
         """Execute complete provisioning workflow with 3-session approach.
 
         CORRECT SEQUENCE (per SDM_SETUP_SEQUENCE.md):
@@ -387,6 +391,11 @@ class ProvisioningService:
         - SDM offsets reference positions in file content
         - Empty file causes PARAMETER_ERROR (0x919E)
         - Spec Section 9.3.6: "placeholder within the file"
+
+        Args:
+            base_url: Base URL for SDM configuration
+            coin_name: Optional coin identifier (e.g., "SWIFT-FALCON-42")
+            outcome: Optional outcome (HEADS | TAILS | INVALID for unassigned)
         """
         try:
             self._log("Starting provisioning...")
@@ -472,8 +481,12 @@ class ProvisioningService:
             # STEP 2: IF FACTORY → SET KEYS
             self._log("[Step 2] Starting two-phase key provisioning...")
 
-            with self.key_mgr.provision_tag(version.uid, url=base_url) as new_keys:
+            with self.key_mgr.provision_tag(
+                version.uid, url=base_url, coin_name=coin_name, outcome=outcome
+            ) as new_keys:
                 self._log("  New keys generated (status='pending')")
+                if coin_name:
+                    self._log(f"  Coin: {coin_name} ({outcome.value})")
                 self._log(f"  PICC Master: {new_keys.picc_master_key[:16]}...")
                 self._log(f"  App Read:    {new_keys.app_read_key[:16]}...")
                 self._log(f"  SDM MAC:     {new_keys.sdm_mac_key[:16]}...")

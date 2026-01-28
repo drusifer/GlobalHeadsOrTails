@@ -1,12 +1,12 @@
 import logging
 
 from textual.app import ComposeResult
-from textual.containers import Container
+from textual.containers import Container, Horizontal
 from textual.screen import Screen
-from textual.widgets import Button, Footer, Header, Label, RichLog
+from textual.widgets import Button, Footer, Header, Input, Label, RichLog
 from textual.worker import Worker, WorkerState
 
-from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
+from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, Outcome, generate_coin_name
 from ntag424_sdm_provisioner.hal import CardManager
 from ntag424_sdm_provisioner.sequence_logger import (
     SequenceLogger,
@@ -26,11 +26,15 @@ class ServiceAdapter:
         base_url: str,
         key_manager: CsvKeyManager,
         sequence_logger: SequenceLogger,
+        coin_name: str = "",
+        outcome: Outcome = Outcome.HEADS,
         progress_callback=None,
     ):
         self.base_url = base_url
         self.key_manager = key_manager
         self.sequence_logger = sequence_logger
+        self.coin_name = coin_name
+        self.outcome = outcome
         self.progress_callback = progress_callback
         self.operation_name = "Provision Tag"
 
@@ -43,7 +47,7 @@ class ServiceAdapter:
         # Pass sequence logger to CardManager (explicit DI)
         with CardManager(sequence_logger=self.sequence_logger) as card:
             service = ProvisioningService(card, self.key_manager, self.progress_callback)
-            success = service.provision(self.base_url)
+            success = service.provision(self.base_url, self.coin_name, self.outcome)
 
             if not success:
                 raise Exception("Provisioning failed (check logs)")
@@ -51,21 +55,34 @@ class ServiceAdapter:
 
 
 class ProvisionScreen(Screen):
-    """Screen for provisioning a tag."""
+    """Screen for provisioning a tag with coin name and outcome selection."""
 
     def __init__(self, key_manager: CsvKeyManager, **kwargs):
         super().__init__(**kwargs)
         self.key_manager = key_manager
+        self.selected_outcome = Outcome.HEADS  # Default to HEADS
 
     def compose(self) -> ComposeResult:
         yield Header()
         yield Container(
             Label("Provision Tag", id="title"),
+            Label("Coin Name:", id="coin_name_label"),
+            Input(
+                value=generate_coin_name(),
+                placeholder="SWIFT-FALCON-42",
+                id="coin_name_input",
+            ),
+            Label("Outcome:", id="outcome_label"),
+            Horizontal(
+                Button("◉ Heads", id="btn_heads", variant="primary"),
+                Button("○ Tails", id="btn_tails"),
+                id="outcome_buttons",
+            ),
             Label("Ready to provision...", id="status_label"),
             Label("", id="status_timer"),
             Label("", id="error_label"),
             Label("", id="success_label"),
-            Button("Start Provisioning", id="btn_start", variant="primary"),
+            Button("Start Provisioning", id="btn_start", variant="success"),
             RichLog(highlight=True, markup=True, id="log_view"),
         )
         yield Footer()
@@ -92,6 +109,28 @@ class ProvisionScreen(Screen):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "btn_start":
             self.start_provisioning()
+        elif event.button.id == "btn_heads":
+            self.select_outcome(Outcome.HEADS)
+        elif event.button.id == "btn_tails":
+            self.select_outcome(Outcome.TAILS)
+
+    def select_outcome(self, outcome: Outcome) -> None:
+        """Update outcome selection and button states."""
+        self.selected_outcome = outcome
+
+        btn_heads = self.query_one("#btn_heads", Button)
+        btn_tails = self.query_one("#btn_tails", Button)
+
+        if outcome == Outcome.HEADS:
+            btn_heads.label = "◉ Heads"
+            btn_heads.variant = "primary"
+            btn_tails.label = "○ Tails"
+            btn_tails.variant = "default"
+        else:
+            btn_heads.label = "○ Heads"
+            btn_heads.variant = "default"
+            btn_tails.label = "◉ Tails"
+            btn_tails.variant = "primary"
 
     def start_provisioning(self) -> None:
         self.query_one("#btn_start", Button).disabled = True
@@ -128,11 +167,18 @@ class ProvisionScreen(Screen):
         seq.on_step_complete = on_step
         self._sequence_logger = seq  # Store for summary display
 
-        # Create adapter with injected dependencies (no optionals)
+        # Get coin name and outcome from UI
+        coin_name = self.query_one("#coin_name_input", Input).value.strip()
+        if not coin_name:
+            coin_name = generate_coin_name()  # Fallback to generated name if empty
+
+        # Create adapter with injected dependencies (including coin info)
         cmd = ServiceAdapter(
             base_url="https://example.com/verify",
             key_manager=self.key_manager,
             sequence_logger=seq,
+            coin_name=coin_name,
+            outcome=self.selected_outcome,
             progress_callback=self._log_handler.emit_message
             if hasattr(self, "_log_handler")
             else None,
@@ -150,10 +196,15 @@ class ProvisionScreen(Screen):
             self.query_one("#status_timer", Label).update("")
 
             if event.state == WorkerState.SUCCESS:
+                # Coin name was assigned atomically during provisioning
+                coin_name = self.query_one("#coin_name_input", Input).value.strip() or "auto-generated"
+
                 self.query_one("#status_label", Label).update("Provisioning Complete!")
-                # Show success banner
+                # Show success banner with coin info
                 success_label = self.query_one("#success_label", Label)
-                success_label.update("✓ Provisioning Successful!")
+                success_label.update(
+                    f"✓ Provisioning Successful! Coin: {coin_name} ({self.selected_outcome.value})"
+                )
                 success_label.add_class("visible")
                 self.query_one("#btn_start", Button).disabled = False
                 log = logging.getLogger(__name__)

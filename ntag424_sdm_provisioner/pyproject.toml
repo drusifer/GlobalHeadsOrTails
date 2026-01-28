@@ -15,12 +15,14 @@ provisioner = [
     "pyscard>=2.0.0",
     "textual>=0.40.0",
     "packaging>=23.0",
+    "coolname>=2.2.0",  # Random name generator for coin naming
 ]
 server = [
     "flask>=3.0.0",
     "pycryptodome>=3.12.0",
 ]
 dev = [
+    "coolname>=2.2.0",  # Random name generator for coin naming
     # Testing
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",

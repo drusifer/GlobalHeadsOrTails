@@ -1,26 +1,32 @@
 # Morpheus - Current Context
 
-**Last Updated**: 2025-11-27 22:29
+**Last Updated**: 2026-01-27 12:26
 
 ## Recent Decisions
-- **Architecture Correction**: Confirmed TUI (Textual) is correct, NOT Pygame
-- Pygame code deleted, focusing on TUI integration
-- **ToolRunner Assessment**: Identified API mismatches, recommended TUI direct integration
+- **Coin Naming Architecture**: Designed enhancement for 2-tag-per-coin tracking
+  - Schema: Add `coin_name` field to TagKeys dataclass
+  - API: 4 new methods (assign, get, validate, list)
+  - TUI: Enhanced provision screen with coin_name input
+  - Status: Architecture complete, ready for Neo implementation
+  - Doc: `morpheus.docs/COIN_NAMING_ARCHITECTURE.md`
 
 ## Key Files Being Worked On
-- `src/ntag424_sdm_provisioner/tools/runner.py` (needs API updates)
-- `src/ntag424_sdm_provisioner/tui/screens/provision.py`
-- `src/ntag424_sdm_provisioner/services/provisioning_service.py`
+- `src/ntag424_sdm_provisioner/csv_key_manager.py` (coin_name enhancement)
+- `src/ntag424_sdm_provisioner/tui/screens/provision.py` (coin_name input)
+- `src/ntag424_sdm_provisioner/tui/screens/tag_status.py` (coin display)
 
 ## Active Decisions
-- ToolRunner uses old `.execute()` API (needs card.send())
-- TUI doesn't need ToolRunner - can call ProvisioningService directly
-- Recommended bypassing ToolRunner for TUI integration
+- Coin tracking is production critical (Drew's request)
+- Backwards compatible design (existing tags have coin_name = "")
+- Validation prevents duplicate outcomes per coin
+- 3-phase implementation: Schema → TUI → Validation
 
 ## Team Dependencies
-- Awaiting Drew's decision: Fix ToolRunner first, or TUI direct integration?
-- Neo ready for either path
-- Trin monitoring test health
+- Neo: Ready to start Phase 1 (Schema & API)
+- Trin: Preparing test plan
+- Oracle: Will document in ARCH.md after completion
 
 ## Notes
-TUI already has WorkerManager, Clock, Command pattern - solid foundation exists.
+- Outcome enum (HEADS/TAILS) already exists - good foundation
+- CSV migration is graceful (empty string for missing field)
+- Estimated 4.5 hours total implementation time

@@ -1,9 +1,9 @@
 # NTAG424 SDM Provisioner - Architecture
 
-**TLDR;** Service-oriented architecture with three core services (Provisioning, Diagnostics, Maintenance) that encapsulate all business logic. Services are UI-agnostic and reusable across TUI, CLI, and future API interfaces. TUI is the primary user interface, using WorkerManager for async operations. Command layer provides low-level APDU operations. HAL abstracts hardware. Crypto layer is verified against NXP specifications.
+**TLDR;** Service-oriented architecture with three core services (Provisioning, Diagnostics, Maintenance) that encapsulate all business logic. Services are UI-agnostic and reusable across TUI, CLI, and future API interfaces. TUI is the primary user interface, using WorkerManager for async operations. Command layer provides low-level APDU operations. HAL abstracts hardware. Crypto layer is verified against NXP specifications. Coin naming system tracks pairs of tags (heads/tails) with shared memorable identifiers.
 
-**Last Updated**: 2025-11-30  
-**Status**: Production Ready ✅ | Service Layer + Sequenceable Protocol
+**Last Updated**: 2026-01-27
+**Status**: Production Ready ✅ | Service Layer + Sequenceable Protocol + Coin Naming
 
 ---
 
@@ -16,6 +16,7 @@ The NTAG424 SDM Provisioner uses a **service-oriented architecture** where all b
 - ✅ **UI-Agnostic Services** - Services use callbacks for progress, no UI dependencies
 - ✅ **TUI as Primary Interface** - Text User Interface using Textual framework
 - ✅ **WorkerManager** - Centralized async operation management for TUI
+- ✅ **Coin Naming System** - Logical pairing of tags (heads/tails) with memorable names
 - ✅ **Type-safe Commands** - ApduCommand vs AuthApduCommand
 - ✅ **EV2 Authentication** - Full two-phase protocol
 - ✅ **Auto-Chunking** - HAL handles large writes/reads transparently
@@ -180,28 +181,29 @@ sequenceDiagram
     participant Worker as WorkerManager
     participant Service as Service
     participant Card as CardConnection
-    
+
+    User->>Screen: Enter coin name + Select outcome
     User->>Screen: Click "Provision Tag"
     Screen->>Worker: run_async(service.provision)
-    Worker->>Service: provision(base_url)
-    
+    Worker->>Service: provision(base_url, coin_name, outcome)
+
     Service->>Card: send(GetChipVersion)
     Card-->>Service: VersionInfo
     Service->>Service: _log("Reading tag...")
     Service-->>Worker: progress_callback("Reading tag...")
     Worker-->>Screen: Update UI
-    
+
     Service->>Card: send(ChangeKey)
     Service->>Service: _log("Changing keys...")
     Service-->>Worker: progress_callback("Changing keys...")
     Worker-->>Screen: Update UI
-    
+
     Service-->>Worker: Success
     Worker-->>Screen: Show success message
     Screen-->>User: Display result
 ```
 
-**Key Pattern**: TUI screens delegate to WorkerManager, which runs services asynchronously. Services use callbacks to update UI progress.
+**Key Pattern**: TUI screens delegate to WorkerManager, which runs services asynchronously. Services use callbacks to update UI progress. Coin name and outcome are captured in the UI and passed through to the service for atomic assignment during key generation.
 
 ---
 
@@ -565,6 +567,15 @@ SesAuthMACKey = CMAC(AuthKey, SV[16:31])
 
 ## Key Management Architecture
 
+### Coin Naming System
+
+The system supports **coin naming** to logically group pairs of tags into coins. Each coin has:
+- **Two tags**: One "heads" side and one "tails" side
+- **Shared coin name**: Memorable identifier (e.g., "HANDSOME-HERON-201")
+- **Atomic assignment**: Coin info set during provisioning, not post-processing
+
+This enables proper inventory tracking and ensures both sides of a physical coin are linked in the database.
+
 ```mermaid
 classDiagram
     class CsvKeyManager {
@@ -573,9 +584,13 @@ classDiagram
         +get_tag_keys(uid) TagKeys
         +save_tag_keys(keys)
         +delete_tag(uid)
-        +provision_tag(uid, url) ContextManager
+        +provision_tag(uid, url, coin_name, outcome) ContextManager
+        +assign_coin_name(uid, coin_name, outcome)
+        +get_coin_tags(coin_name) list~TagKeys~
+        +validate_coin(coin_name, outcome) bool
+        +list_coins() list~tuple~
     }
-    
+
     class TagKeys {
         <<dataclass>>
         +uid: str
@@ -583,6 +598,8 @@ classDiagram
         +app_read_key: str
         +sdm_mac_key: str
         +status: str
+        +outcome: Outcome
+        +coin_name: str
         +provisioned_date: str
         +notes: str
         +get_picc_master_key_bytes() bytes
@@ -591,14 +608,23 @@ classDiagram
         +get_asset_tag() str
         +from_factory_keys(uid) TagKeys
     }
-    
+
+    class Outcome {
+        <<enum>>
+        HEADS
+        TAILS
+        INVALID
+    }
+
     CsvKeyManager ..> TagKeys: manages
+    TagKeys --> Outcome: uses
 ```
 
 **Two-Phase Commit**:
 ```python
-with key_mgr.provision_tag(uid, url=url) as new_keys:
-    # Generate and save keys (status='pending')
+with key_mgr.provision_tag(uid, url=url, coin_name="HANDSOME-HERON-201", outcome=Outcome.HEADS) as new_keys:
+    # Generate and save keys with coin info (status='pending')
+    # Coin assignment is atomic - happens at key generation, not post-processing
     auth_conn.send(ChangeKey(0, new_keys.get_picc_master_key_bytes(), None))
     auth_conn.send(ChangeKey(1, new_keys.get_app_read_key_bytes(), None))
     auth_conn.send(ChangeKey(3, new_keys.get_sdm_mac_key_bytes(), None))
@@ -610,6 +636,38 @@ with key_mgr.provision_tag(uid, url=url) as new_keys:
 - `pending` - Key 0 changed, Keys 1 & 3 not yet changed
 - `provisioned` - All keys changed, NDEF written
 - `failed` - Provisioning encountered error
+
+### Coin Management API
+
+**`generate_coin_name() -> str`**:
+- Generates memorable random coin names using the `coolname` library
+- Format: "ADJECTIVE-NOUN-NUMBER" (e.g., "HANDSOME-HERON-201")
+- Fallback: "COIN-TIMESTAMP-HEX" if coolname unavailable
+- Uses `secrets` module for cryptographically secure randomness
+
+**`assign_coin_name(uid, coin_name, outcome)`**:
+- Assigns coin name and outcome to an existing tag
+- Validates: No duplicate outcomes per coin (can't have two "heads")
+- Validates: outcome must be HEADS or TAILS (not INVALID)
+- Updates CSV atomically
+
+**`get_coin_tags(coin_name) -> list[TagKeys]`**:
+- Returns all tags belonging to a coin (0-2 tags)
+- Used for displaying coin pairs in UI
+
+**`validate_coin(coin_name, outcome) -> bool`**:
+- Checks if adding this outcome would create duplicate
+- Returns True if valid, False if would duplicate
+
+**`list_coins() -> list[tuple[str, int, bool]]`**:
+- Returns all coins with their completeness status
+- Format: [(coin_name, tag_count, is_complete), ...]
+- `is_complete` = True if coin has both heads and tails
+
+**Coin Completeness**:
+- **Complete coin**: Has both HEADS and TAILS tags
+- **Incomplete coin**: Has only one side provisioned
+- System allows incomplete coins (supports incremental provisioning)
 
 ---
 
@@ -771,8 +829,9 @@ graph LR
 ### Key Storage Format (CSV)
 
 ```
-uid,picc_master_key,app_read_key,sdm_mac_key,status,provisioned_date,notes
-04536B4A2F7080,68882dc828f89a50...,99e8758eedc8da55...,2d543490d3691622...,provisioned,2025-11-08T...,https://...
+uid,picc_master_key,app_read_key,sdm_mac_key,status,outcome,coin_name,provisioned_date,notes,last_used_date
+049120E2151990,35ff72ef8dacdf0f...,f6d52cf3616ff4bb...,87e1bfec512ac376...,provisioned,tails,HANDSOME-HERON-201,2026-01-08T21:10:56...,https://flip...,...
+049220E2151990,4b7a92173a07ec36...,c5b45852291a3b14...,5405d7f4feb17c11...,provisioned,heads,HANDSOME-HERON-201,2026-01-09T19:35:05...,https://flip...,...
 ```
 
 **Fields**:
@@ -781,8 +840,14 @@ uid,picc_master_key,app_read_key,sdm_mac_key,status,provisioned_date,notes
 - `app_read_key` - Key 1 (32 hex chars, 16 bytes)
 - `sdm_mac_key` - Key 3 (32 hex chars, 16 bytes)
 - `status` - factory | pending | provisioned | failed
+- `outcome` - heads | tails | (empty for invalid/unassigned)
+- `coin_name` - Memorable identifier shared by both sides of coin (e.g., "HANDSOME-HERON-201")
 - `provisioned_date` - ISO timestamp
 - `notes` - URL or error message
+- `last_used_date` - ISO timestamp of last tap (optional)
+
+**Coin Pairing**:
+Tags with the same `coin_name` form a logical coin. A complete coin has one tag with `outcome=heads` and one with `outcome=tails`. The system validates against duplicate outcomes per coin and supports incomplete coins (only one side provisioned).
 
 ---
 
@@ -834,6 +899,7 @@ graph TD
 - `test_crypto_validation.py` - Crypto primitives vs NXP specs (100% coverage required)
 - `test_diagnostics_service.py` - TagDiagnosticsService unit tests
 - `test_provisioning_service.py` - ProvisioningService unit tests
+- `test_coin_naming.py` - Coin naming and pairing validation (15 characterization tests)
 - Individual command tests
 - Key manager tests
 

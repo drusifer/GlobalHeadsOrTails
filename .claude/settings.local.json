@@ -33,7 +33,11 @@
       "Bash(powershell:*)",
       "Bash(Out-String -Width 200)",
       "Bash(..venvScriptspython.exe -m pytest tests/test_uid_type_consistency.py -v)",
-      "Bash(../.venv/Scripts/python.exe -m pytest tests/test_uid_type_consistency.py -v)"
+      "Bash(../.venv/Scripts/python.exe -m pytest tests/test_uid_type_consistency.py -v)",
+      "Bash(. .venv/bin/activate)",
+      "Bash(source:*)",
+      "Bash(pytest:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": [],
     "ask": []

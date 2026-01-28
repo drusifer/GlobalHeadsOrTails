@@ -5,16 +5,23 @@ Implements the KeyManager protocol for compatibility with provisioning flow.
 """
 
 import csv
+import json
 import logging
 import secrets
 import shutil
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, fields
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import ClassVar
-from enum import Enum
-import json
+
+
+try:
+    import coolname
+    COOLNAME_AVAILABLE = True
+except ImportError:
+    COOLNAME_AVAILABLE = False
 
 from ntag424_sdm_provisioner.crypto.crypto_primitives import calculate_cmac_full, truncate_cmac
 from ntag424_sdm_provisioner.key_manager_interface import KEY_DEFAULT_FACTORY
@@ -22,6 +29,28 @@ from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)
+
+
+def generate_coin_name() -> str:
+    """Generate a unique, memorable coin name.
+
+    Uses coolname library if available, otherwise generates a simple name.
+    Format: "ADJECTIVE-NOUN-NUMBER" (e.g., "SWIFT-FALCON-42")
+
+    Returns:
+        A unique coin name string
+    """
+    if COOLNAME_AVAILABLE:
+        # Generate 2-word name with number suffix (e.g., "swift-falcon-42")
+        name = coolname.generate_slug(2)
+        # Add random number suffix for uniqueness
+        suffix = secrets.randbelow(1000)
+        return f"{name}-{suffix}".upper()
+    else:
+        # Fallback: Use timestamp-based name
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        suffix = secrets.token_hex(2).upper()  # 4 hex chars
+        return f"COIN-{timestamp}-{suffix}"
 class Outcome(Enum):
     HEADS = "heads"
     TAILS = "tails"
@@ -29,22 +58,39 @@ class Outcome(Enum):
 
 @dataclass
 class TagKeys:
-    """Keys and metadata for a single NTAG424 DNA tag."""
+    """Keys and metadata for a single NTAG424 DNA tag.
+
+    Attributes:
+        uid: Tag UID (UID object)
+        picc_master_key: Key 0 (hex string, 32 chars)
+        app_read_key: Key 1 (hex string, 32 chars)
+        sdm_mac_key: Key 3 (hex string, 32 chars)
+        outcome: Tag side (HEADS | TAILS | INVALID)
+        coin_name: Name of the coin this tag belongs to (empty string if unassigned)
+        provisioned_date: ISO format timestamp
+        status: 'factory', 'provisioned', 'locked', 'error'
+        notes: Optional notes
+        last_used_date: ISO format timestamp of last use
+    """
 
     uid: UID  # UID object
     picc_master_key: str  # Key 0 (hex string, 32 chars)
     app_read_key: str  # Key 1 (hex string, 32 chars)
     sdm_mac_key: str  # Key 3 (hex string, 32 chars)
-    outcome: Outcome # heads or tails
-    provisioned_date: str  # ISO format timestamp
-    status: str  # 'factory', 'provisioned', 'locked', 'error'
+    outcome: Outcome = Outcome.INVALID  # heads or tails (defaults to INVALID)
+    coin_name: str = ""  # Coin identifier (defaults to unassigned)
+    provisioned_date: str = ""  # ISO format timestamp
+    status: str = "factory"  # 'factory', 'provisioned', 'locked', 'error'
     notes: str = ""
     last_used_date: str = ""  # ISO format timestamp of last use
 
     def __post_init__(self):
-        """Convert string UID to UID object if needed."""
+        """Convert string UID to UID object and normalize outcome if needed."""
         if isinstance(self.uid, str):
             self.uid = UID(self.uid)
+        # Convert string outcome to Outcome enum if needed (for CSV compatibility)
+        if isinstance(self.outcome, str):
+            self.outcome = Outcome(self.outcome)
 
     def get_picc_master_key_bytes(self) -> bytes:
         """Get PICC master key as bytes."""
@@ -64,13 +110,15 @@ class TagKeys:
 
     def __str__(self) -> str:
         """Format TagKeys for display."""
+        asset_tag = self.get_asset_tag()
+        coin_display = f"Coin: {self.coin_name}" if self.coin_name else "Unassigned"
         return (
             f"TagKeys(\n"
             f"  UID: {self.uid} [Tag: {asset_tag}]\n"
+            f"  {coin_display} ({self.outcome.value})\n"
             f"  PICC Master Key: {self.picc_master_key}\n"
             f"  App Read Key: {self.app_read_key}\n"
             f"  SDM MAC Key: {self.sdm_mac_key}\n"
-            f"  Outcome: {self.outcome.value}\n"
             f"  Provisioned: {self.provisioned_date}\n"
             f"  Status: {self.status}\n"
             f"  Notes: {self.notes[:50]}{'...' if len(self.notes) > 50 else ''}\n"
@@ -88,6 +136,7 @@ class TagKeys:
             app_read_key=factory_key,
             sdm_mac_key=factory_key,
             outcome=Outcome.INVALID,
+            coin_name="",  # Factory keys are unassigned
             provisioned_date=datetime.now().isoformat(),
             status="factory",
             notes="Factory default keys",
@@ -246,7 +295,6 @@ class CsvKeyManager:
         Returns:
             TagKeys object with tag's keys
         """
-
         # 1. Search main CSV first
         if self.csv_path.exists():
             log.debug(f"[CSV READ] Reading from: {self.csv_path.absolute()}")
@@ -572,29 +620,194 @@ class CsvKeyManager:
 
         return tags
 
-    def generate_random_keys(self, uid: UID) -> TagKeys:
+    # ========================================================================
+    # Coin Management API
+    # ========================================================================
+
+    def assign_coin_name(self, uid: UID, coin_name: str, outcome: Outcome):
+        """Assign a coin name and outcome to a tag.
+
+        Validates:
+        - coin_name is not empty
+        - outcome is HEADS or TAILS (not INVALID)
+        - No duplicate outcome for the same coin_name
+
+        Args:
+            uid: Tag UID
+            coin_name: Coin identifier (e.g., "SWIFT-FALCON-42")
+            outcome: Must be Outcome.HEADS or Outcome.TAILS
+
+        Raises:
+            ValueError: If validation fails or duplicate outcome detected
+        """
+        # Validate inputs
+        if not coin_name:
+            raise ValueError("coin_name cannot be empty")
+
+        if outcome not in (Outcome.HEADS, Outcome.TAILS):
+            raise ValueError(f"outcome must be HEADS or TAILS, got {outcome}")
+
+        # Check for duplicate outcome in the same coin
+        existing_tags = self.list_tags()
+        for tag in existing_tags:
+            if tag.coin_name == coin_name and tag.outcome == outcome and tag.uid.uid != uid.uid:
+                raise ValueError(
+                    f"Coin '{coin_name}' already has a {outcome.value} tag "
+                    f"(UID: {tag.uid.uid}). Cannot assign duplicate outcome."
+                )
+
+        # Get existing tag or create new entry
+        tag_keys = self.get_tag_keys(uid)
+        tag_keys.coin_name = coin_name
+        tag_keys.outcome = outcome
+        self.save_tag_keys(tag_keys)
+
+        log.info(f"Assigned coin name '{coin_name}' ({outcome.value}) to UID {uid.uid}")
+
+    def get_coin_tags(self, coin_name: str) -> dict[str, TagKeys | None]:
+        """Get both tags for a coin.
+
+        Args:
+            coin_name: Coin identifier
+
+        Returns:
+            dict with keys 'heads' and 'tails', values are TagKeys or None if missing
+
+        Example:
+            {'heads': TagKeys(...), 'tails': TagKeys(...)}
+            {'heads': TagKeys(...), 'tails': None}  # Incomplete coin
+        """
+        result: dict[str, TagKeys | None] = {'heads': None, 'tails': None}
+
+        tags = self.list_tags()
+        for tag in tags:
+            if tag.coin_name == coin_name:
+                if tag.outcome == Outcome.HEADS:
+                    result['heads'] = tag
+                elif tag.outcome == Outcome.TAILS:
+                    result['tails'] = tag
+
+        return result
+
+    def validate_coin(self, coin_name: str) -> dict:
+        """Validate coin completeness.
+
+        Args:
+            coin_name: Coin identifier
+
+        Returns:
+            {
+                'complete': bool,  # True if both heads and tails exist
+                'heads': TagKeys | None,
+                'tails': TagKeys | None,
+                'issues': list[str]  # ["Missing tails tag", "Heads tag not provisioned"]
+            }
+        """
+        coin_tags = self.get_coin_tags(coin_name)
+        heads = coin_tags['heads']
+        tails = coin_tags['tails']
+
+        issues = []
+        if heads is None:
+            issues.append("Missing heads tag")
+        elif heads.status not in ('provisioned', 'keys_configured'):
+            issues.append(f"Heads tag not provisioned (status: {heads.status})")
+
+        if tails is None:
+            issues.append("Missing tails tag")
+        elif tails.status not in ('provisioned', 'keys_configured'):
+            issues.append(f"Tails tag not provisioned (status: {tails.status})")
+
+        return {
+            'complete': len(issues) == 0,
+            'heads': heads,
+            'tails': tails,
+            'issues': issues
+        }
+
+    def list_coins(self) -> dict[str, dict]:
+        """List all coins and their status.
+
+        Returns:
+            {
+                'SWIFT-FALCON-42': {
+                    'complete': True,
+                    'heads_uid': '04AE664A2F7080',
+                    'tails_uid': '04AE664A2F7081'
+                },
+                'BOLD-EAGLE-99': {
+                    'complete': False,
+                    'heads_uid': '04AE664A2F7082',
+                    'tails_uid': None
+                },
+                '': {  # Unassigned tags
+                    'complete': False,
+                    'heads_uid': None,
+                    'tails_uid': None,
+                    'unassigned_count': 3
+                }
+            }
+        """
+        coins: dict[str, dict] = {}
+        tags = self.list_tags()
+
+        # Group tags by coin_name
+        for tag in tags:
+            coin_name = tag.coin_name or ""  # Empty string for unassigned
+
+            if coin_name not in coins:
+                coins[coin_name] = {
+                    'complete': False,
+                    'heads_uid': None,
+                    'tails_uid': None
+                }
+
+            if tag.outcome == Outcome.HEADS:
+                coins[coin_name]['heads_uid'] = tag.uid.uid
+            elif tag.outcome == Outcome.TAILS:
+                coins[coin_name]['tails_uid'] = tag.uid.uid
+
+        # Calculate completeness
+        for coin_name, coin_data in coins.items():
+            if coin_name == "":
+                # Special handling for unassigned tags
+                unassigned_tags = [t for t in tags if not t.coin_name]
+                coin_data['unassigned_count'] = len(unassigned_tags)
+            else:
+                coin_data['complete'] = (
+                    coin_data['heads_uid'] is not None and
+                    coin_data['tails_uid'] is not None
+                )
+
+        return coins
+
+    def generate_random_keys(self, uid: UID, coin_name: str = "", outcome: Outcome = Outcome.INVALID) -> TagKeys:
         """Generate random keys for a tag.
 
         Args:
             uid: Tag UID
+            coin_name: Optional coin identifier (defaults to unassigned)
+            outcome: Optional outcome (defaults to INVALID)
 
         Returns:
             TagKeys with randomly generated keys
         """
-
         return TagKeys(
             uid=uid,
             picc_master_key=secrets.token_hex(16),  # 16 bytes = 32 hex chars
             app_read_key=secrets.token_hex(16),
             sdm_mac_key=secrets.token_hex(16),
-            outcome=Outcome.INVALID,
+            outcome=outcome,
+            coin_name=coin_name,
             provisioned_date=datetime.now().isoformat(),
             status="provisioned",
             notes="Randomly generated keys",
         )
 
     @contextmanager
-    def provision_tag(self, uid: UID, url: str | None = None):
+    def provision_tag(
+        self, uid: UID, url: str | None = None, coin_name: str = "", outcome: Outcome = Outcome.INVALID
+    ):
         """Context manager for two-phase commit of tag provisioning.
 
         TWO-PHASE PROVISIONING:
@@ -609,17 +822,19 @@ class CsvKeyManager:
             uid: Tag UID
             url: Base URL for NDEF. If None, only keys are set (keys_configured).
                  If provided, SDM/NDEF configured (provisioned).
+            coin_name: Optional coin identifier (e.g., "SWIFT-FALCON-42")
+            outcome: Optional outcome (HEADS | TAILS | INVALID for unassigned)
 
         Yields:
             TagKeys with newly generated keys (status='pending')
 
         Example (Two-Phase):
-            # Phase 1: Set keys only
-            with key_mgr.provision_tag(uid, url=None) as keys:
+            # Phase 1: Set keys only with coin assignment
+            with key_mgr.provision_tag(uid, url=None, coin_name="COIN-001", outcome=Outcome.HEADS) as keys:
                 change_key(0, keys.get_picc_master_key_bytes())
                 change_key(1, keys.get_app_read_key_bytes())
                 change_key(3, keys.get_sdm_mac_key_bytes())
-            # SUCCESS: Status → 'keys_configured'
+            # SUCCESS: Status → 'keys_configured', coin assigned
 
             # Phase 2: Configure URL
             keys = key_mgr.get_tag_keys(uid)
@@ -634,9 +849,9 @@ class CsvKeyManager:
         except KeyError:
             old_keys = None
 
-        # Phase 1: Generate NEW keys and save with 'pending' status
+        # Phase 1: Generate NEW keys with coin info and save with 'pending' status
         # (This automatically backs up OLD keys via save_tag_keys)
-        new_keys = self.generate_random_keys(uid)
+        new_keys = self.generate_random_keys(uid, coin_name, outcome)
         new_keys.status = "pending"
         new_keys.notes = "Provisioning in progress..."
         self.save_tag_keys(new_keys)
