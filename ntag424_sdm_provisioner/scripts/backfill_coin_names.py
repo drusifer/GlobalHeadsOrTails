@@ -277,8 +277,8 @@ def backfill_scans_db(csv_path: Path, db_path: Path, dry_run: bool = True) -> No
 
     # 1. Load Key Manager to get UID -> coin_name mapping
     key_manager = CsvKeyManager(csv_path=str(csv_path))
-    all_keys = key_manager.get_all_keys()
-    uid_to_coin_name = {tag.uid: tag.coin_name for tag in all_keys if tag.coin_name}
+    all_keys = key_manager.list_tags()
+    uid_to_coin_name = {tag.uid.uid: tag.coin_name for tag in all_keys if tag.coin_name}
 
     if not uid_to_coin_name:
         print("No coin names found in key manager. Nothing to backfill in DB.")
