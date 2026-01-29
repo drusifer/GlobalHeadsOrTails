@@ -207,9 +207,10 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
 
     return app
 
+# Create the Flask app instance for Gunicorn to discover
+app = create_app()
 
 if __name__ == "__main__":
     port = getenv("PORT", "5000")
     log.info(f"Starting Flask app on port {port}...")
-    app = create_app()
     app.run(host="127.0.0.1", port=int(port), debug=False)
