@@ -44,7 +44,7 @@ def ensure_coin_name_column(csv_path: Path) -> None:
 
     # Check if coin_name column exists
     if "coin_name" in fieldnames:
-        print("✓ coin_name column already exists")
+        print("[OK] coin_name column already exists")
         return
 
     print("Adding coin_name column...")
@@ -64,7 +64,7 @@ def ensure_coin_name_column(csv_path: Path) -> None:
         writer.writeheader()
         writer.writerows(rows)
 
-    print(f"✓ Added coin_name column to {len(rows)} rows")
+    print(f"[OK] Added coin_name column to {len(rows)} rows")
 
 
 def backfill_csv_auto(csv_path: str, dry_run: bool = True) -> None:
@@ -80,7 +80,7 @@ def backfill_csv_auto(csv_path: str, dry_run: bool = True) -> None:
     # Ensure coin_name column exists
     ensure_coin_name_column(csv_path_obj)
 
-    # Read CSV to get all rows
+    # Read CSV manually to get all rows
     with csv_path_obj.open(newline="") as f:
         reader = csv.DictReader(f)
         all_rows = list(reader)
@@ -162,6 +162,103 @@ def backfill_csv_auto(csv_path: str, dry_run: bool = True) -> None:
     print("="*60)
 
 
+def read_manual_pairs(pairs_file: Path) -> list:
+    """Read manual pairings from file.
+
+    Format:
+        UID1,UID2
+        UID3,UID4
+        UID5
+
+    Returns list of tuples: [(uid1, uid2, coin_name), (uid3, None, coin_name)]
+    """
+    pairs = []
+    with pairs_file.open() as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+
+            uids = [uid.strip().upper() for uid in line.split(',')]
+            coin_name = generate_coin_name()
+
+            if len(uids) == 2:
+                pairs.append((uids[0], uids[1], coin_name))
+            elif len(uids) == 1:
+                pairs.append((uids[0], None, coin_name))
+            else:
+                print(f"Warning: Invalid line in pairs file: {line}")
+
+    return pairs
+
+
+def backfill_csv_manual(csv_path: str, pairs_file: str, dry_run: bool = True):
+    """Backfill coin_name in tag_keys.csv using a manual pairing file."""
+    csv_path_obj = Path(csv_path)
+    pairs_file_obj = Path(pairs_file)
+    print(f"\n[MODE: MANUAL] Using pairs file: {pairs_file}")
+
+    if not pairs_file_obj.exists():
+        print(f"Error: {pairs_file} not found")
+        sys.exit(1)
+
+    # Ensure coin_name column exists before we start
+    ensure_coin_name_column(csv_path_obj)
+
+    # Read manual pairs and CSV data
+    pairs = read_manual_pairs(pairs_file_obj)
+    with csv_path_obj.open(newline='') as f:
+        all_rows = list(csv.DictReader(f))
+
+    # Create UID -> row mapping for efficient lookup
+    uid_to_row = {row['uid'].upper(): row for row in all_rows}
+    updates_made = 0
+
+    print("\nProcessing manual pairs...")
+    for uid1, uid2, coin_name in pairs:
+        row1 = uid_to_row.get(uid1)
+        row2 = uid_to_row.get(uid2) if uid2 else None
+
+        if not row1:
+            print(f"  - WARNING: UID {uid1} not found in CSV. Skipping.")
+            continue
+        if uid2 and not row2:
+            print(f"  - WARNING: UID {uid2} not found in CSV. Skipping pair for {coin_name}.")
+            continue
+
+        if dry_run:
+            print(f"  - [DRY RUN] Would assign coin_name='{coin_name}' to UID {uid1}")
+            if row2:
+                print(f"  - [DRY RUN] Would assign coin_name='{coin_name}' to UID {uid2}")
+        else:
+            row1['coin_name'] = coin_name
+            updates_made += 1
+            print(f"  - [OK] Updated {uid1} with coin_name={coin_name}")
+            if row2:
+                row2['coin_name'] = coin_name
+                updates_made += 1
+                print(f"  - [OK] Updated {uid2} with coin_name={coin_name}")
+
+    if dry_run:
+        print("\n" + "="*60)
+        print("DRY RUN (MANUAL) - No changes made to CSV")
+        print(f"Would update {len(pairs)} coins.")
+        print("Run with --apply to save changes")
+        print("="*60)
+        return
+
+    # Write updated CSV
+    fieldnames = list(all_rows[0].keys())
+    with csv_path_obj.open('w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(all_rows)
+
+    print("\n" + "="*60)
+    print(f"SUCCESS (MANUAL): Updated {updates_made} tags in {csv_path}")
+    print("="*60)
+
+
 def backfill_scans_db(csv_path: Path, db_path: Path, dry_run: bool = True) -> None:
     """Backfill coin_name in the scan_logs table from the key manager.
 
@@ -180,8 +277,8 @@ def backfill_scans_db(csv_path: Path, db_path: Path, dry_run: bool = True) -> No
 
     # 1. Load Key Manager to get UID -> coin_name mapping
     key_manager = CsvKeyManager(csv_path=str(csv_path))
-    all_keys = key_manager.list_tags()
-    uid_to_coin_name = {tag.uid.uid: tag.coin_name for tag in all_keys if tag.coin_name}
+    all_keys = key_manager.get_all_keys()
+    uid_to_coin_name = {tag.uid: tag.coin_name for tag in all_keys if tag.coin_name}
 
     if not uid_to_coin_name:
         print("No coin names found in key manager. Nothing to backfill in DB.")
@@ -190,7 +287,7 @@ def backfill_scans_db(csv_path: Path, db_path: Path, dry_run: bool = True) -> No
     # 2. Connect to DB and ensure 'coin_name' column exists
     # The SqliteGameStateManager constructor automatically handles migration
     game_manager = SqliteGameStateManager(db_path=str(db_path))
-    print(f"✓ Database connection to {db_path} successful.")
+    print(f"[OK] Database connection to {db_path} successful.")
 
     # 3. Get all scans that need updating
     scans_to_update = game_manager._query(
@@ -198,7 +295,7 @@ def backfill_scans_db(csv_path: Path, db_path: Path, dry_run: bool = True) -> No
     )
 
     if not scans_to_update:
-        print("✓ No scans in the database require backfilling.")
+        print("[OK] No scans in the database require backfilling.")
         return
 
     updates = []
@@ -228,7 +325,7 @@ def backfill_scans_db(csv_path: Path, db_path: Path, dry_run: bool = True) -> No
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Backfill coin_name in tag_keys.csv and app.db. Supports auto pairing."
+        description="Backfill coin_name in tag_keys.csv and app.db. Supports auto and manual pairing."
     )
     parser.add_argument(
         "--csv", "-c",
@@ -239,6 +336,16 @@ def main():
         "--db",
         default="data/app.db",
         help="Path to app.db SQLite database (default: data/app.db)",
+    )
+    parser.add_argument(
+        "--manual",
+        action="store_true",
+        help="Use manual pairing mode. Requires --pairs file.",
+    )
+    parser.add_argument(
+        "--pairs",
+        default="pairs.txt",
+        help="Path to manual pairs file (default: pairs.txt)",
     )
     parser.add_argument(
         "--apply",
@@ -255,7 +362,11 @@ def main():
 
     db_path = Path(args.db)
 
-    backfill_csv_auto(str(csv_path), dry_run=not args.apply)
+    # Step 1: Backfill the CSV file using either auto or manual mode
+    if args.manual:
+        backfill_csv_manual(str(csv_path), args.pairs, dry_run=not args.apply)
+    else:
+        backfill_csv_auto(str(csv_path), dry_run=not args.apply)
 
     # Step 2: Backfill the database using the updated CSV data
     backfill_scans_db(csv_path, db_path, dry_run=not args.apply)
