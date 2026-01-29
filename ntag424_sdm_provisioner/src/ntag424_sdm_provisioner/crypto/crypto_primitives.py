@@ -6,9 +6,8 @@ These functions have been tested against official NXP test vectors and match exa
 All functions follow the NTAG424 DNA / MIFARE DESFire EV2 specifications.
 """
 
-import zlib
 import math
-from collections import Counter
+import zlib
 
 from Crypto.Cipher import AES  # nosec
 from Crypto.Hash import CMAC  # nosec

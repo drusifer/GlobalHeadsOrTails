@@ -1,13 +1,13 @@
 from unittest.mock import MagicMock
 
 import pytest
+from ntag424_sdm_provisioner.uid_utils import UID
 
 from ntag424_sdm_provisioner.constants import TagStatus
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, TagKeys
 from ntag424_sdm_provisioner.sequence_logger import create_sequence_logger
 from ntag424_sdm_provisioner.seritag_simulator import SeritagCardManager
 from ntag424_sdm_provisioner.services.diagnostics_service import TagDiagnosticsService
-from natag424_sdm_provisioner.uid_utils import UID
 
 
 class TestTagDiagnosticsService:

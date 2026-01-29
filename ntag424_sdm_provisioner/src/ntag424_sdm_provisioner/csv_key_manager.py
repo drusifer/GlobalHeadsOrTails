@@ -12,12 +12,11 @@ import shutil
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, fields
 from datetime import datetime
-from enum import Enum, StrEnum
+from enum import StrEnum
 from pathlib import Path
 from typing import ClassVar
+
 import coolname
-from enum import Enum, StrEnum
-import json
 
 from ntag424_sdm_provisioner.crypto.crypto_primitives import calculate_cmac_full, truncate_cmac
 from ntag424_sdm_provisioner.key_manager_interface import KEY_DEFAULT_FACTORY
@@ -45,6 +44,10 @@ class Outcome(StrEnum):
     HEADS = "heads"
     TAILS = "tails"
     INVALID = "invalid"
+
+    @classmethod
+    def _missing_(cls, _) -> "Outcome":
+        return Outcome.INVALID
 
 @dataclass
 class TagKeys:

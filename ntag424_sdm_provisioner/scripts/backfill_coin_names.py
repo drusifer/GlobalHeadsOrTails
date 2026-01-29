@@ -22,9 +22,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from ntag424_sdm_provisioner.csv_key_manager import (
+    CsvKeyManager,
     Outcome,
     generate_coin_name,
+    UID,
 )
+from ntag424_sdm_provisioner.server.game_state_manager import SqliteGameStateManager
 
 
 def ensure_coin_name_column(csv_path: Path) -> None:
@@ -64,7 +67,7 @@ def ensure_coin_name_column(csv_path: Path) -> None:
     print(f"✓ Added coin_name column to {len(rows)} rows")
 
 
-def backfill_coin_names(csv_path: str, dry_run: bool = True) -> None:
+def backfill_csv_auto(csv_path: str, dry_run: bool = True) -> None:
     """Backfill coin names for production data.
 
     Args:
@@ -72,12 +75,12 @@ def backfill_coin_names(csv_path: str, dry_run: bool = True) -> None:
         dry_run: If True, show changes without saving
     """
     csv_path_obj = Path(csv_path)
-    print(f"Loading data from: {csv_path}")
+    print(f"\n[MODE: AUTO] Loading data from: {csv_path}")
 
     # Ensure coin_name column exists
     ensure_coin_name_column(csv_path_obj)
 
-    # Read CSV manually to get all rows
+    # Read CSV to get all rows
     with csv_path_obj.open(newline="") as f:
         reader = csv.DictReader(f)
         all_rows = list(reader)
@@ -159,14 +162,83 @@ def backfill_coin_names(csv_path: str, dry_run: bool = True) -> None:
     print("="*60)
 
 
+def backfill_scans_db(csv_path: Path, db_path: Path, dry_run: bool = True) -> None:
+    """Backfill coin_name in the scan_logs table from the key manager.
+
+    Args:
+        csv_path: Path to the tag_keys.csv file to load keys.
+        db_path: Path to the app.db SQLite database.
+        dry_run: If True, show changes without saving.
+    """
+    print("\n" + "="*60)
+    print("Backfilling Database (app.db)...")
+    print("="*60)
+
+    if not db_path.exists():
+        print(f"Database not found at {db_path}. Skipping DB backfill.")
+        return
+
+    # 1. Load Key Manager to get UID -> coin_name mapping
+    key_manager = CsvKeyManager(csv_path=str(csv_path))
+    all_keys = key_manager.list_tags()
+    uid_to_coin_name = {tag.uid.uid: tag.coin_name for tag in all_keys if tag.coin_name}
+
+    if not uid_to_coin_name:
+        print("No coin names found in key manager. Nothing to backfill in DB.")
+        return
+
+    # 2. Connect to DB and ensure 'coin_name' column exists
+    # The SqliteGameStateManager constructor automatically handles migration
+    game_manager = SqliteGameStateManager(db_path=str(db_path))
+    print(f"✓ Database connection to {db_path} successful.")
+
+    # 3. Get all scans that need updating
+    scans_to_update = game_manager._query(
+        "SELECT id, uid FROM scan_logs WHERE coin_name IS NULL OR coin_name = ''"
+    )
+
+    if not scans_to_update:
+        print("✓ No scans in the database require backfilling.")
+        return
+
+    updates = []
+    for scan_id, uid in scans_to_update:
+        if uid in uid_to_coin_name:
+            updates.append((uid_to_coin_name[uid], scan_id))
+
+    if not updates:
+        print("No matching UIDs found between DB and key manager. Nothing to update.")
+        return
+
+    print(f"Found {len(updates)} scan entries to update with coin names.")
+
+    if dry_run:
+        print("\n[DRY RUN] Would update the database as follows:")
+        for coin_name, scan_id in updates[:5]:  # Show a sample
+            print(f"  - Set coin_name='{coin_name}' for scan with id={scan_id}")
+        if len(updates) > 5:
+            print(f"  ... and {len(updates) - 5} more.")
+        return
+
+    # 4. Apply updates
+    with game_manager._get_conn() as conn:
+        conn.executemany("UPDATE scan_logs SET coin_name = ? WHERE id = ?", updates)
+        conn.commit()
+        print(f"\nSUCCESS: Updated {len(updates)} records in the database.")
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Backfill coin names for production tag_keys.csv"
+        description="Backfill coin_name in tag_keys.csv and app.db. Supports auto pairing."
     )
     parser.add_argument(
-        "--csv",
+        "--csv", "-c",
         default="data/tag_keys.csv",
         help="Path to tag_keys.csv (default: data/tag_keys.csv)",
+    )
+    parser.add_argument(
+        "--db",
+        default="data/app.db",
+        help="Path to app.db SQLite database (default: data/app.db)",
     )
     parser.add_argument(
         "--apply",
@@ -181,7 +253,12 @@ def main():
         print(f"Error: {csv_path} not found")
         sys.exit(1)
 
-    backfill_coin_names(str(csv_path), dry_run=not args.apply)
+    db_path = Path(args.db)
+
+    backfill_csv_auto(str(csv_path), dry_run=not args.apply)
+
+    # Step 2: Backfill the database using the updated CSV data
+    backfill_scans_db(csv_path, db_path, dry_run=not args.apply)
 
 
 if __name__ == "__main__":

@@ -15,7 +15,6 @@ from ntag424_sdm_provisioner.services.format_service import FormatService
 from ntag424_sdm_provisioner.tui.logging_handler import TextualLogHandler
 from ntag424_sdm_provisioner.tui.widgets import TagStatusWidget
 from ntag424_sdm_provisioner.tui.worker_manager import WorkerManager
-from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)

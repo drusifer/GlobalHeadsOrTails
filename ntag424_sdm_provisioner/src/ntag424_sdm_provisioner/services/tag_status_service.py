@@ -8,7 +8,6 @@ from ntag424_sdm_provisioner.commands.get_key_version import GetKeyVersion
 from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccApplication
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, TagKeys
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
-from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)

@@ -54,6 +54,36 @@
       }
       100% { transform: scale(1); }
     }
+
+    /* Tooltip styles */
+    .tooltip {
+      position: relative;
+      cursor: help;
+      text-decoration: underline dotted;
+    }
+    .tooltip::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      white-space: pre-wrap; /* Use pre-wrap to respect newlines */
+      width: 250px;
+      text-align: left;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s, visibility 0.3s;
+      z-index: 10;
+    }
+    .tooltip:hover::after {
+      visibility: visible;
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -92,12 +122,19 @@
       <table class="results-table">
         <tbody>
           <tr>
+            {% set total_flips = totals.heads + totals.tails %}
             <td>Heads:</td>
-            <td id="heads-total">{{ totals.heads if totals else 0 }}</td>
+            <td id="heads-total">
+              {{ totals.heads if totals else 0 }}
+              {% if total_flips > 0 %}<span style="font-size: 1rem; color: #6c757d;"> ({{ "%.4f"|format(totals.heads / total_flips * 100) }}%)</span>{% endif %}
+            </td>
           </tr>
           <tr>
             <td>Tails:</td>
-            <td id="tails-total">{{ totals.tails if totals else 0 }}</td>
+            <td id="tails-total">
+              {{ totals.tails if totals else 0 }}
+              {% if total_flips > 0 %}<span style="font-size: 1rem; color: #6c757d;"> ({{ "%.4f"|format(totals.tails / total_flips * 100) }}%)</span>{% endif %}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -108,9 +145,18 @@
       <table class="stats-table">
         <tbody>
           <tr><td colspan="2" style="text-align: center; font-weight: bold; background-color: #f8f9fa;">Global Randomness Analysis</td></tr>
-          <tr><td>Total Flips Analyzed:</td><td>{{ randomness_stats.total_bits }}</td></tr>
-          <tr><td>Shannon Entropy (bits/byte):</td><td>{{ "%.4f"|format(randomness_stats.entropy) }} (ideal: 8.0)</td></tr>
-          <tr><td>NIST Monobit Test (P-value):</td><td>{{ "%.6f"|format(randomness_stats.nist_monobit_p_value) if randomness_stats.nist_monobit_p_value is not none else 'N/A' }} (pass >= 0.01)</td></tr>
+          <tr><td>Total Coins:</td><td>{{ randomness_stats.total_coins }}</td></tr>
+          <tr><td>Total Flips:</td><td>{{ randomness_stats.total_bits }}</td></tr>
+          <tr><td>Total Heads:</td><td>{{ randomness_stats.total_heads }}</td></tr>
+          <tr><td>Total Tails:</td><td>{{ randomness_stats.total_tails }}</td></tr>
+          <tr>
+            <td><span class="tooltip" data-tooltip-key="shannon">Shannon Entropy (bits/byte):</span></td>
+            <td>{{ "%.4f"|format(randomness_stats.entropy) }} (ideal: 8.0)</td>
+          </tr>
+          <tr>
+            <td><span class="tooltip" data-tooltip-key="nist">NIST Monobit Test (P-value):</span></td>
+            <td>{{ "%.6f"|format(randomness_stats.nist_monobit_p_value) if randomness_stats.nist_monobit_p_value is not none else 'N/A' }} (pass >= 0.01)</td>
+          </tr>
         </tbody>
       </table>
       {% else %}
@@ -130,17 +176,19 @@
       <table class="recent-flips-table">
         <thead>
           <tr>
-            <th>Time</th>
-            <th>Coin ID</th>
+            <th>Coin Name</th>
+            <th>Asset Tag</th>
             <th>Outcome</th>
+            <th>Time</th>
           </tr>
         </thead>
         <tbody id="recent-flips-body">
           {% for flip in recent_flips %}
           <tr data-timestamp="{{ flip.timestamp }}" {% if params and flip.asset_tag == params["Coin ID"] %}class="highlight-row"{% endif %}>
-            <td>{{ flip.timestamp.split(' ')[1].split('.')[0] }}</td>
+            <td>{{ flip.coin_name or 'N/A' }}</td>
             <td>{{ flip.asset_tag }}</td>
             <td>{{ flip.outcome.upper() }}</td>
+            <td>{{ flip.timestamp.split(' ')[1].split('.')[0] }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -152,12 +200,20 @@
       {% if leaderboard_stats %}
       <table class="recent-flips-table">
         <thead>
-          <tr><th>Rank</th><th>Coin ID</th><th>Flips</th><th>Entropy</th><th>NIST P-value</th></tr>
+          <tr>
+            <th>Rank</th>
+            <th>Coin ID</th>
+            <th>Total Flips</th>
+            <th>Heads</th>
+            <th>Tails</th>
+            <th><span class="tooltip" data-tooltip-key="shannon">Entropy</span></th>
+            <th><span class="tooltip" data-tooltip-key="nist">NIST P-value</span></th>
+          </tr>
         </thead>
         <tbody>
           {% for coin in leaderboard_stats %}
-          <tr {% if params and coin.coin_id == params["Coin ID"] %}class="highlight-row"{% endif %}>
-            <td>{{ loop.index }}</td><td>{{ coin.coin_id }}</td><td>{{ coin.total_bits }}</td><td>{{ "%.4f"|format(coin.entropy) }}</td><td>{{ "%.4f"|format(coin.nist_monobit_p_value) if coin.nist_monobit_p_value is not none else 'N/A' }}</td>
+          <tr {% if params and coin.coin_name == params["Coin Name"] %}class="highlight-row"{% endif %}>
+            <td>{{ loop.index }}</td><td>{{ coin.coin_name }}</td><td>{{ coin.total_bits }}</td><td>{{ coin.total_heads }}</td><td>{{ coin.total_tails }}</td><td>{{ "%.4f"|format(coin.entropy) }}</td><td>{{ "%.4f"|format(coin.nist_monobit_p_value) if coin.nist_monobit_p_value is not none else 'N/A' }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -167,6 +223,23 @@
   </div>
 
   <script>
+    // DRY Tooltips - Define text in one place
+    const tooltipContent = {
+      shannon: `Shannon Entropy (bits/byte):
+Measures the unpredictability of the flip sequence. An ideal, perfectly random sequence has an entropy of 8.0. Values closer to 8.0 are better.`,
+      nist: `NIST Monobit Frequency Test:
+A statistical test for randomness that checks if the number of heads and tails are roughly equal. The P-value represents the probability that a truly random sequence would appear 'less random' than this one. A P-value >= 0.01 is required to pass.`
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('[data-tooltip-key]').forEach(el => {
+        const key = el.getAttribute('data-tooltip-key');
+        if (tooltipContent[key]) {
+          el.setAttribute('data-tooltip', tooltipContent[key]);
+        }
+      });
+    });
+
     const currentAssetTag = '{{ params["Coin ID"] if params else "" }}';
 
     function openTab(evt, tabName) {
@@ -256,9 +329,10 @@
             const tr = document.createElement('tr');
             tr.dataset.timestamp = flip.timestamp;
             tr.innerHTML = `
-              <td>${flip.timestamp.split(' ')[1].split('.')[0]}</td>
+              <td>${flip.coin_name || 'N/A'}</td>
               <td>${flip.asset_tag}</td>
               <td>${flip.outcome.toUpperCase()}</td>
+              <td>${flip.timestamp.split(' ')[1].split('.')[0]}</td>
             `;
             if (currentAssetTag && flip.asset_tag === currentAssetTag) {
               tr.classList.add('highlight-row');
@@ -283,8 +357,22 @@
         }
 
         lastKnownTimestamp = newFlips[0].timestamp;
-        document.getElementById('heads-total').innerText = newTotals.heads;
-        document.getElementById('tails-total').innerText = newTotals.tails;
+
+        // Update totals with percentages
+        const headsEl = document.getElementById('heads-total');
+        const tailsEl = document.getElementById('tails-total');
+        const totalFlips = newTotals.heads + newTotals.tails;
+
+        let headsPctHtml = '';
+        let tailsPctHtml = '';
+        if (totalFlips > 0) {
+          const headsPct = ((newTotals.heads / totalFlips) * 100).toFixed(4);
+          const tailsPct = ((newTotals.tails / totalFlips) * 100).toFixed(4);
+          headsPctHtml = `<span style="font-size: 1rem; color: #6c757d;"> (${headsPct}%)</span>`;
+          tailsPctHtml = `<span style="font-size: 1rem; color: #6c757d;"> (${tailsPct}%)</span>`;
+        }
+        headsEl.innerHTML = `${newTotals.heads}${headsPctHtml}`;
+        tailsEl.innerHTML = `${newTotals.tails}${tailsPctHtml}`;
       }
     }, 500);
   </script>

@@ -9,7 +9,6 @@ from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccA
 from ntag424_sdm_provisioner.crypto.auth_session import AuthenticateEV2
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
-from ntag424_sdm_provisioner.uid_utils import UID
 
 
 log = logging.getLogger(__name__)

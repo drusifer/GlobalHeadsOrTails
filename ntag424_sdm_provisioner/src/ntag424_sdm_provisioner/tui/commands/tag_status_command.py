@@ -11,7 +11,6 @@ from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
 from ntag424_sdm_provisioner.sequence_logger import SequenceLogger
 from ntag424_sdm_provisioner.tui.clock import Clock, RealClock
 from ntag424_sdm_provisioner.tui.nfc_command import NFCCommand
-from ntag424_sdm_provisioner.uid_utils import UID
 
 
 class TagStatusCommand(NFCCommand):

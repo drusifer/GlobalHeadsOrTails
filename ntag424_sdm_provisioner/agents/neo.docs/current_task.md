@@ -1,29 +1,16 @@
 # Neo - Current Task
 
-**Status**: Active - US-1.3 TUI Integration
+**Status**: IDLE - Awaiting next task.
 
-## Task: US-1.3 - Integrate TagDiagnosticsService into TUI
+## Previous Task: Coin Naming & Leaderboard Integration
 
-**Assigned By**: Mouse (Sprint Manager)  
-**Priority**: HIGH - Critical path blocker
+**Status**: ✅ COMPLETE
 
-## Tasks
-1. Create `DiagnosticsServiceAdapter` (follow ProvisionScreen pattern)
-2. Refactor `TagStatusScreen` to use `TagDiagnosticsService`
-3. Refactor `ReadTagScreen` to use `TagDiagnosticsService`
-4. Remove deprecated `TagStatusCommand` and `ReadTagCommand`
-5. Verify tests pass
-
-## Reference Pattern
-- `src/ntag424_sdm_provisioner/tui/screens/provision.py` (ServiceAdapter pattern)
-- Use `CardManager()` context manager
-- Use `WorkerManager.execute_command()`
-
-## Acceptance Criteria
-- ✅ Both screens use `TagDiagnosticsService`
-- ✅ No direct command usage
-- ✅ Tests pass
-- ✅ Deprecated commands removed
-
-## Next Priority
-Start implementation immediately - pattern already proven.
+**Summary**:
+- `coin_name` field added to `TagKeys` data model.
+- `CsvKeyManager` updated with coin management API.
+- TUI updated to support coin name during provisioning and status view.
+- Flask server and leaderboard updated to track by `coin_name`.
+- Backfill script created and run.
+- All tests passing.
+- Feature is ready for production.

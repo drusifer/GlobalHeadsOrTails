@@ -1,6 +1,6 @@
 """GetChipVersion command for NTAG424 DNA."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import ClassVar
 
 from ntag424_sdm_provisioner.commands.base import ApduCommand

@@ -5,7 +5,6 @@ class UID:
     
     def __init__(self, uid: bytes | str):
         """Initialize UID from bytes or hex string."""
-
         if isinstance(uid, bytes):
             self._uid_bytes = uid
         else:
@@ -20,6 +19,9 @@ class UID:
         if not isinstance(other, UID):
             return False
         return self.uid == other.uid 
+    
+    def __hash__(self) -> int:
+        return hash(self.uid)
 
     @property
     def bytes(self) -> bytes:
@@ -66,7 +68,6 @@ class UID:
             >>> UID(bytes.fromhex('046E6B4A2F7080')).short
             '2F7080'
         """
-
         # Last 3 bytes
         return self._uid_bytes[-3:].hex().upper()
 
@@ -85,5 +86,4 @@ class UID:
             >>> UID('046E6B4A2F7080').matches("6E-6B4A")
             True
         """
-
         return asset_tag == self.asset_tag

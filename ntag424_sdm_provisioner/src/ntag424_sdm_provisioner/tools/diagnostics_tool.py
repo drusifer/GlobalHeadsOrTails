@@ -9,7 +9,6 @@ from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
 from ntag424_sdm_provisioner.tools.base import TagState, ToolResult
 from ntag424_sdm_provisioner.tools.tool_helpers import read_ndef_file
-from ntag424_sdm_provisioner.uid_utils import UID
 
 
 class DiagnosticsTool:
