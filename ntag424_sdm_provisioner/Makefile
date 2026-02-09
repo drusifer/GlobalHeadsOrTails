@@ -64,22 +64,21 @@ test: deps_test
 
 run: deps
 	@echo "Starting Flask app..."
-	. $(VENV_ACTIVATE) && env PYTHONPATH=$(CURDIR)/src FLASK_APP=$(FLASK_APP) flask run --host=0.0.0.0 --port=5001 --debug --cert=adhoc
+	PYTHONPATH=$(CURDIR)/src FLASK_APP=$(FLASK_APP) $(PYTHON) -m flask run --host=0.0.0.0 --port=5001 --debug --cert=adhoc
 
 
-pkg: dist
+pkg:
 	@echo "Building Docker image..."
-	sudo docker build -t ntag424-sdm-provisioner .
+	docker build -t ntag424-sdm-provisioner .
 
 docker-run: pkg
 	@mkdir -p data_prod
 	@echo "Running Docker container..."
-	sudo docker run -d \
+	docker run -d \
+		--replace \
 		--name ntag424-sdm-provisioner \
 		--restart always \
 		-p 8000:8000 \
-		--memory="512m" \
-		--cpus="1.0" \
 		--read-only \
 		--tmpfs /tmp \
 		-v $(CURDIR)/data_prod:/app/data \
@@ -87,10 +86,10 @@ docker-run: pkg
 
 uninstall:
 	@echo "Stopping and removing Docker container..."
-	-sudo docker stop ntag424-sdm-provisioner
-	-sudo docker rm ntag424-sdm-provisioner
-	-sudo docker rmi ntag424-sdm-provisioner
+	-docker stop ntag424-sdm-provisioner
+	-docker rm ntag424-sdm-provisioner
+	-docker rmi ntag424-sdm-provisioner
 
 logs:
 	@echo "Fetching container logs..."
-	sudo docker logs ntag424-sdm-provisioner
+	docker logs ntag424-sdm-provisioner
