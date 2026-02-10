@@ -81,6 +81,7 @@ docker-run: pkg
 		-p 8000:8000 \
 		--read-only \
 		--tmpfs /tmp \
+		--user $$(id -u):$$(id -g) \
 		-v $(CURDIR)/data_prod:/app/data \
 		ntag424-sdm-provisioner
 
