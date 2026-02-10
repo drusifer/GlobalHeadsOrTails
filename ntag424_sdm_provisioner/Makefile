@@ -81,8 +81,9 @@ docker-run: pkg
 		-p 8000:8000 \
 		--read-only \
 		--tmpfs /tmp \
-		--user $$(id -u):$$(id -g) \
+		--userns=keep-id \
 		-v $(CURDIR)/data_prod:/app/data \
+		-v $(CURDIR)/data_prod/tag_keys.csv:/app/data/tag_keys.csv:ro \
 		ntag424-sdm-provisioner
 
 uninstall:
