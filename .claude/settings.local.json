@@ -37,7 +37,10 @@
       "Bash(. .venv/bin/activate)",
       "Bash(source:*)",
       "Bash(pytest:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(echo kubectl not available or no cluster:*)",
+      "Bash(head:*)",
+      "Bash(kubectl get pvc -A 2>/dev/null && kubectl get sc 2>/dev/null)"
     ],
     "deny": [],
     "ask": []

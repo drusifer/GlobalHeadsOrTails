@@ -15,7 +15,10 @@ export PYTHONPYCACHEPREFIX := $(CURDIR)/.cache/pycache
 VENV_ACTIVATE := $(VENV)/bin/activate
 DEPS_MARKER := $(VENV)/.deps_updated
 
-.PHONY: all clean dist pkg test run deps_test test_server deps docker-run uninstall logs pull-db
+HELM_CHART := /home/drusifer/Projects/pi-patch/cluster/helm/sdm-provisioner
+HELM_DATA_PATH := /opt/sdm-provisioner/data
+
+.PHONY: all clean dist pkg test run deps_test test_server deps docker-run uninstall logs pull-db helm-setup helm-deploy helm-uninstall helm-logs
 
 all: clean test
 
@@ -95,3 +98,33 @@ uninstall:
 logs:
 	@echo "Fetching container logs..."
 	docker logs ntag424-sdm-provisioner
+
+# ── Helm / k3s targets ───────────────────────────────────────────────────────
+
+helm-setup:
+	@echo "Creating data directory on node and seeding tag_keys.csv..."
+	sudo mkdir -p $(HELM_DATA_PATH)
+	@if [ -f data_prod/tag_keys.csv ]; then \
+		sudo cp data_prod/tag_keys.csv $(HELM_DATA_PATH)/tag_keys.csv; \
+		echo "Copied data_prod/tag_keys.csv → $(HELM_DATA_PATH)/tag_keys.csv"; \
+	else \
+		echo "WARNING: data_prod/tag_keys.csv not found — copy it manually before deploying."; \
+	fi
+	sudo chown -R 1000:1000 $(HELM_DATA_PATH)
+	@echo "Data directory ready: $(HELM_DATA_PATH)"
+
+helm-deploy: pkg
+	@echo "Tagging image for k3s..."
+	docker tag ntag424-sdm-provisioner localhost/ntag424-sdm-provisioner:latest
+	@echo "Importing image into k3s containerd..."
+	docker save localhost/ntag424-sdm-provisioner:latest | sudo k3s ctr images import -
+	@echo "Deploying with Helm..."
+	helm upgrade --install sdm-provisioner $(HELM_CHART) -n sdm --create-namespace
+
+helm-uninstall:
+	@echo "Uninstalling Helm release..."
+	helm uninstall sdm-provisioner -n sdm
+
+helm-logs:
+	@echo "Streaming pod logs..."
+	kubectl logs -n sdm -l app=sdm-provisioner -f
