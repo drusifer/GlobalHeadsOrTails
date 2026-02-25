@@ -18,7 +18,7 @@ DEPS_MARKER := $(VENV)/.deps_updated
 HELM_CHART := /home/drusifer/Projects/pi-patch/cluster/helm/sdm-provisioner
 HELM_DATA_PATH := /opt/sdm-provisioner/data
 
-.PHONY: all clean dist pkg test run deps_test test_server deps docker-run uninstall logs pull-db helm-setup helm-deploy helm-uninstall helm-logs
+.PHONY: all clean dist pkg test run deps_test test_server deps docker-run uninstall logs pull-db helm-setup helm-deploy helm-uninstall helm-logs export-image
 
 all: clean test
 
@@ -98,6 +98,16 @@ uninstall:
 logs:
 	@echo "Fetching container logs..."
 	docker logs ntag424-sdm-provisioner
+
+# ── Image export (consumed by pi-patch ansible deploy) ──────────────────────
+
+export-image: pkg
+	@echo "Tagging image for k3s import..."
+	docker tag ntag424-sdm-provisioner localhost/ntag424-sdm-provisioner:latest
+	@echo "Exporting image tarball..."
+	@mkdir -p dist
+	docker save localhost/ntag424-sdm-provisioner:latest -o dist/sdm-provisioner.tar
+	@echo "Image exported → dist/sdm-provisioner.tar"
 
 # ── Helm / k3s targets ───────────────────────────────────────────────────────
 
