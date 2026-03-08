@@ -15,7 +15,10 @@ export PYTHONPYCACHEPREFIX := $(CURDIR)/.cache/pycache
 VENV_ACTIVATE := $(VENV)/bin/activate
 DEPS_MARKER := $(VENV)/.deps_updated
 
-.PHONY: all clean dist pkg test run deps_test test_server deps docker-run uninstall logs pull-db
+HELM_CHART := /home/drusifer/Projects/pi-patch/cluster/helm/sdm-provisioner
+HELM_DATA_PATH := /opt/sdm-provisioner/data
+
+.PHONY: all clean dist pkg test run deps_test test_server deps docker-run uninstall logs pull-db helm-setup helm-deploy helm-uninstall helm-logs export-image
 
 all: clean test
 
@@ -64,33 +67,74 @@ test: deps_test
 
 run: deps
 	@echo "Starting Flask app..."
-	. $(VENV_ACTIVATE) && env PYTHONPATH=$(CURDIR)/src FLASK_APP=$(FLASK_APP) flask run --host=0.0.0.0 --port=5001 --debug --cert=adhoc
+	PYTHONPATH=$(CURDIR)/src FLASK_APP=$(FLASK_APP) $(PYTHON) -m flask run --host=0.0.0.0 --port=5001 --debug --cert=adhoc
 
 
-pkg: dist
+pkg:
 	@echo "Building Docker image..."
-	sudo docker build -t ntag424-sdm-provisioner .
+	docker build -t ntag424-sdm-provisioner .
 
 docker-run: pkg
 	@mkdir -p data_prod
 	@echo "Running Docker container..."
-	sudo docker run -d \
+	docker run -d \
+		--replace \
 		--name ntag424-sdm-provisioner \
 		--restart always \
 		-p 8000:8000 \
-		--memory="512m" \
-		--cpus="1.0" \
 		--read-only \
 		--tmpfs /tmp \
+		--userns=keep-id \
 		-v $(CURDIR)/data_prod:/app/data \
+		-v $(CURDIR)/data_prod/tag_keys.csv:/app/data/tag_keys.csv:ro \
 		ntag424-sdm-provisioner
 
 uninstall:
 	@echo "Stopping and removing Docker container..."
-	-sudo docker stop ntag424-sdm-provisioner
-	-sudo docker rm ntag424-sdm-provisioner
-	-sudo docker rmi ntag424-sdm-provisioner
+	-docker stop ntag424-sdm-provisioner
+	-docker rm ntag424-sdm-provisioner
+	-docker rmi ntag424-sdm-provisioner
 
 logs:
 	@echo "Fetching container logs..."
-	sudo docker logs ntag424-sdm-provisioner
+	docker logs ntag424-sdm-provisioner
+
+# ── Image export (consumed by pi-patch ansible deploy) ──────────────────────
+
+export-image: pkg
+	@echo "Tagging image for k3s import..."
+	docker tag ntag424-sdm-provisioner localhost/ntag424-sdm-provisioner:latest
+	@echo "Exporting image tarball..."
+	@mkdir -p dist
+	docker save localhost/ntag424-sdm-provisioner:latest -o dist/sdm-provisioner.tar
+	@echo "Image exported → dist/sdm-provisioner.tar"
+
+# ── Helm / k3s targets ───────────────────────────────────────────────────────
+
+helm-setup:
+	@echo "Creating data directory on node and seeding tag_keys.csv..."
+	sudo mkdir -p $(HELM_DATA_PATH)
+	@if [ -f data_prod/tag_keys.csv ]; then \
+		sudo cp data_prod/tag_keys.csv $(HELM_DATA_PATH)/tag_keys.csv; \
+		echo "Copied data_prod/tag_keys.csv → $(HELM_DATA_PATH)/tag_keys.csv"; \
+	else \
+		echo "WARNING: data_prod/tag_keys.csv not found — copy it manually before deploying."; \
+	fi
+	sudo chown -R 1000:1000 $(HELM_DATA_PATH)
+	@echo "Data directory ready: $(HELM_DATA_PATH)"
+
+helm-deploy: pkg
+	@echo "Tagging image for k3s..."
+	docker tag ntag424-sdm-provisioner localhost/ntag424-sdm-provisioner:latest
+	@echo "Importing image into k3s containerd..."
+	docker save localhost/ntag424-sdm-provisioner:latest | sudo k3s ctr images import -
+	@echo "Deploying with Helm..."
+	helm upgrade --install sdm-provisioner $(HELM_CHART) -n sdm --create-namespace
+
+helm-uninstall:
+	@echo "Uninstalling Helm release..."
+	helm uninstall sdm-provisioner -n sdm
+
+helm-logs:
+	@echo "Streaming pod logs..."
+	kubectl logs -n sdm -l app=sdm-provisioner -f
