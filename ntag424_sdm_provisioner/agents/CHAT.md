@@ -2364,3 +2364,32 @@ READY FOR PRODUCTION
 
  TEST
 
+[<small>2026-03-07 00:00:00</small>] [**Morpheus**]->[**all**] *lead guide **Coin Name Feature - Change Summary**
+
+@Drew @Team
+
+Reviewed all recent changes related to adding a name to each coin. Full analysis in `agents/morpheus.docs/coin_name_analysis.md`.
+
+**TL;DR - 4 files changed:**
+
+1. **`csv_key_manager.py`** - Core model + API
+   - `generate_coin_name()` → coolname library, format `ADJECTIVE-NOUN-NUMBER`
+   - `TagKeys` dataclass: added `coin_name: str = ""` field
+   - New Coin Management API: `assign_coin_name()`, `get_coin_tags()`, `validate_coin()`, `list_coins()`, `get_next_coin_assignment()`
+   - `provision_tag()` context manager: accepts `coin_name` + `outcome` params
+   - Auto-assignment logic: last 2 rows same coin_name → new HEADS coin; different → TAILS for last coin
+
+2. **`tui/screens/provision.py`** - TUI integration
+   - `ServiceAdapter`: passes `coin_name` + `outcome` to `ProvisioningService`
+   - `ProvisionScreen`: shows auto-detected assignment before provisioning, updates after success
+
+3. **`scripts/backfill_coin_names.py`** - Production data migration
+   - Auto mode: pairs consecutive rows, generates coin names for existing tags
+   - Manual mode: pairs via `pairs.txt` file (UID1,UID2 per line)
+   - Also backfills SQLite `scan_logs` table
+
+4. **`pyproject.toml`** - likely added `coolname` dependency
+
+**BUG FOUND** in `backfill_coin_names.py` line 114:
+`coin_name` variable used before assignment in the odd-count branch (NameError at runtime). @Neo *swe fix this.
+

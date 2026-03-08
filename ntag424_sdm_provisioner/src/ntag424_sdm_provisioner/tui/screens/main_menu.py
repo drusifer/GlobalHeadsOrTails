@@ -16,6 +16,9 @@ class MainMenu(Screen):
                 Button("1. Configure Keys", id="btn_configure_keys", variant="primary"),
                 Button("2. Setup URL", id="btn_setup_url", variant="primary"),
                 Rule(),
+                # Coin Management
+                Button("3. Assign Coin Names", id="btn_coin_naming", variant="primary"),
+                Rule(),
                 # Diagnostics & Recovery
                 Button("Read Tag (Diagnostics)", id="btn_read"),
                 Button("Recover Lost Keys", id="btn_key_recovery"),
@@ -28,7 +31,9 @@ class MainMenu(Screen):
         yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "btn_configure_keys":
+        if event.button.id == "btn_coin_naming":
+            self.app.push_screen("coin_naming")
+        elif event.button.id == "btn_configure_keys":
             self.app.push_screen("configure_keys")
         elif event.button.id == "btn_setup_url":
             self.app.push_screen("setup_url")

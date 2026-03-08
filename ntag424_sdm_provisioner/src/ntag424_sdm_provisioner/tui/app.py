@@ -7,6 +7,7 @@ from textual.app import App
 from textual.binding import BindingType
 
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager
+from ntag424_sdm_provisioner.tui.screens.coin_naming import CoinNamingScreen
 from ntag424_sdm_provisioner.tui.screens.configure_keys import ConfigureKeysScreen
 from ntag424_sdm_provisioner.tui.screens.format_picc import FormatPICCScreen
 from ntag424_sdm_provisioner.tui.screens.key_recovery import KeyRecoveryScreen
@@ -153,6 +154,10 @@ class NtagProvisionerApp(App):
         self.install_screen(
             FormatPICCScreen(key_manager=self.key_manager, id="format_picc"),
             name="format_picc",
+        )
+        self.install_screen(
+            CoinNamingScreen(key_manager=self.key_manager, id="coin_naming"),
+            name="coin_naming",
         )
         self.push_screen("menu")
 

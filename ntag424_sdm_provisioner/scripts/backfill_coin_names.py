@@ -39,24 +39,26 @@ def ensure_coin_name_column(csv_path: Path) -> None:
     # Read existing data
     with csv_path.open(newline="") as f:
         reader = csv.DictReader(f)
-        fieldnames = reader.fieldnames
+        fieldnames = list(reader.fieldnames)
         rows = list(reader)
 
+    new_fieldnames = fieldnames
     # Check if coin_name column exists
     if "coin_name" in fieldnames:
         print("[OK] coin_name column already exists")
-        return
+    else:
 
-    print("Adding coin_name column...")
+        print("Adding coin_name column...")
 
-    # Add coin_name to fieldnames (after outcome)
-    new_fieldnames = list(fieldnames)
-    outcome_idx = new_fieldnames.index("outcome")
-    new_fieldnames.insert(outcome_idx + 1, "coin_name")
+        # Add coin_name to fieldnames (after outcome)
+        new_fieldnames = list(fieldnames)
+        outcome_idx = new_fieldnames.index("outcome")
+        new_fieldnames.insert(outcome_idx + 1, "coin_name")
 
     # Add empty coin_name to all rows
     for row in rows:
-        row["coin_name"] = ""
+        if 'coin_name' not in row:
+            row["coin_name"] = ""
 
     # Write back with new column
     with csv_path.open("w", newline="") as f:
@@ -64,7 +66,8 @@ def ensure_coin_name_column(csv_path: Path) -> None:
         writer.writeheader()
         writer.writerows(rows)
 
-    print(f"[OK] Added coin_name column to {len(rows)} rows")
+    if "coin_name" not in fieldnames:
+        print(f"[OK] Added coin_name column to {len(rows)} rows")
 
 
 def backfill_csv_auto(csv_path: str, dry_run: bool = True) -> None:
@@ -87,15 +90,15 @@ def backfill_csv_auto(csv_path: str, dry_run: bool = True) -> None:
 
     print(f"Total tags: {len(all_rows)}")
 
-    # Filter for rows with outcomes (and no existing coin_name)
+    # Filter for rows that are missing a coin_name
     rows_with_outcome = [
         row for row in all_rows
-        if row.get("outcome") in ("heads", "tails") and not row.get("coin_name")
+        if not row.get("coin_name")
     ]
-    print(f"Tags with outcomes (unassigned): {len(rows_with_outcome)}")
+    print(f"Tags missing coin_name: {len(rows_with_outcome)}")
 
     if len(rows_with_outcome) == 0:
-        print("No unassigned tags with outcomes found. Nothing to backfill.")
+        print("No unassigned tags found. Nothing to backfill.")
         return
 
     # Process in pairs (bottoms up: if odd count, first row is incomplete)
@@ -105,10 +108,8 @@ def backfill_csv_auto(csv_path: str, dry_run: bool = True) -> None:
     # If odd number, first row is the incomplete coin
     if len(rows_with_outcome) % 2 == 1:
         row1 = rows_with_outcome[0]
-        coin_name = generate_coin_name()
         print(f"\nIncomplete coin:")
-        print(f"  Coin: {coin_name}")
-        print(f"  UID: {row1['uid']} ({row1['outcome']})")
+        print(f"name:{row1['coin_name']}, UID: {row1['uid']} ({row1['outcome']})")
         print(f"  WARNING: Missing partner tag")
         pairs_to_assign.append((row1, None, coin_name))
         start_index = 1

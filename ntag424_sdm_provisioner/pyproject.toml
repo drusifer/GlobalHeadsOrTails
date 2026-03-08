@@ -32,7 +32,7 @@ dev = [
     "ruff>=0.1.0",           # Fast linter & formatter
     "pylint>=3.0.0",          # Code quality & duplication
     "mypy>=1.7.0",            # Type checking
-    # Code Quality Analysis
+   # Code Quality Analysis
     "radon>=6.0.0",           # Cyclomatic complexity & maintainability index
     "vulture>=2.10",          # Dead code detection
     "bandit>=1.7.0",          # Security vulnerability scanner

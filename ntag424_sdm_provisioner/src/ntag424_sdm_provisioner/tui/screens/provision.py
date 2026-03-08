@@ -1,12 +1,12 @@
 import logging
 
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal
+from textual.containers import Container
 from textual.screen import Screen
-from textual.widgets import Button, Footer, Header, Input, Label, RichLog
+from textual.widgets import Button, Footer, Header, Label, RichLog
 from textual.worker import Worker, WorkerState
 
-from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, Outcome, generate_coin_name
+from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, Outcome
 from ntag424_sdm_provisioner.hal import CardManager
 from ntag424_sdm_provisioner.sequence_logger import (
     SequenceLogger,
@@ -55,29 +55,17 @@ class ServiceAdapter:
 
 
 class ProvisionScreen(Screen):
-    """Screen for provisioning a tag with coin name and outcome selection."""
+    """Screen for provisioning a tag with auto-detected coin name and outcome."""
 
     def __init__(self, key_manager: CsvKeyManager, **kwargs):
         super().__init__(**kwargs)
         self.key_manager = key_manager
-        self.selected_outcome = Outcome.HEADS  # Default to HEADS
 
     def compose(self) -> ComposeResult:
         yield Header()
         yield Container(
             Label("Provision Tag", id="title"),
-            Label("Coin Name:", id="coin_name_label"),
-            Input(
-                value=generate_coin_name(),
-                placeholder="SWIFT-FALCON-42",
-                id="coin_name_input",
-            ),
-            Label("Outcome:", id="outcome_label"),
-            Horizontal(
-                Button("◉ Heads", id="btn_heads", variant="primary"),
-                Button("○ Tails", id="btn_tails"),
-                id="outcome_buttons",
-            ),
+            Label("", id="coin_assignment_label"),
             Label("Ready to provision...", id="status_label"),
             Label("", id="status_timer"),
             Label("", id="error_label"),
@@ -102,6 +90,9 @@ class ProvisionScreen(Screen):
         # Initialize WorkerManager
         self._worker_mgr = WorkerManager(self)
 
+        # Show auto-detected coin assignment
+        self._update_coin_assignment_display()
+
     def on_unmount(self) -> None:
         if hasattr(self, "_log_handler"):
             logging.getLogger().removeHandler(self._log_handler)
@@ -109,28 +100,12 @@ class ProvisionScreen(Screen):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "btn_start":
             self.start_provisioning()
-        elif event.button.id == "btn_heads":
-            self.select_outcome(Outcome.HEADS)
-        elif event.button.id == "btn_tails":
-            self.select_outcome(Outcome.TAILS)
 
-    def select_outcome(self, outcome: Outcome) -> None:
-        """Update outcome selection and button states."""
-        self.selected_outcome = outcome
-
-        btn_heads = self.query_one("#btn_heads", Button)
-        btn_tails = self.query_one("#btn_tails", Button)
-
-        if outcome == Outcome.HEADS:
-            btn_heads.label = "◉ Heads"
-            btn_heads.variant = "primary"
-            btn_tails.label = "○ Tails"
-            btn_tails.variant = "default"
-        else:
-            btn_heads.label = "○ Heads"
-            btn_heads.variant = "default"
-            btn_tails.label = "◉ Tails"
-            btn_tails.variant = "primary"
+    def _update_coin_assignment_display(self) -> None:
+        """Update the display to show the auto-detected coin assignment."""
+        coin_name, outcome = self.key_manager.get_next_coin_assignment()
+        label = self.query_one("#coin_assignment_label", Label)
+        label.update(f"Next tag: {coin_name} ({outcome.value})")
 
     def start_provisioning(self) -> None:
         self.query_one("#btn_start", Button).disabled = True
@@ -167,10 +142,10 @@ class ProvisionScreen(Screen):
         seq.on_step_complete = on_step
         self._sequence_logger = seq  # Store for summary display
 
-        # Get coin name and outcome from UI
-        coin_name = self.query_one("#coin_name_input", Input).value.strip()
-        if not coin_name:
-            coin_name = generate_coin_name()  # Fallback to generated name if empty
+        # Auto-detect coin name and outcome from CSV state
+        coin_name, outcome = self.key_manager.get_next_coin_assignment()
+        self._current_coin_name = coin_name
+        self._current_outcome = outcome
 
         # Create adapter with injected dependencies (including coin info)
         cmd = ServiceAdapter(
@@ -178,7 +153,7 @@ class ProvisionScreen(Screen):
             key_manager=self.key_manager,
             sequence_logger=seq,
             coin_name=coin_name,
-            outcome=self.selected_outcome,
+            outcome=outcome,
             progress_callback=self._log_handler.emit_message
             if hasattr(self, "_log_handler")
             else None,
@@ -196,19 +171,21 @@ class ProvisionScreen(Screen):
             self.query_one("#status_timer", Label).update("")
 
             if event.state == WorkerState.SUCCESS:
-                # Coin name was assigned atomically during provisioning
-                coin_name = self.query_one("#coin_name_input", Input).value.strip() or "auto-generated"
-
                 self.query_one("#status_label", Label).update("Provisioning Complete!")
                 # Show success banner with coin info
                 success_label = self.query_one("#success_label", Label)
+                coin_name = getattr(self, "_current_coin_name", "unknown")
+                outcome = getattr(self, "_current_outcome", Outcome.INVALID)
                 success_label.update(
-                    f"✓ Provisioning Successful! Coin: {coin_name} ({self.selected_outcome.value})"
+                    f"✓ Provisioning Successful! Coin: {coin_name} ({outcome.value})"
                 )
                 success_label.add_class("visible")
                 self.query_one("#btn_start", Button).disabled = False
                 log = logging.getLogger(__name__)
                 log.info("Worker finished successfully.")
+
+                # Update display for next tag
+                self._update_coin_assignment_display()
 
                 # Show summary (steps already displayed live)
                 if hasattr(self, "_sequence_logger") and self._sequence_logger:

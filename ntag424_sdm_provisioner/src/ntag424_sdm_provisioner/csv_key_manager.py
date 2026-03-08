@@ -774,6 +774,45 @@ class CsvKeyManager:
 
         return coins
 
+    def get_next_coin_assignment(self) -> tuple[str, Outcome]:
+        """Determine the coin_name and outcome for the next tag based on CSV state.
+
+        Logic:
+        - If the bottom 2 rows have the SAME coin_name: we're registering a NEW coin
+          → Generate a new coin name, outcome = HEADS
+        - If the bottom 2 rows have DIFFERENT coin_names: we're registering the tails side
+          → Use the last row's coin_name, outcome = TAILS
+
+        Returns:
+            Tuple of (coin_name, outcome)
+        """
+        tags = self.list_tags()
+
+        if len(tags) < 2:
+            # Not enough tags to compare - start a new coin
+            new_name = generate_coin_name()
+            log.info(f"[COIN ASSIGNMENT] Less than 2 tags in CSV. New coin: {new_name} (heads)")
+            return (new_name, Outcome.HEADS)
+
+        # Get the last 2 tags
+        last_tag = tags[-1]
+        second_last_tag = tags[-2]
+
+        log.info("[COIN ASSIGNMENT] Comparing bottom 2 rows:")
+        log.info(f"  Second-last: coin_name={second_last_tag.coin_name!r}, outcome={second_last_tag.outcome}")
+        log.info(f"  Last:        coin_name={last_tag.coin_name!r}, outcome={last_tag.outcome}")
+
+        if last_tag.coin_name == second_last_tag.coin_name:
+            # Same coin_name → New coin, generate new name, outcome = HEADS
+            new_name = generate_coin_name()
+            log.info(f"[COIN ASSIGNMENT] Same coin_name detected. New coin: {new_name} (heads)")
+            return (new_name, Outcome.HEADS)
+        else:
+            # Different coin_names → Use last row's coin_name, outcome = TAILS
+            coin_name = last_tag.coin_name
+            log.info(f"[COIN ASSIGNMENT] Different coin_names. Registering tails for: {coin_name}")
+            return (coin_name, Outcome.TAILS)
+
     def generate_random_keys(self, uid: UID, coin_name: str = "", outcome: Outcome = Outcome.INVALID) -> TagKeys:
         """Generate random keys for a tag.
 

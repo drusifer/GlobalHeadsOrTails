@@ -37,7 +37,8 @@
       "Bash(. .venv/bin/activate)",
       "Bash(source:*)",
       "Bash(pytest:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(..venvScriptsactivate)"
     ],
     "deny": [],
     "ask": []
