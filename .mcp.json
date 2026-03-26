@@ -46,6 +46,16 @@
         "@modelcontextprotocol/server-sequential-thinking"
       ],
       "env": {}
+    },
+    "via": {
+      "command": "/home/drusifer/.local/share/pipx/venvs/via/bin/python",
+      "args": [
+        "-m",
+        "via",
+        "mcp",
+        "serve",
+        "/home/drusifer/Projects/GlobalHeadsOrTails"
+      ]
     }
   }
 }

@@ -5,7 +5,9 @@ from flask import Flask, current_app, render_template, request
 
 # Import from sibling modules in the same package
 from ntag424_sdm_provisioner.csv_key_manager import UID, CsvKeyManager
+from ntag424_sdm_provisioner.server.flip_off_service import FlipOffError, FlipOffService
 from ntag424_sdm_provisioner.server.game_state_manager import SqliteGameStateManager
+from ntag424_sdm_provisioner.server.jokes import get_random_joke
 
 # Configure Logging
 logging.basicConfig(level=logging.DEBUG)
@@ -16,6 +18,7 @@ def init_managers(app, key_csv_path, db_path):
     """Initializes and attaches the key and game managers to the app instance."""
     app.key_manager = CsvKeyManager(csv_path=key_csv_path)
     app.game_manager = SqliteGameStateManager(db_path=db_path)
+    app.flip_off_service = FlipOffService(db_path=db_path)
 
 def parse_params(uid_str: str, ctr_str: str):
     uid = UID(uid_str)
@@ -35,6 +38,8 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
     def index():
         key_manager = current_app.key_manager
         game_manager = current_app.game_manager
+        flip_off_service = current_app.flip_off_service
+        joke = get_random_joke()
 
         drew_test_outcome = request.args.get("drew_test_outcome", "").lower()
 
@@ -72,6 +77,8 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
                 randomness_stats=randomness_stats,
                 recent_flips=recent_flips,
                 leaderboard_stats=leaderboard_stats,
+                joke=joke,
+                challenge=None,
             )
 
         tag_keys = key_manager.get_tag_keys(uid)
@@ -88,11 +95,13 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
                     error="Invalid test outcome. Use 'heads' or 'tails' or 'invalid'.",
                     params=params_display,
                     totals=totals,
+                    joke=joke,
+                    challenge=None,
                 )
 
         if not uid_str or not ctr or not cmac:
             return render_template(
-                "index.html", error="Missing Parameters", params=params_display, totals=totals
+                "index.html", error="Missing Parameters", params=params_display, totals=totals, joke=joke, challenge=None
             )
 
         # 1. Validate Keys & CMAC (unless in test mode)
@@ -123,6 +132,8 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
                 randomness_stats=randomness_stats,
                 recent_flips=recent_flips,
                 leaderboard_stats=leaderboard_stats,
+                joke=joke,
+                challenge=None,
             )
 
         # 2. Game Logic & Replay Protection
@@ -148,6 +159,8 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
                 randomness_stats=randomness_stats,
                 recent_flips=recent_flips,
                 leaderboard_stats=leaderboard_stats,
+                joke=joke,
+                challenge=None,
             )
 
         # 3. Update State
@@ -155,6 +168,10 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
         game_manager.update_state(
             uid_str, ctr_int, new_outcome_str, coin_name=coin_name, cmac=cmac, is_test=is_test_mode
         )
+
+        # 4. Passive Flip Off tracking (non-test flips only)
+        if not is_test_mode and coin_name:
+            flip_off_service.record_flip(coin_name)
 
         # Get current totals for display regardless of validation outcome
 
@@ -181,6 +198,9 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
         # Refresh recent flips to include the one we just added
         recent_flips = game_manager.get_recent_flips()
 
+        # Challenge state for this coin (for result page display)
+        challenge = flip_off_service.get_latest_challenge(coin_name) if coin_name else None
+
         return render_template(
             "index.html",
             outcome=new_outcome_str.upper(),
@@ -189,7 +209,31 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
             recent_flips=recent_flips,
             randomness_stats=randomness_stats,
             leaderboard_stats=leaderboard_stats,
+            joke=joke,
+            challenge=challenge,
         )
+
+    @app.route("/challenge/create", methods=["POST"])
+    def challenge_create():
+        """Creates a new Flip Off challenge. Called from the result page form."""
+        flip_off_service = current_app.flip_off_service
+        challenger_coin = request.form.get("challenger_coin", "").strip()
+        challenged_coin = request.form.get("challenged_coin", "").strip()
+        try:
+            flip_count = int(request.form.get("flip_count", 0))
+        except ValueError:
+            return {"error": "Invalid flip_count"}, 400
+
+        if not challenger_coin or not challenged_coin:
+            return {"error": "Missing coin names"}, 400
+
+        try:
+            challenge_id = flip_off_service.create_challenge(challenger_coin, challenged_coin, flip_count)
+        except FlipOffError as e:
+            return {"error": str(e)}, 400
+
+        log.info("[FLIP OFF] Challenge %d created via POST", challenge_id)
+        return {"challenge_id": challenge_id, "status": "pending"}, 201
 
     @app.route("/api/recent_flips")
     def api_recent_flips():

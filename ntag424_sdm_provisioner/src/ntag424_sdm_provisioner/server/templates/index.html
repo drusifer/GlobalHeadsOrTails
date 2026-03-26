@@ -67,6 +67,34 @@
       100% { transform: scale(1); }
     }
 
+    /* Dad Joke section */
+    .dad-joke-section { width: 100%; max-width: 700px; margin-top: 20px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; text-align: center; }
+    .dad-joke-section .joke-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .dad-joke-section .joke-setup { font-size: 1rem; color: #333; margin-bottom: 6px; }
+    .dad-joke-section .joke-punchline { font-size: 1.05rem; font-weight: bold; color: #007BFF; }
+
+    /* Flip Off Challenge sections */
+    .flip-off-section { width: 100%; max-width: 700px; margin-top: 20px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; }
+    .flip-off-section h3 { margin: 0 0 12px 0; font-size: 1rem; color: #333; }
+    .flip-off-section .section-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .flip-off-select { width: 100%; padding: 8px; font-family: 'Courier New', monospace; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; }
+    .flip-count-buttons { display: flex; gap: 8px; margin-bottom: 12px; }
+    .flip-count-btn { flex: 1; padding: 8px; border: 1px solid #007BFF; border-radius: 6px; background: white; color: #007BFF; cursor: pointer; font-family: 'Courier New', monospace; font-size: 0.9rem; }
+    .flip-count-btn:hover, .flip-count-btn.selected { background: #007BFF; color: white; }
+    .challenge-submit-btn { width: 100%; padding: 10px; background: #007BFF; color: white; border: none; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 1rem; cursor: pointer; }
+    .challenge-submit-btn:hover { background: #0056b3; }
+    .progress-bar-wrap { background: #e9ecef; border-radius: 6px; height: 12px; margin: 6px 0; overflow: hidden; }
+    .progress-bar-fill { background: #007BFF; height: 100%; border-radius: 6px; transition: width 0.3s; }
+    .progress-label { font-size: 0.85rem; color: #555; margin-bottom: 4px; }
+    .challenge-result-card { text-align: center; padding: 12px; background: #f8f9fa; border-radius: 8px; }
+    .challenge-result-card .winner-name { font-size: 1.3rem; font-weight: bold; color: #007BFF; }
+    .challenge-result-card .entropy-row { font-size: 0.85rem; color: #6c757d; margin-top: 6px; }
+    .challenge-result-card .entropy-hint { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+    .entropy-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight: bold; }
+    .entropy-badge.winner { background: #d4edda; color: #155724; }
+    .entropy-badge.loser { background: #f8d7da; color: #721c24; }
+    .entropy-badge.draw { background: #fff3cd; color: #856404; }
+
     /* Tooltip styles */
     .tooltip {
       position: relative;
@@ -239,6 +267,95 @@
       {% endif %}
     </div>
   </div>
+
+  {% if joke %}
+  <div class="dad-joke-section">
+    <div class="joke-label">Dad Joke of the Flip</div>
+    <div class="joke-setup">{{ joke[0] }}</div>
+    <div class="joke-punchline">{{ joke[1] }}</div>
+  </div>
+  {% endif %}
+
+  {# --- Flip Off: Completed Result Card --- #}
+  {% if challenge and challenge.status == 'complete' and params and params.get('Coin Name') %}
+  {% set my_coin = params['Coin Name'] %}
+  <div class="flip-off-section">
+    <div class="section-label">Flip Off Result</div>
+    <div class="challenge-result-card">
+      {% if challenge.winner_coin_name == 'DRAW' %}
+        <div class="winner-name">🤝 Draw!</div>
+      {% elif challenge.winner_coin_name == my_coin %}
+        <div class="winner-name">🏆 You Won!</div>
+      {% else %}
+        <div class="winner-name">{{ challenge.winner_coin_name }} Won</div>
+      {% endif %}
+      <div class="entropy-row">
+        {{ challenge.challenger_coin_name }}
+        <span class="entropy-badge {% if challenge.winner_coin_name == challenge.challenger_coin_name %}winner{% elif challenge.winner_coin_name == 'DRAW' %}draw{% else %}loser{% endif %}">
+          {{ "%.4f"|format(challenge.challenger_entropy) }}
+        </span>
+        &nbsp;vs&nbsp;
+        {{ challenge.challenged_coin_name }}
+        <span class="entropy-badge {% if challenge.winner_coin_name == challenge.challenged_coin_name %}winner{% elif challenge.winner_coin_name == 'DRAW' %}draw{% else %}loser{% endif %}">
+          {{ "%.4f"|format(challenge.challenged_entropy) }}
+        </span>
+      </div>
+      <div class="entropy-hint">Higher entropy (bits/byte) = more random coin = winner</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# --- Flip Off: Active Challenge Progress --- #}
+  {% if challenge and challenge.status in ('pending', 'in_progress') and params and params.get('Coin Name') %}
+  {% set my_coin = params['Coin Name'] %}
+  {% set n = challenge.flip_count %}
+  <div class="flip-off-section">
+    <div class="section-label">Flip Off In Progress</div>
+    <div class="progress-label">{{ challenge.challenger_coin_name }} (Challenger): {{ challenge.challenger_flips_done }}/{{ n }} flips</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: {{ [challenge.challenger_flips_done / n * 100, 100]|min }}%;"></div></div>
+    <div class="progress-label">{{ challenge.challenged_coin_name }} (Challenged): {{ challenge.challenged_flips_done }}/{{ n }} flips</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: {{ [challenge.challenged_flips_done / n * 100, 100]|min }}%;"></div></div>
+    <div style="font-size:0.8rem; color:#6c757d; margin-top:8px;">Battle size: {{ n }} flips &nbsp;|&nbsp; Status: {{ challenge.status }}</div>
+  </div>
+  {% endif %}
+
+  {# --- Flip Off: Challenge Launcher --- #}
+  {% if outcome and not error and not challenge and params and params.get('Coin Name') and leaderboard_stats %}
+  {% set my_coin = params['Coin Name'] %}
+  {% set opponents = leaderboard_stats | selectattr('coin_name', '!=', my_coin) | list %}
+  {% if opponents %}
+  <div class="flip-off-section">
+    <div class="section-label">Start a Flip Off</div>
+    <p style="font-size:0.85rem; color:#555; margin:0 0 12px 0;">Challenge a coin from the leaderboard. The next N flips from each coin decide the winner by Shannon entropy.</p>
+    <form action="/challenge/create" method="post" id="flip-off-form">
+      <input type="hidden" name="challenger_coin" value="{{ my_coin }}">
+      <select class="flip-off-select" name="challenged_coin" required>
+        <option value="" disabled selected>Select your opponent…</option>
+        {% for coin in opponents %}
+        <option value="{{ coin.coin_name }}">{{ coin.coin_name }} ({{ coin.total_bits }} flips, ent={{ "%.4f"|format(coin.entropy) }})</option>
+        {% endfor %}
+      </select>
+      <div class="flip-count-buttons">
+        {% for count in [10, 25, 50, 100] %}
+        <button type="button" class="flip-count-btn" onclick="selectFlipCount(this, {{ count }})">{{ count }}</button>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="flip_count" id="flip-count-input" value="">
+      <button type="submit" class="challenge-submit-btn" id="challenge-submit" disabled>Select flip count above to challenge</button>
+    </form>
+  </div>
+  <script>
+    function selectFlipCount(btn, count) {
+      document.querySelectorAll('.flip-count-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('flip-count-input').value = count;
+      const submit = document.getElementById('challenge-submit');
+      submit.disabled = false;
+      submit.textContent = 'Start Flip Off (' + count + ' flips)';
+    }
+  </script>
+  {% endif %}
+  {% endif %}
 
   <script>
     // DRY Tooltips - Define text in one place
