@@ -4,8 +4,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Heads vs Tails</title>
   <style>
+    *, *::before, *::after { box-sizing: border-box; }
     body { font-family: 'Courier New', monospace; background: #f0f2f5; color: #333; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-    .header { background: linear-gradient(135deg, #007BFF 0%, #00BFFF 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; width: 100%; max-width: 700px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; }
+    /* Shared width constraint for all top-level sections */
+    .header, .tab-container, .dad-joke-section, .flip-off-section { width: 100%; max-width: 700px; }
+    .header { background: linear-gradient(135deg, #007BFF 0%, #00BFFF 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; }
     .header h1 { margin: 0 0 15px 0; font-size: 2.2em; font-weight: 600; }
     @keyframes chrome-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
     @keyframes text-reveal { 0% { color: transparent; } 100% { color: white; } }
@@ -20,7 +23,7 @@
     .highlight-row { background-color: #e6f7ff !important; font-weight: bold; }
 
     /* Tab container styles */
-    .tab-container { width: 100%; max-width: 700px; margin-top: 20px; }
+    .tab-container { margin-top: 20px; }
     .tab-buttons { display: flex; background-color: #f1f1f1; border-radius: 12px 12px 0 0; overflow: hidden; border: 1px solid #e0e0e0; border-bottom: none; }
     .tab-button { flex-grow: 1; background-color: inherit; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: background-color 0.3s; font-size: 1rem; font-family: 'Courier New', monospace; font-weight: bold; color: #6c757d; }
     .tab-button:hover { background-color: #e9e9e9; }
@@ -44,10 +47,14 @@
 
 
     @media (max-width: 500px) {
-      body { padding: 10px; }
+      body { padding: 8px; }
+      .header, .tab-container, .dad-joke-section, .flip-off-section { margin-top: 12px; }
+      .header { margin-bottom: 0; }
       .header h1 { font-size: 1.6em; }
       .fancy-text { font-size: 2.8rem; }
       .params-table { font-size: 0.8rem; }
+      .dad-joke-section { padding: 12px; }
+      .flip-off-section { padding: 12px; }
       .tab-content .recent-flips-table th { padding: 4px 3px; font-size: 0.65rem; }
       .tab-content .recent-flips-table td { padding: 4px 3px; font-size: 0.7rem; }
       .tab-content .results-table td { padding: 12px; font-size: 1.5rem; }
@@ -68,15 +75,17 @@
     }
 
     /* Dad Joke section */
-    .dad-joke-section { width: 100%; max-width: 700px; margin-top: 20px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; text-align: center; }
+    .dad-joke-section { margin-top: 20px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; text-align: center; }
     .dad-joke-section .joke-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-    .dad-joke-section .joke-setup { font-size: 1rem; color: #333; margin-bottom: 6px; }
+    .dad-joke-section .joke-setup { font-size: 1rem; color: #ff6347; margin-bottom: 6px; font-weight: bold; }
     .dad-joke-section .joke-punchline { font-size: 1.05rem; font-weight: bold; color: #007BFF; }
 
     /* Flip Off Challenge sections */
-    .flip-off-section { width: 100%; max-width: 700px; margin-top: 20px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; }
-    .flip-off-section h3 { margin: 0 0 12px 0; font-size: 1rem; color: #333; }
-    .flip-off-section .section-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .flip-off-section { margin-top: 20px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px 20px; }
+    .flip-off-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .flip-off-section .section-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0; }
+    .start-flipoff-toggle-btn { background: #007BFF; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-family: 'Courier New', monospace; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+    .start-flipoff-toggle-btn:hover { background: #0056b3; }
     .flip-off-select { width: 100%; padding: 8px; font-family: 'Courier New', monospace; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; }
     .flip-count-buttons { display: flex; gap: 8px; margin-bottom: 12px; }
     .flip-count-btn { flex: 1; padding: 8px; border: 1px solid #007BFF; border-radius: 6px; background: white; color: #007BFF; cursor: pointer; font-family: 'Courier New', monospace; font-size: 0.9rem; }
@@ -86,7 +95,50 @@
     .progress-bar-wrap { background: #e9ecef; border-radius: 6px; height: 12px; margin: 6px 0; overflow: hidden; }
     .progress-bar-fill { background: #007BFF; height: 100%; border-radius: 6px; transition: width 0.3s; }
     .progress-label { font-size: 0.85rem; color: #555; margin-bottom: 4px; }
-    .challenge-result-card { text-align: center; padding: 12px; background: #f8f9fa; border-radius: 8px; }
+    .battle-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+    .battle-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .battle-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; gap: 6px; }
+    .challenger-name { color: #dc3545; font-weight: bold; font-size: 0.85rem; flex: 1; }
+    .challenged-name { color: #007BFF; font-weight: bold; font-size: 0.85rem; flex: 1; text-align: right; }
+    .battle-flip-count { font-size: 0.7rem; color: #6c757d; white-space: nowrap; }
+    .battle-bars-row { display: flex; align-items: center; gap: 6px; }
+    .challenger-bar-wrap { flex: 1; background: #f8d7da; border-radius: 6px; height: 12px; overflow: hidden; }
+    .challenger-fill { background: #dc3545; height: 100%; border-radius: 6px; transition: width 0.4s; }
+    .challenged-bar-wrap { flex: 1; background: #cfe2ff; border-radius: 6px; height: 12px; overflow: hidden; }
+    .challenged-fill { background: #007BFF; height: 100%; border-radius: 6px; transition: width 0.4s; }
+    .battle-center { font-size: 0.7rem; color: #6c757d; white-space: nowrap; text-align: center; min-width: 42px; line-height: 1.2; }
+    .yield-btn { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; padding: 4px 10px; background: none; border: 1px solid #dc3545; color: #dc3545; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 0.78rem; cursor: pointer; }
+    .yield-btn:hover { background: #dc3545; color: white; }
+    .yield-icon { font-size: 1rem; line-height: 1; }
+    .no-battles-msg { font-size: 0.85rem; color: #6c757d; text-align: center; padding: 10px 0; }
+    .battle-expiry { font-size: 0.7rem; color: #6c757d; margin-top: 4px; }
+    .battle-expiry.urgent { color: #dc3545; font-weight: bold; }
+    .recent-completed-section { margin-top: 14px; border-top: 1px solid #f0f0f0; padding-top: 8px; }
+    .recent-completed-label { font-size: 0.7rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .history-entry { display: flex; align-items: flex-start; gap: 10px; padding: 5px 0; border-bottom: 1px solid #f8f8f8; }
+    .history-entry:last-child { border-bottom: none; }
+    .history-flips { font-size: 0.7rem; color: #bbb; min-width: 24px; text-align: right; padding-top: 3px; flex-shrink: 0; }
+    .history-rows { flex: 1; min-width: 0; }
+    .history-row { display: flex; justify-content: space-between; align-items: baseline; }
+    .h-coin { font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+    .h-score { font-size: 0.78rem; font-family: monospace; flex-shrink: 0; margin-left: 8px; }
+    .winner-row .h-challenger { color: #dc3545; font-weight: 600; }
+    .winner-row .h-challenged { color: #007BFF; font-weight: 600; }
+    .winner-row .h-score { font-weight: 600; color: #444; }
+    .loser-row .h-coin { color: #bbb; }
+    .loser-row .h-score { color: #ccc; }
+    .draw-row .h-challenger { color: #dc3545; }
+    .draw-row .h-challenged { color: #007BFF; }
+    .draw-row .h-score { color: #6c757d; }
+    .h-draw-badge  { font-size: 0.68rem; color: #856404; background: #fff3cd; border-radius: 3px; padding: 1px 5px; display: inline-block; margin-top: 2px; }
+    .h-yield-badge { font-size: 0.68rem; color: #6c757d; background: #e9ecef; border-radius: 3px; padding: 1px 5px; display: inline-block; margin-top: 2px; }
+    .fanfare-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; align-items: center; justify-content: center; cursor: pointer; }
+    .fanfare-card { background: white; border-radius: 16px; padding: 36px 32px; text-align: center; max-width: 360px; width: 90%; }
+    .fanfare-emoji { font-size: 3.5rem; margin-bottom: 12px; }
+    .fanfare-title { font-size: 1.6rem; font-weight: bold; margin-bottom: 8px; }
+    .fanfare-detail { font-size: 0.9rem; color: #6c757d; margin-top: 8px; }
+    .fanfare-dismiss { font-size: 0.7rem; color: #aaa; margin-top: 16px; }
+    .challenge-result-card { text-align: center; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 12px; }
     .challenge-result-card .winner-name { font-size: 1.3rem; font-weight: bold; color: #007BFF; }
     .challenge-result-card .entropy-row { font-size: 0.85rem; color: #6c757d; margin-top: 6px; }
     .challenge-result-card .entropy-hint { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
@@ -94,6 +146,11 @@
     .entropy-badge.winner { background: #d4edda; color: #155724; }
     .entropy-badge.loser { background: #f8d7da; color: #721c24; }
     .entropy-badge.draw { background: #fff3cd; color: #856404; }
+    .flipoff-status-msg { font-size: 0.85rem; color: #007BFF; margin-top: 6px; min-height: 1.2em; }
+    .live-flip-indicator { display: none; align-items: center; gap: 8px; font-size: 0.88rem; color: #333; margin-bottom: 10px; }
+    .live-badge { background: #dc3545; color: white; border-radius: 4px; padding: 1px 7px; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.05em; flex-shrink: 0; }
+    .live-flip-coin { font-weight: bold; }
+    .live-flip-outcome { font-weight: bold; color: #ff6347; }
 
     /* Tooltip styles */
     .tooltip {
@@ -130,13 +187,8 @@
   <div class="header">
     <h1>Heads vs. Tails</h1>
     
-    {% if outcome %}
-      <div><span id="outcome-text" class="fancy-text" data-outcome="{{ outcome }}"></span></div>
-    {% endif %}
-
-    {% if error %}
-      <div class="error-text">Error: {{ error }}</div>
-    {% endif %}
+    <div id="outcome-container" style="display:none;"><span id="outcome-text" class="fancy-text" data-outcome=""></span></div>
+    <div class="error-text" id="error-text" style="display:none;"></div>
 
     {% if params %}
     <table class="params-table">
@@ -150,6 +202,12 @@
       </tbody>
     </table>
     {% endif %}
+  </div>
+
+  <div class="dad-joke-section" id="joke-section" style="display:none;">
+    <div class="joke-label">Joke of the Flip</div>
+    <div class="joke-setup" id="joke-setup"></div>
+    <div class="joke-punchline" id="joke-punchline"></div>
   </div>
 
   <div class="tab-container">
@@ -205,7 +263,153 @@
     </div>
   </div>
 
-  <div class="tab-container" style="margin-top: 30px;">
+  {# --- Unified Flip Off Section --- #}
+  {% set my_coin = params.get('Coin Name') if params else None %}
+  {% set coin_in_battle = challenge and challenge.status in ('pending', 'in_progress') %}
+  {% set opponents = (leaderboard_stats | selectattr('coin_name', '!=', my_coin) | sort(attribute='coin_name') | list) if my_coin and leaderboard_stats else [] %}
+  {% set can_start = my_coin and not coin_in_battle and opponents | length > 0 %}
+  <div class="flip-off-section">
+    <div class="flip-off-header">
+      <div class="section-label">⚡ Flip Offs</div>
+      {% if can_start %}
+      <button class="start-flipoff-toggle-btn" id="start-flipoff-btn" onclick="toggleFlipOffForm()">+ Start Flip-Off</button>
+      {% endif %}
+    </div>
+    <div class="flipoff-status-msg" id="flipoff-status-msg"></div>
+    <div class="live-flip-indicator" id="live-flip-indicator">
+      <span class="live-badge">LIVE</span>
+      <span class="live-flip-coin" id="live-flip-coin"></span>
+      <span class="live-flip-outcome" id="live-flip-outcome"></span>
+    </div>
+
+    {# Collapsible challenge form #}
+    {% if can_start %}
+    <div id="flip-off-form-wrapper" style="display:none; margin-top:8px;">
+      <form id="flip-off-form">
+        <input type="hidden" name="challenger_coin" value="{{ my_coin }}">
+        <select class="flip-off-select" name="challenged_coin" required>
+          <option value="" disabled selected>Select your opponent…</option>
+          {% for coin in opponents %}
+          <option value="{{ coin.coin_name }}">{{ coin.coin_name }} ({{ coin.total_bits }} flips, ent={{ "%.4f"|format(coin.entropy) }})</option>
+          {% endfor %}
+        </select>
+        <div class="flip-count-buttons">
+          {% for count in [10, 25, 50, 100] %}
+          <button type="button" class="flip-count-btn" onclick="selectFlipCount(this, {{ count }})">{{ count }}</button>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="flip_count" id="flip-count-input" value="">
+        <button type="submit" class="challenge-submit-btn" id="challenge-submit" disabled>Select flip count to challenge</button>
+      </form>
+    </div>
+    {% endif %}
+
+    {# Result card for this coin's most recent completed flip-off (hidden when in an active battle) #}
+    {% if my_coin %}
+    <div id="challenge-result-card" class="challenge-result-card" {% if not (challenge and challenge.status == 'complete') %}style="display:none;"{% endif %}>
+      <div class="winner-name" id="result-winner-name">
+        {% if challenge and challenge.status == 'complete' %}
+          {% if challenge.winner_coin_name == 'DRAW' %}🤝 Draw!
+          {% elif challenge.winner_coin_name == my_coin %}🏆 You Won!
+          {% else %}{{ challenge.winner_coin_name }} Won{% endif %}
+        {% endif %}
+      </div>
+      <div id="result-entropy-row">
+        {% if challenge and challenge.status == 'complete' %}
+        <div class="entropy-row">
+          {{ challenge.challenger_coin_name }}
+          <span class="entropy-badge {% if challenge.winner_coin_name == challenge.challenger_coin_name %}winner{% elif challenge.winner_coin_name == 'DRAW' %}draw{% else %}loser{% endif %}">{{ "%.4f"|format(challenge.challenger_entropy) }}</span>
+          &nbsp;vs&nbsp;
+          {{ challenge.challenged_coin_name }}
+          <span class="entropy-badge {% if challenge.winner_coin_name == challenge.challenged_coin_name %}winner{% elif challenge.winner_coin_name == 'DRAW' %}draw{% else %}loser{% endif %}">{{ "%.4f"|format(challenge.challenged_entropy) }}</span>
+        </div>
+        <div class="entropy-hint">Higher entropy = more random coin = winner</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# All active battles — visible to everyone #}
+    <div id="flip-off-battles">
+    {% if active_challenges | default([]) %}
+    {% for battle in active_challenges %}
+    {% set n = battle.flip_count %}
+    {% set remaining = ([n - battle.challenger_flips_done, 0] | max) + ([n - battle.challenged_flips_done, 0] | max) %}
+    <div class="battle-item" data-created-at="{{ battle.created_at }}">
+      <div class="battle-header">
+        <span class="challenger-name">{{ battle.challenger_coin_name }} ({{ battle.challenger_flips_done }})</span>
+        <span class="battle-flip-count">{{ n }} flips</span>
+        <span class="challenged-name">({{ battle.challenged_flips_done }}) {{ battle.challenged_coin_name }}</span>
+      </div>
+      <div class="battle-bars-row">
+        <div class="challenger-bar-wrap"><div class="challenger-fill" style="width: {{ [battle.challenger_flips_done / n * 100, 100]|min }}%;"></div></div>
+        <div class="battle-center">vs<br>{{ [remaining, 0]|max }} left</div>
+        <div class="challenged-bar-wrap"><div class="challenged-fill" style="width: {{ [battle.challenged_flips_done / n * 100, 100]|min }}%;"></div></div>
+      </div>
+      <div class="battle-expiry"></div>
+      {% if my_coin and (battle.challenger_coin_name == my_coin or battle.challenged_coin_name == my_coin) %}
+      <button class="yield-btn" onclick="yieldChallenge()">🏳️ Yield</button>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="no-battles-msg">No battles in progress{% if not params %} — tap your coin to start one{% endif %}.</div>
+    {% endif %}
+    </div>{# end #flip-off-battles #}
+
+  {% if recent_completed | default([]) %}
+  <div class="recent-completed-section" id="recent-completed-section">
+    <div class="recent-completed-label">Recent Results</div>
+    <div id="recent-completed-list">
+    {% for b in recent_completed %}
+    <div class="history-entry">
+      <div class="history-flips">{{ b.flip_count }}</div>
+      <div class="history-rows">
+        {% if b.winner_coin_name == 'DRAW' %}
+        <div class="history-row draw-row">
+          <span class="h-coin h-challenger">{{ b.challenger_coin_name }}</span>
+          <span class="h-score">{{ "%.4f"|format(b.challenger_entropy) }}</span>
+        </div>
+        <div class="history-row draw-row">
+          <span class="h-coin h-challenged">{{ b.challenged_coin_name }}</span>
+          <span class="h-score">{{ "%.4f"|format(b.challenged_entropy) }}</span>
+        </div>
+        <div class="h-draw-badge">draw</div>
+        {% elif b.winner_coin_name == b.challenger_coin_name %}
+        <div class="history-row winner-row">
+          <span class="h-coin h-challenger">{{ b.challenger_coin_name }}</span>
+          <span class="h-score">{{ "%.4f"|format(b.challenger_entropy) }}</span>
+        </div>
+        <div class="history-row loser-row">
+          <span class="h-coin h-challenged">{{ b.challenged_coin_name }}</span>
+          <span class="h-score">{{ "%.4f"|format(b.challenged_entropy) }}</span>
+        </div>
+        {% if b.end_condition == 'yield' %}<div class="h-yield-badge">yield</div>{% endif %}
+        {% else %}
+        <div class="history-row winner-row">
+          <span class="h-coin h-challenged">{{ b.challenged_coin_name }}</span>
+          <span class="h-score">{{ "%.4f"|format(b.challenged_entropy) }}</span>
+        </div>
+        <div class="history-row loser-row">
+          <span class="h-coin h-challenger">{{ b.challenger_coin_name }}</span>
+          <span class="h-score">{{ "%.4f"|format(b.challenger_entropy) }}</span>
+        </div>
+        {% if b.end_condition == 'yield' %}<div class="h-yield-badge">yield</div>{% endif %}
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="recent-completed-section" id="recent-completed-section" style="display:none;">
+    <div class="recent-completed-label">Recent Results</div>
+    <div id="recent-completed-list"></div>
+  </div>
+  {% endif %}
+  </div>
+
+  <div class="tab-container">
     <div class="tab-buttons">
       <button class="tab-button active" onclick="openTab(event, 'RecentFlips')">Recent Flips</button>
       <button class="tab-button" onclick="openTab(event, 'Leaderboard')">Leaderboard</button>
@@ -224,7 +428,7 @@
         </thead>
         <tbody id="recent-flips-body">
           {% for flip in recent_flips %}
-          <tr data-timestamp="{{ flip.timestamp }}" {% if params and flip.asset_tag == params["Coin ID"] %}class="highlight-row"{% endif %}>
+          <tr data-timestamp="{{ flip.timestamp }}" {% if params and flip.asset_tag == params["Asset Tag"] %}class="highlight-row"{% endif %}>
             <td>{{ flip.coin_name or 'N/A' }}</td>
             <td>{{ flip.asset_tag }}</td>
             <td>{{ flip.outcome.upper() }}</td>
@@ -248,10 +452,14 @@
             <th>T</th>
             <th><span class="tooltip" data-tooltip-key="shannon">Ent</span></th>
             <th><span class="tooltip" data-tooltip-key="nist">NIST</span></th>
+            <th>W</th>
+            <th>L</th>
+            <th>D</th>
           </tr>
         </thead>
         <tbody>
           {% for coin in leaderboard_stats %}
+          {% set fo = flip_off_stats.get(coin.coin_name, {}) %}
           <tr {% if params and coin.coin_name == params["Coin Name"] %}class="highlight-row"{% endif %}>
             <td>{{ loop.index }}</td>
             <td class="coin-name-cell" title="{{ coin.coin_name }}">{{ coin.coin_name }}</td>
@@ -260,6 +468,9 @@
             <td>{{ coin.total_tails }}</td>
             <td class="decimal-cell">{{ "%.4f"|format(coin.entropy) }}</td>
             <td class="decimal-cell">{{ "%.4f"|format(coin.nist_monobit_p_value) if coin.nist_monobit_p_value is not none else 'N/A' }}</td>
+            <td>{{ fo.get('wins', 0) }}</td>
+            <td>{{ fo.get('losses', 0) }}</td>
+            <td>{{ fo.get('draws', 0) }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -268,94 +479,14 @@
     </div>
   </div>
 
-  {% if joke %}
-  <div class="dad-joke-section">
-    <div class="joke-label">Dad Joke of the Flip</div>
-    <div class="joke-setup">{{ joke[0] }}</div>
-    <div class="joke-punchline">{{ joke[1] }}</div>
-  </div>
-  {% endif %}
-
-  {# --- Flip Off: Completed Result Card --- #}
-  {% if challenge and challenge.status == 'complete' and params and params.get('Coin Name') %}
-  {% set my_coin = params['Coin Name'] %}
-  <div class="flip-off-section">
-    <div class="section-label">Flip Off Result</div>
-    <div class="challenge-result-card">
-      {% if challenge.winner_coin_name == 'DRAW' %}
-        <div class="winner-name">🤝 Draw!</div>
-      {% elif challenge.winner_coin_name == my_coin %}
-        <div class="winner-name">🏆 You Won!</div>
-      {% else %}
-        <div class="winner-name">{{ challenge.winner_coin_name }} Won</div>
-      {% endif %}
-      <div class="entropy-row">
-        {{ challenge.challenger_coin_name }}
-        <span class="entropy-badge {% if challenge.winner_coin_name == challenge.challenger_coin_name %}winner{% elif challenge.winner_coin_name == 'DRAW' %}draw{% else %}loser{% endif %}">
-          {{ "%.4f"|format(challenge.challenger_entropy) }}
-        </span>
-        &nbsp;vs&nbsp;
-        {{ challenge.challenged_coin_name }}
-        <span class="entropy-badge {% if challenge.winner_coin_name == challenge.challenged_coin_name %}winner{% elif challenge.winner_coin_name == 'DRAW' %}draw{% else %}loser{% endif %}">
-          {{ "%.4f"|format(challenge.challenged_entropy) }}
-        </span>
-      </div>
-      <div class="entropy-hint">Higher entropy (bits/byte) = more random coin = winner</div>
+  <div class="fanfare-overlay" id="fanfare-overlay" onclick="this.style.display='none'">
+    <div class="fanfare-card">
+      <div class="fanfare-emoji" id="fanfare-emoji"></div>
+      <div class="fanfare-title" id="fanfare-title"></div>
+      <div class="fanfare-detail" id="fanfare-detail"></div>
+      <div class="fanfare-dismiss">tap to dismiss</div>
     </div>
   </div>
-  {% endif %}
-
-  {# --- Flip Off: Active Challenge Progress --- #}
-  {% if challenge and challenge.status in ('pending', 'in_progress') and params and params.get('Coin Name') %}
-  {% set my_coin = params['Coin Name'] %}
-  {% set n = challenge.flip_count %}
-  <div class="flip-off-section">
-    <div class="section-label">Flip Off In Progress</div>
-    <div class="progress-label">{{ challenge.challenger_coin_name }} (Challenger): {{ challenge.challenger_flips_done }}/{{ n }} flips</div>
-    <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: {{ [challenge.challenger_flips_done / n * 100, 100]|min }}%;"></div></div>
-    <div class="progress-label">{{ challenge.challenged_coin_name }} (Challenged): {{ challenge.challenged_flips_done }}/{{ n }} flips</div>
-    <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width: {{ [challenge.challenged_flips_done / n * 100, 100]|min }}%;"></div></div>
-    <div style="font-size:0.8rem; color:#6c757d; margin-top:8px;">Battle size: {{ n }} flips &nbsp;|&nbsp; Status: {{ challenge.status }}</div>
-  </div>
-  {% endif %}
-
-  {# --- Flip Off: Challenge Launcher --- #}
-  {% if outcome and not error and not challenge and params and params.get('Coin Name') and leaderboard_stats %}
-  {% set my_coin = params['Coin Name'] %}
-  {% set opponents = leaderboard_stats | selectattr('coin_name', '!=', my_coin) | list %}
-  {% if opponents %}
-  <div class="flip-off-section">
-    <div class="section-label">Start a Flip Off</div>
-    <p style="font-size:0.85rem; color:#555; margin:0 0 12px 0;">Challenge a coin from the leaderboard. The next N flips from each coin decide the winner by Shannon entropy.</p>
-    <form action="/challenge/create" method="post" id="flip-off-form">
-      <input type="hidden" name="challenger_coin" value="{{ my_coin }}">
-      <select class="flip-off-select" name="challenged_coin" required>
-        <option value="" disabled selected>Select your opponent…</option>
-        {% for coin in opponents %}
-        <option value="{{ coin.coin_name }}">{{ coin.coin_name }} ({{ coin.total_bits }} flips, ent={{ "%.4f"|format(coin.entropy) }})</option>
-        {% endfor %}
-      </select>
-      <div class="flip-count-buttons">
-        {% for count in [10, 25, 50, 100] %}
-        <button type="button" class="flip-count-btn" onclick="selectFlipCount(this, {{ count }})">{{ count }}</button>
-        {% endfor %}
-      </div>
-      <input type="hidden" name="flip_count" id="flip-count-input" value="">
-      <button type="submit" class="challenge-submit-btn" id="challenge-submit" disabled>Select flip count above to challenge</button>
-    </form>
-  </div>
-  <script>
-    function selectFlipCount(btn, count) {
-      document.querySelectorAll('.flip-count-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      document.getElementById('flip-count-input').value = count;
-      const submit = document.getElementById('challenge-submit');
-      submit.disabled = false;
-      submit.textContent = 'Start Flip Off (' + count + ' flips)';
-    }
-  </script>
-  {% endif %}
-  {% endif %}
 
   <script>
     // DRY Tooltips - Define text in one place
@@ -365,6 +496,32 @@ Measures the unpredictability of the flip sequence. An ideal, perfectly random s
       nist: `NIST Monobit Frequency Test:
 A statistical test for randomness that checks if the number of heads and tails are roughly equal. The P-value represents the probability that a truly random sequence would appear 'less random' than this one. A P-value >= 0.01 is required to pass.`
     };
+
+    const FLIPOFF_EXPIRY_MS = 24 * 60 * 60 * 1000;
+
+    function formatCountdown(msRemaining) {
+      if (msRemaining <= 0) return 'Expiring…';
+      const totalSec = Math.floor(msRemaining / 1000);
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      if (h > 0) return `Expires in ${h}h ${m}m`;
+      if (m > 0) return `Expires in ${m}m ${s}s`;
+      return `Expires in ${s}s`;
+    }
+
+    function tickCountdowns() {
+      document.querySelectorAll('.battle-item[data-created-at]').forEach(item => {
+        const el = item.querySelector('.battle-expiry');
+        if (!el) return;
+        const createdAt = new Date(item.dataset.createdAt.replace(' ', 'T') + 'Z');
+        const msRemaining = createdAt.getTime() + FLIPOFF_EXPIRY_MS - Date.now();
+        el.textContent = formatCountdown(msRemaining);
+        el.classList.toggle('urgent', msRemaining > 0 && msRemaining < 60 * 60 * 1000);
+      });
+    }
+
+    setInterval(tickCountdowns, 1000);
 
     function timeAgo(timestamp) {
       const now = new Date();
@@ -387,7 +544,236 @@ A statistical test for randomness that checks if the number of heads and tails a
       return name.replace(/-\d+$/, '');
     }
 
+    const myFlipOffCoin = '{{ my_coin or "" }}';
+    let hasActiveChallenges = {{ (active_challenges | length > 0) | tojson }};
+
+    function renderBattles(battles) {
+      hasActiveChallenges = !!(battles && battles.length > 0);
+      if (myFlipOffCoin && hasActiveChallenges && battles.some(b => b.challenger_coin_name === myFlipOffCoin || b.challenged_coin_name === myFlipOffCoin)) {
+        hideResultCard();
+      }
+      const container = document.getElementById('flip-off-battles');
+      if (!container) return;
+      if (!battles || battles.length === 0) {
+        const hasOutcome = !!document.getElementById('outcome-text')?.getAttribute('data-outcome');
+        container.innerHTML = `<div class="no-battles-msg">No battles in progress${hasOutcome ? '.' : ' \u2014 tap your coin to start one.'}</div>`;
+        return;
+      }
+      container.innerHTML = battles.map(b => {
+        const n = b.flip_count;
+        const cp = Math.min(b.challenger_flips_done / n * 100, 100).toFixed(1);
+        const dp = Math.min(b.challenged_flips_done / n * 100, 100).toFixed(1);
+        const remaining = Math.max(n - b.challenger_flips_done, 0) + Math.max(n - b.challenged_flips_done, 0);
+        const isMyBattle = myFlipOffCoin && (b.challenger_coin_name === myFlipOffCoin || b.challenged_coin_name === myFlipOffCoin);
+        const yieldBtn = isMyBattle ? `<button class="yield-btn" onclick="yieldChallenge()">🏳️ Yield</button>` : '';
+        return `<div class="battle-item" data-created-at="${b.created_at}">
+          <div class="battle-header">
+            <span class="challenger-name">${b.challenger_coin_name} (${b.challenger_flips_done})</span>
+            <span class="battle-flip-count">${n} flips</span>
+            <span class="challenged-name">(${b.challenged_flips_done}) ${b.challenged_coin_name}</span>
+          </div>
+          <div class="battle-bars-row">
+            <div class="challenger-bar-wrap"><div class="challenger-fill" style="width:${cp}%;"></div></div>
+            <div class="battle-center">vs<br>${remaining} left</div>
+            <div class="challenged-bar-wrap"><div class="challenged-fill" style="width:${dp}%;"></div></div>
+          </div>
+          <div class="battle-expiry"></div>
+          ${yieldBtn}
+        </div>`;
+      }).join('');
+    }
+
+    function renderRecentFlips(flips) {
+      if (!recentFlipsBody || !flips || !flips.length) return;
+      const topTimestamp = recentFlipsBody.rows[0]?.dataset.timestamp;
+      if (topTimestamp && flips[0]?.timestamp === topTimestamp) return; // already current
+      recentFlipsBody.innerHTML = flips.slice(0, MAX_ROWS).map(flip => {
+        const highlight = currentAssetTag && flip.asset_tag === currentAssetTag ? ' highlight-row' : '';
+        return `<tr data-timestamp="${flip.timestamp}" class="${highlight}">
+          <td>${flip.coin_name || 'N/A'}</td>
+          <td>${flip.asset_tag}</td>
+          <td>${flip.outcome.toUpperCase()}</td>
+          <td class="time-cell">${timeAgo(flip.timestamp)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderRecentCompleted(battles) {
+      const section = document.getElementById('recent-completed-section');
+      const list = document.getElementById('recent-completed-list');
+      if (!section || !list || !battles || battles.length === 0) return;
+      section.style.display = '';
+      list.innerHTML = battles.map(battle => {
+        const ce = (battle.challenger_entropy || 0).toFixed(4);
+        const de = (battle.challenged_entropy || 0).toFixed(4);
+        const n = battle.flip_count;
+        const isDraw = battle.winner_coin_name === 'DRAW';
+        const challengerWon = battle.winner_coin_name === battle.challenger_coin_name;
+        let topCoin, topScore, topRole, bottomCoin, bottomScore, bottomRole;
+        if (isDraw || challengerWon) {
+          [topCoin, topScore, topRole]          = [battle.challenger_coin_name, ce, 'challenger'];
+          [bottomCoin, bottomScore, bottomRole] = [battle.challenged_coin_name, de, 'challenged'];
+        } else {
+          [topCoin, topScore, topRole]          = [battle.challenged_coin_name, de, 'challenged'];
+          [bottomCoin, bottomScore, bottomRole] = [battle.challenger_coin_name, ce, 'challenger'];
+        }
+        return `<div class="history-entry" data-challenge-id="${battle.id}">
+          <div class="history-flips">${n}</div>
+          <div class="history-rows">
+            <div class="history-row ${isDraw ? 'draw-row' : 'winner-row'}">
+              <span class="h-coin h-${topRole}">${topCoin}</span>
+              <span class="h-score">${topScore}</span>
+            </div>
+            <div class="history-row ${isDraw ? 'draw-row' : 'loser-row'}">
+              <span class="h-coin h-${bottomRole}">${bottomCoin}</span>
+              <span class="h-score">${bottomScore}</span>
+            </div>
+            ${isDraw ? '<div class="h-draw-badge">draw</div>' : battle.end_condition === 'yield' ? '<div class="h-yield-badge">yield</div>' : ''}
+          </div></div>`;
+      }).join('');
+    }
+
+    function amInBattle(battle) {
+      return myFlipOffCoin && (battle.challenger_coin_name === myFlipOffCoin || battle.challenged_coin_name === myFlipOffCoin);
+    }
+
+    function renderEndCondition(battle) {
+      const iWon = battle.winner_coin_name === myFlipOffCoin;
+      switch (battle.end_condition) {
+        case 'draw':    return '🤝 Draw!';
+        case 'yield':   return iWon ? '🏆 Opponent Yielded!' : '😔 You Yielded';
+        case 'expired': return 'Challenge Expired';
+        case 'win':     return iWon ? '🏆 You Won!' : (battle.winner_coin_name || '?') + ' Won';
+        default:        return iWon ? '🏆 You Won!' : (battle.winner_coin_name || '?') + ' Won';
+      }
+    }
+
+    function showResultCard(battle) {
+      const card = document.getElementById('challenge-result-card');
+      if (!card || !myFlipOffCoin) return;
+      const winnerEl = document.getElementById('result-winner-name');
+      const entropyEl = document.getElementById('result-entropy-row');
+      winnerEl.textContent = renderEndCondition(battle);
+      const ce = (battle.challenger_entropy || 0).toFixed(4);
+      const de = (battle.challenged_entropy || 0).toFixed(4);
+      const cClass = battle.winner_coin_name === battle.challenger_coin_name ? 'winner' : battle.winner_coin_name === 'DRAW' ? 'draw' : 'loser';
+      const dClass = battle.winner_coin_name === battle.challenged_coin_name ? 'winner' : battle.winner_coin_name === 'DRAW' ? 'draw' : 'loser';
+      entropyEl.innerHTML = `<div class="entropy-row">${battle.challenger_coin_name} <span class="entropy-badge ${cClass}">${ce}</span> &nbsp;vs&nbsp; ${battle.challenged_coin_name} <span class="entropy-badge ${dClass}">${de}</span></div><div class="entropy-hint">Higher entropy = more random coin = winner</div>`;
+      card.style.display = '';
+    }
+
+    function hideResultCard() {
+      const card = document.getElementById('challenge-result-card');
+      if (card) card.style.display = 'none';
+    }
+
+    function showFanfare(battle) {
+      const overlay = document.getElementById('fanfare-overlay');
+      const emojiEl = document.getElementById('fanfare-emoji');
+      const titleEl = document.getElementById('fanfare-title');
+      const detailEl = document.getElementById('fanfare-detail');
+      if (!overlay || !amInBattle(battle)) return;
+      const iWon = battle.winner_coin_name === myFlipOffCoin;
+      if (battle.end_condition === 'expired') {
+        emojiEl.textContent = '⏰';
+        titleEl.textContent = 'Challenge Expired';
+        titleEl.style.color = '#6c757d';
+      } else if (battle.end_condition === 'draw') {
+        emojiEl.textContent = '🤝🎊';
+        titleEl.textContent = "It's a Draw!";
+        titleEl.style.color = '#856404';
+      } else if (battle.end_condition === 'yield' && !iWon) {
+        emojiEl.textContent = '😔';
+        titleEl.textContent = 'You Yielded';
+        titleEl.style.color = '#333';
+      } else if (iWon) {
+        emojiEl.textContent = '🏆🎉🎊✨';
+        titleEl.textContent = battle.end_condition === 'yield' ? 'Opponent Yielded!' : 'You Win!';
+        titleEl.style.color = '#155724';
+      } else {
+        emojiEl.textContent = '😔';
+        titleEl.textContent = `${battle.winner_coin_name || '?'} Won`;
+        titleEl.style.color = '#333';
+      }
+      const ce = (battle.challenger_entropy || 0).toFixed(4);
+      const de = (battle.challenged_entropy || 0).toFixed(4);
+      detailEl.innerHTML = `<span style="color:#dc3545;font-weight:bold">${battle.challenger_coin_name}</span> ${ce} &nbsp;vs&nbsp; <span style="color:#007BFF;font-weight:bold">${battle.challenged_coin_name}</span> ${de}`;
+      overlay.style.display = 'flex';
+      clearTimeout(overlay._timer);
+      overlay._timer = setTimeout(() => { overlay.style.display = 'none'; }, 9000);
+    }
+
+    async function yieldChallenge() {
+      if (!myFlipOffCoin || !confirm('Yield and grant your opponent an instant victory?')) return;
+      const data = new FormData();
+      data.append('coin_name', myFlipOffCoin);
+      const statusMsg = document.getElementById('flipoff-status-msg');
+      try {
+        const resp = await fetch('/challenge/yield', { method: 'POST', body: data });
+        const json = await resp.json();
+        if (!resp.ok) {
+          if (statusMsg) statusMsg.textContent = 'Error: ' + (json.error || 'Unknown error');
+          return;
+        }
+        // SSE delivers all state updates — no direct state calls needed
+      } catch {
+        if (statusMsg) statusMsg.textContent = 'Error submitting yield.';
+      }
+    }
+
+    function showLiveFlip(flip) {
+      if (!hasActiveChallenges) return;
+      const indicator = document.getElementById('live-flip-indicator');
+      const coinEl = document.getElementById('live-flip-coin');
+      const outcomeEl = document.getElementById('live-flip-outcome');
+      if (!indicator || !coinEl || !outcomeEl) return;
+      coinEl.textContent = flip.coin_name || flip.asset_tag;
+      outcomeEl.textContent = flip.outcome.toUpperCase();
+      indicator.style.display = 'flex';
+      clearTimeout(indicator._fadeTimer);
+      indicator._fadeTimer = setTimeout(() => { indicator.style.display = 'none'; }, 4000);
+    }
+
+    function toggleFlipOffForm() {
+      const wrapper = document.getElementById('flip-off-form-wrapper');
+      const btn = document.getElementById('start-flipoff-btn');
+      const isHidden = wrapper.style.display === 'none';
+      wrapper.style.display = isHidden ? 'block' : 'none';
+      if (btn) btn.textContent = isHidden ? '− Close' : '+ Start Flip-Off';
+    }
+
+    function selectFlipCount(btn, count) {
+      document.querySelectorAll('.flip-count-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('flip-count-input').value = count;
+      const submit = document.getElementById('challenge-submit');
+      submit.disabled = false;
+      submit.textContent = 'Challenge (' + count + ' flips)';
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('flip-off-form');
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const statusMsg = document.getElementById('flipoff-status-msg');
+          const data = new FormData(form);
+          try {
+            const resp = await fetch('/challenge/create', { method: 'POST', body: data });
+            const json = await resp.json();
+            if (resp.ok) {
+              document.getElementById('flip-off-form-wrapper').style.display = 'none';
+              const btn = document.getElementById('start-flipoff-btn');
+              if (btn) btn.style.display = 'none';
+              statusMsg.textContent = 'Challenge started! Flip your coin to battle.';
+            } else {
+              statusMsg.textContent = 'Error: ' + (json.error || 'Unknown error');
+            }
+          } catch {
+            statusMsg.textContent = 'Error submitting challenge.';
+          }
+        });
+      }
       document.querySelectorAll('[data-tooltip-key]').forEach(el => {
         const key = el.getAttribute('data-tooltip-key');
         if (tooltipContent[key]) {
@@ -413,9 +799,10 @@ A statistical test for randomness that checks if the number of heads and tails a
       }
       updateTimeAgo();
       setInterval(updateTimeAgo, 60000);
+      tickCountdowns();
     });
 
-    const currentAssetTag = '{{ params["Coin ID"] if params else "" }}';
+    const currentAssetTag = '{{ params["Asset Tag"] if params else "" }}';
 
     function openTab(evt, tabName) {
       let i, tabcontent, tabbuttons;
@@ -440,104 +827,98 @@ A statistical test for randomness that checks if the number of heads and tails a
       el.style.animationDelay = delay + 's';
     });
 
-    const outcomeEl = document.getElementById('outcome-text');
-    if (outcomeEl) {
-      let finalText = outcomeEl.getAttribute('data-outcome');
-      const originalOutcome = finalText; // Keep original for logic
-
-      // Pad "HEADS" or "TAILS" to be 7 chars wide to match "INVALID"
-      if (finalText === "HEADS" || finalText === "TAILS") {
-        finalText = ` ${finalText} `;
-      }
-
+    function showOutcome(outcome) {
+      const container = document.getElementById('outcome-container');
+      const el = document.getElementById('outcome-text');
+      if (!container || !el) return;
+      container.style.display = '';
+      let finalText = outcome;
+      if (finalText === 'HEADS' || finalText === 'TAILS') finalText = ` ${finalText} `;
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       const revealedIndices = new Set();
       const unrevealedIndices = Array.from(Array(finalText.length).keys());
-
-      let interval = setInterval(() => {
-        // Reveal one new random character each frame
+      const interval = setInterval(() => {
         if (unrevealedIndices.length > 0) {
-          const randomIndex = Math.floor(Math.random() * unrevealedIndices.length);
-          const indexToReveal = unrevealedIndices.splice(randomIndex, 1)[0];
-          revealedIndices.add(indexToReveal);
+          const idx = unrevealedIndices.splice(Math.floor(Math.random() * unrevealedIndices.length), 1)[0];
+          revealedIndices.add(idx);
         }
-
-        outcomeEl.innerText = finalText
-          .split('')
-          .map((letter, index) => {
-            return revealedIndices.has(index) ? finalText[index] : chars[Math.floor(Math.random() * chars.length)];
-          })
-          .join('');
-        
+        el.innerText = finalText.split('').map((c, i) =>
+          revealedIndices.has(i) ? finalText[i] : chars[Math.floor(Math.random() * chars.length)]
+        ).join('');
         if (unrevealedIndices.length === 0) clearInterval(interval);
       }, 80);
-
-      // Animate the corresponding total
-      if (originalOutcome === "HEADS") {
-        const headsTotalEl = document.getElementById('heads-total');
-        if (headsTotalEl) headsTotalEl.classList.add('increment-animation');
-      } else if (originalOutcome === "TAILS") {
-        const tailsTotalEl = document.getElementById('tails-total');
-        if (tailsTotalEl) tailsTotalEl.classList.add('increment-animation');
-      }
+      if (outcome === 'HEADS') document.getElementById('heads-total')?.classList.add('increment-animation');
+      else if (outcome === 'TAILS') document.getElementById('tails-total')?.classList.add('increment-animation');
     }
 
-    // Real-time updates for recent flips
+    function showJoke(joke) {
+      if (!joke) return;
+      const section = document.getElementById('joke-section');
+      const setup = document.getElementById('joke-setup');
+      const punchline = document.getElementById('joke-punchline');
+      if (!section) return;
+      if (setup) setup.textContent = joke[0];
+      if (punchline) punchline.textContent = joke[1];
+      section.style.display = '';
+    }
+
+    // Real-time updates for recent flips via Server-Sent Events
     const MAX_ROWS = 88;
     const recentFlipsBody = document.getElementById('recent-flips-body');
-    let lastKnownTimestamp = recentFlipsBody ? (recentFlipsBody.querySelector('tr')?.dataset.timestamp || '') : '';
 
-    setInterval(async () => {
-      if (!recentFlipsBody) return;
-
-      const response = await fetch('/api/recent_flips' + window.location.search);
-      const data = await response.json();
-      const newFlips = data.recent_flips;
-      const newTotals = data.totals;
-
-      if (newFlips.length > 0 && newFlips[0].timestamp !== lastKnownTimestamp) {
-        const existingTimestamps = new Set(Array.from(recentFlipsBody.querySelectorAll('tr')).map(tr => tr.dataset.timestamp));
-        const newRows = [];
-
-        for (const flip of newFlips) {
-          if (!existingTimestamps.has(flip.timestamp)) {
-            const tr = document.createElement('tr');
-            tr.dataset.timestamp = flip.timestamp;
-            tr.innerHTML = `
-              <td>${flip.coin_name || 'N/A'}</td>
-              <td>${flip.asset_tag}</td>
-              <td>${flip.outcome.toUpperCase()}</td>
-              <td class="time-cell">${timeAgo(flip.timestamp)}</td>
-            `;
-            if (currentAssetTag && flip.asset_tag === currentAssetTag) {
-              tr.classList.add('highlight-row');
+    // Start SSE first so the server-side listener is registered before /api/flip pushes its event
+    const evtSource = new EventSource('/api/stream/flips' + window.location.search);
+    let tapFired = false;
+    evtSource.onopen = function() {
+      if (tapFired) return;
+      tapFired = true;
+      // Call /api/flip now that SSE stream is ready to receive the push
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('uid') && urlParams.get('ctr') && urlParams.get('cmac')) {
+        fetch('/api/flip' + window.location.search)
+          .then(r => r.json())
+          .then(data => {
+            if (data.error) {
+              const errEl = document.getElementById('error-text');
+              if (errEl) { errEl.textContent = 'Error: ' + data.error; errEl.style.display = ''; }
+            } else {
+              showOutcome(data.outcome);
+              if (data.joke) showJoke(data.joke);
+              if (data.active_challenges) renderBattles(data.active_challenges);
+              if (data.flip && recentFlipsBody) {
+                const flip = data.flip;
+                const existingTimestamps = new Set(Array.from(recentFlipsBody.querySelectorAll('tr')).map(tr => tr.dataset.timestamp));
+                if (!existingTimestamps.has(flip.timestamp)) {
+                  const tr = document.createElement('tr');
+                  tr.dataset.timestamp = flip.timestamp;
+                  tr.classList.add('highlight-row', 'new-row-animation');
+                  tr.innerHTML = `<td>${flip.coin_name || 'N/A'}</td><td>${flip.asset_tag}</td><td>${flip.outcome.toUpperCase()}</td><td class="time-cell">${timeAgo(flip.timestamp)}</td>`;
+                  recentFlipsBody.prepend(tr);
+                }
+              }
             }
-            tr.classList.add('new-row-animation');
-            newRows.push(tr);
-          } else {
-            // Stop once we see a flip we already have
-            break;
-          }
-        }
+          })
+          .catch(() => {});
+      }
+    };
+    evtSource.onmessage = function(event) {
+      const data = JSON.parse(event.data);
 
-        // Add new rows to the top of the table
-        newRows.reverse().forEach(tr => {
-          recentFlipsBody.prepend(tr);
-          tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
+      if (data.active_challenges) renderBattles(data.active_challenges);
+      if (data.latest_flip) showLiveFlip(data.latest_flip);
+      if (data.recent_completed) renderRecentCompleted(data.recent_completed);
+      if (data.just_completed && data.just_completed.length > 0) {
+        showFanfare(data.just_completed[0]);
+        const myBattle = data.just_completed.find(b => amInBattle(b));
+        if (myBattle) showResultCard(myBattle);
+      }
+      if (data.recent_flips?.length && recentFlipsBody) renderRecentFlips(data.recent_flips);
 
-        // Trim old rows
-        while (recentFlipsBody.rows.length > MAX_ROWS) {
-          recentFlipsBody.deleteRow(recentFlipsBody.rows.length - 1);
-        }
-
-        lastKnownTimestamp = newFlips[0].timestamp;
-
-        // Update totals with percentages
+      if (!data.totals) return;
+      const newTotals = data.totals;
         const headsEl = document.getElementById('heads-total');
         const tailsEl = document.getElementById('tails-total');
         const totalFlips = newTotals.heads + newTotals.tails;
-
         let headsPctHtml = '';
         let tailsPctHtml = '';
         if (totalFlips > 0) {
@@ -548,8 +929,7 @@ A statistical test for randomness that checks if the number of heads and tails a
         }
         headsEl.innerHTML = `${newTotals.heads}${headsPctHtml}`;
         tailsEl.innerHTML = `${newTotals.tails}${tailsPctHtml}`;
-      }
-    }, 500);
+      };
   </script>
 </body>
 </html>

@@ -15,7 +15,7 @@ WORKDIR /app
 COPY . /app
 
 # Install the package dependencies and Gunicorn
-RUN pip install --no-cache-dir .[server] gunicorn
+RUN pip install --no-cache-dir .[server] gunicorn gevent
 
 # Change ownership to the non-root user
 RUN chown -R appuser:appuser /app
@@ -27,4 +27,4 @@ USER appuser
 EXPOSE 8000
 
 # Run Gunicorn pointing to the app module defined in Makefile
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "ntag424_sdm_provisioner.server.app:app"]
+CMD ["gunicorn", "-k", "gevent", "-w", "1", "-b", "0.0.0.0:8000", "ntag424_sdm_provisioner.server.app:app"]

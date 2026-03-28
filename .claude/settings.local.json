@@ -43,7 +43,11 @@
       "Bash(kubectl get pvc -A 2>/dev/null && kubectl get sc 2>/dev/null)",
       "Bash(make chat:*)",
       "Bash(make test_server)",
-      "Bash(make test:*)"
+      "Bash(make test:*)",
+      "Bash(/home/drusifer/Projects/GlobalHeadsOrTails/agents/neo.docs/context.md:*)",
+      "Bash(/home/drusifer/Projects/GlobalHeadsOrTails/agents/morpheus.docs/current_task.md:*)",
+      "Bash(for persona:*)",
+      "Bash(do echo:*)"
     ],
     "deny": [],
     "ask": []

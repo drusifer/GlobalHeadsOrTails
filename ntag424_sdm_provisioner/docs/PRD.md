@@ -362,84 +362,133 @@ A feature is "Done" when:
 ## 13. Flip Off Challenge Feature
 
 **Added**: 2026-03-26
+**Updated**: 2026-03-26
 **Owner**: Cypher
 
 ### 13.1 Overview
 
-A Flip Off is a peer-to-peer challenge between two NFC coins, decided by Shannon entropy over a fixed number of future flips. The challenger initiates via a validated NFC tap, selects an opponent from the leaderboard, and chooses the battle size. The next N real flips from each coin are collected; the coin with higher entropy (closer to 1.0 bits/bit) wins.
+A Flip Off is a peer-to-peer challenge between two NFC coins, decided by Shannon entropy over a fixed number of future flips. The challenger taps their coin to load the page, selects an opponent from the Flip Offs section, and chooses a battle size. The next N real flips from each coin are collected; the coin with higher entropy wins. Challenges expire after 24 hours if not completed. Either participant may yield at any time, granting the opponent an immediate win. All battle state updates in real-time via SSE for all viewers.
 
 ---
 
-### 13.2 User Story
+### 13.2 User Stories
 
-**As a coin owner**, I want to tap my coin on the leaderboard page, select a rival coin, choose a battle size, and let the next N flips from each coin decide the winner by Shannon entropy — so there's a competitive, fair, physics-driven challenge.
+**US-1 — Start a challenge**
+As a coin owner who has just tapped my coin, I want to select a rival coin and battle size from the Flip Offs section, so I can initiate a competition without leaving the page.
+
+**US-2 — Track progress in real time**
+As a participant or spectator, I want to see live progress bars and flip counts for all active battles update automatically, so I always know where each battle stands without refreshing.
+
+**US-3 — See the result**
+As a coin owner whose battle just ended, I want to see a result card showing who won and both entropy scores, so I know the outcome and understand why.
+
+**US-4 — Yield**
+As a participant in an active battle, I want to be able to surrender at any time, so I can concede gracefully rather than let a battle expire or drag on.
+
+**US-5 — Expiry countdown**
+As a participant, I want to see a live countdown to my battle's 24-hour deadline, so I know how much time I have left to complete my flips.
+
+**US-6 — Leaderboard record**
+As any user, I want to see each coin's flip-off win/loss/draw record on the leaderboard, so I can compare competitive history alongside randomness stats.
+
+**US-7 — Recent results**
+As any visitor, I want to see the last three completed flip-offs in the Flip Offs section without needing a coin, so I can follow the action even as a spectator.
 
 ---
 
 ### 13.3 Acceptance Criteria
 
 #### Challenge Creation
-- [ ] On the leaderboard page, each coin row has a "Challenge" button
-- [ ] Tapping "Challenge" shows a modal: "Tap your coin to initiate" — the user must perform a **real, CMAC-validated NFC tap** to confirm they own a registered coin
-- [ ] A challenger may **not** challenge themselves (their own coin_name is excluded from the target list)
-- [ ] After validation, user selects opponent coin from leaderboard (excluding their own)
-- [ ] User selects battle size: **10, 25, 50, or 100 flips**
-- [ ] Challenge is persisted to the database with status `pending`
-- [ ] Challenger and challenged coin owners see an active challenge banner on the results page
+- [x] Flip Offs section visible on the page to all visitors (no coin required)
+- [x] Coin owners (page loaded via NFC tap) see a "+ Start Flip-Off" button when not in an active battle
+- [x] Opponent list is sorted alphabetically and excludes the current coin
+- [x] Opponent list shows flip count and entropy for each option
+- [x] Battle sizes available: 10, 25, 50, 100 flips
+- [x] A coin may not challenge itself
+- [x] A coin may not have more than one active challenge at a time
+- [x] Challenge creation stays on-page (JS fetch, no navigation)
+- [x] New active battle appears for all viewers via SSE immediately after creation
 
 #### Flip Collection
-- [ ] Only **real, CMAC-validated flips** (not test flips) count toward challenge progress
-- [ ] The system collects the next N flips **after challenge creation timestamp** from each coin
-- [ ] Flips before the challenge creation timestamp do not count
-- [ ] Progress is visible: e.g. "Challenger: 7/25 flips | Rival: 12/25 flips"
+- [x] Only real CMAC-validated flips (not test taps) count toward challenge progress
+- [x] Only flips recorded after challenge creation count (baseline scan ID)
+- [x] Progress bars and flip counts update in real time via SSE for all viewers
+- [x] Live flip indicator shows during active battles
 
-#### Winner Determination
-- [ ] When both coins reach N flips, the challenge status changes to `complete`
-- [ ] Winner is the coin with **higher Shannon entropy** over their N challenge flips
-- [ ] In the event of a tie (entropy equal to 4 decimal places), the result is a **draw**
-- [ ] Winner, loser, both entropy scores, and flip counts are recorded in the database
-- [ ] The result is shown on the leaderboard and on both coins' result pages
+#### End Conditions
+- [x] **Win/Draw**: when both coins reach N flips, entropy is compared; higher entropy wins; equal entropy is a draw
+- [x] **Yield**: either participant (challenger or challenged) may surrender at any time; opponent wins immediately
+- [ ] **Expired**: challenges not completed within 24 hours are auto-marked expired; triggered lazily on each page load or flip
+- [ ] End condition is stored as a typed field (`win` / `draw` / `yield` / `expired`) on the challenge record
+
+#### Result Display
+- [x] Completed result card shown to coin owners for their most recent completed battle
+- [x] Result card hidden while coin is in an active battle; shown again when battle ends via SSE
+- [x] Result card shows: winner name (or "Draw"), both coin names, both entropy scores
+- [x] Fanfare overlay shown to participants only (not spectators) on battle completion
+- [x] Fanfare distinguishes winner ("You Win!"), loser ("X Won"), and draw
+- [ ] Fanfare distinguishes yield from entropy-decided outcome
+
+#### Expiry Countdown
+- [x] Each active battle shows a live countdown to its 24-hour expiry deadline
+- [x] Countdown turns red inside the final hour
+- [x] Countdown ticks every second
+
+#### Recent Results
+- [x] Last 3 completed battles shown in the Flip Offs section for all viewers
+- [x] Results show winner (highlighted), loser (dimmed), both entropy scores, flip count
+- [ ] Recent results update via SSE (currently only updates on expiry events; missing from flip/create/yield SSE payloads)
+
+#### Leaderboard
+- [x] W / L / D columns added to leaderboard table
+- [x] Stats sourced from all completed challenges (any end condition)
 
 #### Data & Integrity
-- [ ] Challenges are stored in a `flip_off_challenges` table (see §13.6)
-- [ ] Each challenge references challenger `coin_name` and challenged `coin_name`
-- [ ] A coin may only have **one active challenge at a time** (per coin_name)
-- [ ] Expired challenges (no activity for 30 days) are auto-marked `expired`
+- [x] `flip_off_challenges` table with baseline scan ID, status, entropy fields, completed_at
+- [x] Challenges stored by coin_name (not UID)
+- [ ] `end_condition` column added to `flip_off_challenges` (pending)
+- [x] `get_latest_challenge` excludes expired challenges from result card
+- [x] Unit tests: creation, duplicate guard, flip counting, entropy winner, draw, expiry
 
 ---
 
 ### 13.4 User Flow
 
 ```
-1. User visits leaderboard page
-2. User clicks "Challenge" on a rival coin row
-3. Modal: "Tap your coin to start the challenge"
-4. User taps their NFC coin → CMAC validated → challenger coin_name confirmed
-5. Modal: "Select battle size: 10 / 25 / 50 / 100 flips"
-6. User selects size → challenge record created (status=pending)
-7. Both coins accumulate real flips post-creation
-8. Progress bar updates on each page load
-9. When both reach N → winner declared by entropy comparison
-10. Result displayed on leaderboard and per-coin result pages
+1. User taps NFC coin → page loads with coin identity
+2. Flip Offs section shows: recent results, any active battles, "+ Start Flip-Off" button
+3. User expands form, selects opponent (alphabetical list) and battle size
+4. JS POST to /challenge/create → SSE pushes new active battle to all viewers
+5. Both coins accumulate real validated flips post-creation
+6. Progress bars update in real time via SSE on each flip
+7. Expiry countdown ticks live; turns red in final hour
+8. Battle ends by:
+   a. Both coins reach N flips → entropy compared → win or draw
+   b. Either coin taps Yield → opponent wins immediately
+   c. 24 hours elapse without completion → expired (lazy, on next request)
+9. SSE push: active battles updated, result appears in recent results
+10. Participants see result card; winner gets fanfare overlay
 ```
 
 ---
 
 ### 13.5 Shannon Entropy Scoring
 
-- Entropy is calculated over the N challenge flips for each coin using the existing `calculate_entropy()` function in `crypto_primitives.py`
-- Sequence: challenger's N flip outcomes encoded as bits (HEADS=1, TAILS=0)
-- Higher entropy (max 1.0 bits/bit for a perfectly random coin) = winner
-- Both scores displayed on the result card with 4 decimal places
+- Entropy calculated over N challenge flips per coin using `calculate_entropy()` from `crypto_primitives.py`
+- Encoding: HEADS=1, TAILS=0; bit string padded to nearest byte boundary
+- Higher entropy (closer to 8.0 bits/byte) = more random coin = winner
+- Both scores displayed on result card with 4 decimal places
+- Tie: entropy equal to 4 decimal places → draw
 
 ---
 
-### 13.6 Database Schema (new table)
+### 13.6 Database Schema
 
 ```sql
 CREATE TABLE flip_off_challenges (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    baseline_scan_id INTEGER NOT NULL DEFAULT 0,
     challenger_coin_name TEXT NOT NULL,
     challenged_coin_name TEXT NOT NULL,
     flip_count INTEGER NOT NULL CHECK(flip_count IN (10, 25, 50, 100)),
@@ -450,58 +499,67 @@ CREATE TABLE flip_off_challenges (
     challenger_entropy REAL,
     challenged_entropy REAL,
     winner_coin_name TEXT,
-    completed_at DATETIME
+    completed_at DATETIME,
+    end_condition TEXT CHECK(end_condition IN ('win', 'draw', 'yield', 'expired'))  -- pending migration
 );
 ```
 
 ---
 
-### 13.7 UI Changes
+### 13.7 SSE Architecture
 
-| Location | Change |
+All flip-off UI state is delivered via SSE (`/api/stream/flips`). HTTP action endpoints return ACK only.
+
+| SSE field | Content |
 |---|---|
-| Leaderboard table | Add "Challenge" button per row (disabled if coin has active challenge) |
-| Result page (coin flip outcome) | Show active challenge banner + progress if coin is in a challenge |
-| Result page | Show challenge result card when `status=complete` |
-| Leaderboard | Show trophy icon next to winner of most recent completed challenge |
+| `active_challenges` | All pending/in_progress challenges |
+| `recent_completed` | Last 3 completed challenges |
+| `just_completed` | Battles completed by this specific event (triggers fanfare/result card) |
+| `latest_flip` | Most recent flip (drives live indicator during active battles) |
+
+EventSource is always connected regardless of page state. All clients (participants and spectators) receive all flip-off events.
 
 ---
 
-### 13.8 Technical Notes
-
-- Challenge initiation reuses the existing NFC tap → CMAC validation flow (no new hardware path)
-- After CMAC validation on the index route, check if the validated coin has an active challenge; if so, count the flip toward it
-- Flip collection is passive — no separate endpoint needed; integrate into the existing `update_state()` + challenge progress update in one transaction
-- Entropy calculation reuses `calculate_entropy()` from `crypto_primitives.py`
-- New service method: `FlipOffService` (or methods on `SqliteGameStateManager`) to manage challenge lifecycle
-
----
-
-### 13.9 Out of Scope (MVP)
+### 13.8 Out of Scope
 
 - Push notifications when a challenge completes
 - Multi-coin tournaments (bracket play)
 - Wagering or scoring system
 - Challenge invitations via QR code or link
+- Spectator fanfare for battle completion
 
 ---
 
-### 13.10 Definition of Done
+### 13.9 Exit Criteria
 
-- [ ] `flip_off_challenges` table created (migration safe)
-- [ ] Challenge creation flow: validated tap → coin selection → size selection → DB record
-- [ ] Flip counting passively increments challenge progress on each validated flip
-- [ ] Entropy comparison triggers on both reaching N flips; winner recorded
-- [ ] Leaderboard shows Challenge button; disabled for coins with active challenge
-- [ ] Result page shows active challenge progress banner
-- [ ] Result page shows completed challenge result card
-- [ ] Unit tests: challenge creation, flip counting, entropy winner logic, tie handling
-- [ ] Code review approved by Morpheus
+All items must be met before this feature is considered complete.
+
+#### Must pass (blocking)
+- [ ] All unit tests pass: `test_server_flip_off.py`, `test_server_flip_off_integration.py`
+- [ ] `end_condition` column added; set correctly for win/draw/yield/expired
+- [ ] `recent_completed` included in SSE payloads from `/api/flip`, `/challenge/create`, `/challenge/yield`
+- [ ] Recent results section updates via SSE on every end condition (not only expiry)
+- [ ] Expired challenges marked within one request cycle after 24h deadline
+- [ ] Fanfare text distinguishes yield ("Opponent Yielded" / "You Yielded") from entropy win/loss
 - [ ] QA sign-off by Trin
 
+#### Already passing (regression guard)
+- [x] Challenge creation stays on-page; no navigation away
+- [x] Both challenger and challenged can yield
+- [x] All active battles visible to all viewers (no coin required)
+- [x] Countdown timer visible and ticks to zero
+- [x] Countdown urgent state (red) inside final hour
+- [x] Result card shows for coin's most recent completed battle
+- [x] Result card hides when coin enters a new active battle
+- [x] Fanfare shown to participants only
+- [x] W/L/D columns on leaderboard
+- [x] Opponent list alphabetically sorted
+- [x] Live tap indicator only during active battles
+
 ---
 
-**Document Status**: Active
+**Document Status**: Active — implementation in progress
 **Last Updated**: 2026-03-26
-**Next Steps**: Smith review → Morpheus architecture → implementation
+**Open items**: end_condition column, SSE payload standardization, renderRecentCompleted migration, yield fanfare text
 

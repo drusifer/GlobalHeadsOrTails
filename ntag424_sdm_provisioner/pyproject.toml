@@ -21,6 +21,7 @@ server = [
     "flask>=3.0.0",
     "pycryptodome>=3.12.0",
     "coolname>=2.2.0",  # Random name generator for coin naming
+    "gevent>=23.0.0",   # Async workers for gunicorn SSE streaming
 ]
 dev = [
     "coolname>=2.2.0",  # Random name generator for coin naming
@@ -28,6 +29,8 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.23.0",
+    "playwright>=1.40.0",
+    "pytest-playwright>=0.4.0",
     # Linting & Formatting
     "ruff>=0.1.0",           # Fast linter & formatter
     "pylint>=3.0.0",          # Code quality & duplication
