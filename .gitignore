@@ -2,6 +2,7 @@
 .env
 .history/*
 .history/
+build/*
 
 # User-specific Claude Code config (contains local paths and tokens)
 .claude.json

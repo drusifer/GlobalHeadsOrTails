@@ -1,0 +1,4 @@
+=== make test_server @ 2026-03-27 18:14:58 ===
+make[1]: Entering directory '/home/drusifer/Projects/GlobalHeadsOrTails'
+make[1]: *** No rule to make target 'test_server'.  Stop.
+make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
