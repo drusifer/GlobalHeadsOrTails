@@ -1,0 +1,56 @@
+# ── ntag424_sdm_provisioner project targets ──────────────────────────────────
+# Delegated from root — invoke as: make <target>
+# Bob-protocol targets (install_bob, update_bob, etc.) live in the root Makefile only.
+
+SDM := ntag424_sdm_provisioner
+
+.PHONY: test_server test run deps deps_test clean dist pkg docker-run uninstall logs \
+        export-image helm-setup helm-deploy helm-uninstall helm-logs
+
+test_server: ## Run server tests (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) test_server
+
+test: ## Run all tests (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) test
+
+run: ## Start Flask dev server (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) run
+
+deps: ## Install/update dependencies (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) deps
+
+deps_test: ## Install test + dev dependencies (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) deps_test
+
+clean: ## Clean build artifacts (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) clean
+
+dist: ## Build Python distribution package (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) dist
+
+pkg: ## Build Docker image (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) pkg
+
+docker-run: ## Build and run Docker container (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) docker-run
+
+uninstall: ## Stop and remove Docker container (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) uninstall
+
+logs: ## Fetch Docker container logs (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) logs
+
+export-image: ## Export Docker image tarball for k3s deploy (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) export-image
+
+helm-setup: ## Create node data directory and seed tag_keys.csv (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) helm-setup
+
+helm-deploy: ## Deploy with Helm to k3s (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) helm-deploy
+
+helm-uninstall: ## Uninstall Helm release (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) helm-uninstall
+
+helm-logs: ## Stream pod logs from k3s (ntag424_sdm_provisioner)
+	$(MAKE) -C $(SDM) helm-logs

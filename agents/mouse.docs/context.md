@@ -1,15 +1,17 @@
 # Agent Local Context
 
 ## Recent Decisions
-- **2026-03-26**: Flip Off sprint planned. 2 phases, 3 tasks each. task.md is source of truth.
+- **2026-04-22**: §14 Custom Coin Messages sprint planned. task.md updated, 2 phases × 3 tasks. Handed to Neo for P1-T1.
+- **2026-03-26**: Flip Off sprint complete — 34 tests passing.
 
 ## Key Findings
-- Sprint: Flip Off Challenge — validated NFC tap initiates, Shannon entropy decides winner
-- Phases: P1 = service + DB + tests. P2 = routes + template + integration tests.
-- Arch doc: `agents/morpheus.docs/arch_flipoff.md`
+- §14 follows same 2-phase pattern: backend-first (Python), then frontend (template + JS).
+- Phase gate: P1 fully green before P2 starts.
+- Smith flagged emoji bug (showOutcome split('')): tracked in P2-T1.
 
 ## Important Notes
-- Phase 1 must be fully green before Phase 2 starts.
+- task.md = §14 sprint board. Arch: `morpheus.docs/arch_custom_messages.md`. PRD: `cypher.docs/custom_messages_prd.md`.
+- P1-T1 starts with new file `coin_message_service.py` — CoinMessageService class.
 
 ---
-*Last updated: 2026-03-26*
+*Last updated: 2026-04-22*

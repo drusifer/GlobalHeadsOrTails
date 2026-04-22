@@ -1,15 +1,16 @@
 # Morpheus — Current Task
 
-**Status:** Complete (session end)
-**Last active:** 2026-03-26
+**Status:** Complete — §14 arch done, handed to Mouse
+**Last active:** 2026-04-22
 
 ## Completed This Session
-- SSE-first architecture (arch_flipoff_sse.md) — fully implemented by Neo
-- NFC tab reuse research (research_nfc_tab.md) — SW approach selected + implemented
-- Reviewed: bounce page removed, SW is sole tab-reuse mechanism
+- §14 Custom Coin Messages architecture (`arch_custom_messages.md`)
+- 2-phase sprint defined: Phase 1 = Python/backend, Phase 2 = template/JS
+- Key decisions: CoinMessageService, CMAC auth via scan_logs, same DB file
+- Handed off to Mouse for sprint planning
 
 ## Open
-- Trin UAT pending
-- Playwright ARM timeout issue (see trin next_steps)
+- Mouse to plan and break into tasks
+- Smith gate 2 (arch review) — not yet formally done; User approved PRD already
 
-*Last updated: 2026-03-26*
+*Last updated: 2026-04-22*

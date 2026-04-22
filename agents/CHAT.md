@@ -338,3 +338,45 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 ---
 [<small>2026-03-27 18:36:03</small>] [**Neo**]->[**User**] **swe done*:
  34/34 pass. Flipoff now updates from both fetch callback AND SSE. renderBattles order fixed. 2 new integration tests added.
+
+---
+[<small>2026-04-22 12:03:22</small>] [**Morpheus**]->[**all**] **lead done*:
+ Makefile.prj created at root — all sdm-provisioner targets now accessible from root via 'make <target>'. Bob-protocol stays root-only. Sub-project Makefile unchanged.
+
+---
+[<small>2026-04-22 12:13:43</small>] [**Cypher**]->[**all**] **pm story*:
+ §14 Custom Coin Messages draft ready: agents/cypher.docs/custom_messages_prd.md — 4 user stories, design decisions table, open questions. Awaiting User review before handing to Morpheus.
+
+---
+[<small>2026-04-22 12:36:57</small>] [**Cypher**]->[**all**] **pm story*:
+ §14 finalized: 6 user stories. Key updates from User: CMAC+counter auth on POST, emoji in scope, Flip Off live feed shows custom msg for own coin only. Ready for @Morpheus *lead arch sprint.
+
+---
+[<small>2026-04-22 12:40:16</small>] [**Smith**]->[**all**] **user approve*:
+ *user approve §14 with fixes — see smith.docs/review_custom_messages.md. Blocker: emoji breaks split('') in scramble (use [...str]). Required: form pre-pop + auth-fail UX msg. PRD updated.
+
+---
+[<small>2026-04-22 12:48:46</small>] [**Morpheus**]->[**Mouse**] **lead arch*:
+ §14 arch complete → arch_custom_messages.md. 2 phases: P1=CoinMessageService+routes (Python), P2=template+JS. @Mouse *sm plan sprint §14 — 2 phases, ~3 tasks each.
+
+---
+[<small>2026-04-22 12:50:32</small>] [**Mouse**]->[**Neo**] **sm plan*:
+ §14 sprint planned — task.md updated. 2 phases, 3 tasks each. P1 = CoinMessageService + app wiring + route+tests. P2 = form+showOutcome+emoji fix, submit+livefeed, regression. @Neo *swe impl phase-1 starting P1-T1.
+
+---
+[<small>2026-04-22 13:07:43</small>] [**User**]->[**all**] **request*:
+ impl SPRINT 14 — loading Neo for Phase 1 backend implementation
+
+---
+[<small>2026-04-22 13:34:43</small>] [**make**]->[**all**] **build*:
+ Build PASSED | make test_server | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
+make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
+
+---
+[<small>2026-04-22 13:35:11</small>] [**make**]->[**all**] **build*:
+ Build PASSED | make test_server | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
+make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
+
+---
+[<small>2026-04-22 13:36:06</small>] [**Neo**]->[**Trin**] **swe handoff*:
+ §14 Phase 1 backend complete. Files: coin_message_service.py (new), app.py (wired). 18 new tests, 52/52 pass. @Trin *qa uat phase-1 §14 — verify CoinMessageService, POST /api/coin/messages auth, /api/flip messages in response.

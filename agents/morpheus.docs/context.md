@@ -18,6 +18,8 @@
 ## Important Notes
 
 - 2-phase sprint: Phase 1 = service + DB + tests. Phase 2 = routes + template + integration tests.
+- **2026-04-22**: Created `Makefile.prj` at root to delegate all `ntag424_sdm_provisioner` build targets from root. Bob-protocol targets remain root-only. Routing: `make <target>` → mkf.py → `make MKF_ACTIVE=1 <target>` → `Makefile.prj` → `make -C ntag424_sdm_provisioner <target>`.
+- **2026-04-22**: §14 Custom Coin Messages architecture complete. See `arch_custom_messages.md`. New `CoinMessageService` class following `FlipOffService` pattern. 2-phase sprint. Key decision: CMAC auth via `scan_logs` lookup, no new columns.
 
 ---
-*Last updated: 2026-03-26*
+*Last updated: 2026-04-22*

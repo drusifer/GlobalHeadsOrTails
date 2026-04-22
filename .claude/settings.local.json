@@ -47,7 +47,11 @@
       "Bash(/home/drusifer/Projects/GlobalHeadsOrTails/agents/neo.docs/context.md:*)",
       "Bash(/home/drusifer/Projects/GlobalHeadsOrTails/agents/morpheus.docs/current_task.md:*)",
       "Bash(for persona:*)",
-      "Bash(do echo:*)"
+      "Bash(do echo:*)",
+      "Bash(make help *)",
+      "Bash(make -n MKF_ACTIVE=1 test_server)",
+      "Bash(sed -n '252,280p' /home/drusifer/Projects/GlobalHeadsOrTails/ntag424_sdm_provisioner/docs/PRD.md)",
+      "Bash(sed -n '520,540p' /home/drusifer/Projects/GlobalHeadsOrTails/ntag424_sdm_provisioner/docs/PRD.md)"
     ],
     "deny": [],
     "ask": []

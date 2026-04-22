@@ -15,5 +15,7 @@
 - The web page is the *game results* page (shows Heads/Tails flip outcome + stats). Dad Joke adds a fun element.
 - Jokes must show even on error states (invalid CMAC, missing params, etc.).
 
+- **2026-04-22**: Custom Coin Messages (§14) drafted. Per-tag custom display text for HEADS/TAILS; canonical outcome unchanged. Auth via NFC tap. 4 user stories in `cypher.docs/custom_messages_prd.md`. Pending User review.
+
 ---
-*Last updated: 2026-03-26*
+*Last updated: 2026-04-22*

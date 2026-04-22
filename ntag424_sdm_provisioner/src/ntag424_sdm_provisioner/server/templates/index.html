@@ -202,6 +202,22 @@
       </tbody>
     </table>
     {% endif %}
+
+    {% if coin_name %}
+    <div id="coin-messages-section" style="margin-top:14px;">
+      <form id="coin-messages-form" onsubmit="saveCoinMessages(event)" style="display:flex;flex-direction:column;gap:8px;">
+        <input type="hidden" id="cm-coin-name" value="{{ coin_name }}">
+        <input type="hidden" id="cm-cmac" value="{{ cmac }}">
+        <input type="hidden" id="cm-ctr" value="{{ ctr }}">
+        <label style="font-size:0.85rem;font-weight:bold;">Custom Heads message:</label>
+        <input type="text" id="cm-heads" maxlength="50" value="{{ heads_message }}" placeholder="HEADS" style="padding:6px 8px;border-radius:6px;border:1px solid #ccc;font-size:0.9rem;">
+        <label style="font-size:0.85rem;font-weight:bold;">Custom Tails message:</label>
+        <input type="text" id="cm-tails" maxlength="50" value="{{ tails_message }}" placeholder="TAILS" style="padding:6px 8px;border-radius:6px;border:1px solid #ccc;font-size:0.9rem;">
+        <button type="submit" style="align-self:flex-start;padding:6px 16px;border-radius:6px;border:none;background:#4a90e2;color:#fff;font-size:0.9rem;cursor:pointer;">Save messages</button>
+      </form>
+      <div id="coin-messages-status" style="margin-top:6px;font-size:0.85rem;"></div>
+    </div>
+    {% endif %}
   </div>
 
   <div class="dad-joke-section" id="joke-section" style="display:none;">
@@ -545,6 +561,8 @@ A statistical test for randomness that checks if the number of heads and tails a
     }
 
     const myFlipOffCoin = '{{ my_coin or "" }}';
+    let myHeadsMessage = {{ heads_message | tojson }};
+    let myTailsMessage = {{ tails_message | tojson }};
     let hasActiveChallenges = {{ (active_challenges | length > 0) | tojson }};
 
     function renderBattles(battles) {
@@ -728,7 +746,11 @@ A statistical test for randomness that checks if the number of heads and tails a
       const outcomeEl = document.getElementById('live-flip-outcome');
       if (!indicator || !coinEl || !outcomeEl) return;
       coinEl.textContent = flip.coin_name || flip.asset_tag;
-      outcomeEl.textContent = flip.outcome.toUpperCase();
+      let displayOutcome = flip.outcome.toUpperCase();
+      if (myFlipOffCoin && flip.coin_name === myFlipOffCoin) {
+        displayOutcome = (flip.outcome.toUpperCase() === 'HEADS' ? myHeadsMessage : myTailsMessage) || displayOutcome;
+      }
+      outcomeEl.textContent = displayOutcome;
       indicator.style.display = 'flex';
       clearTimeout(indicator._fadeTimer);
       indicator._fadeTimer = setTimeout(() => { indicator.style.display = 'none'; }, 4000);
@@ -827,23 +849,24 @@ A statistical test for randomness that checks if the number of heads and tails a
       el.style.animationDelay = delay + 's';
     });
 
-    function showOutcome(outcome) {
+    function showOutcome(outcome, customMessage) {
       const container = document.getElementById('outcome-container');
       const el = document.getElementById('outcome-text');
       if (!container || !el) return;
       container.style.display = '';
-      let finalText = outcome;
-      if (finalText === 'HEADS' || finalText === 'TAILS') finalText = ` ${finalText} `;
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      let finalText = customMessage || outcome;
+      if (!customMessage && (finalText === 'HEADS' || finalText === 'TAILS')) finalText = ` ${finalText} `;
+      const chars = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
+      const finalChars = [...finalText];
       const revealedIndices = new Set();
-      const unrevealedIndices = Array.from(Array(finalText.length).keys());
+      const unrevealedIndices = Array.from(Array(finalChars.length).keys());
       const interval = setInterval(() => {
         if (unrevealedIndices.length > 0) {
           const idx = unrevealedIndices.splice(Math.floor(Math.random() * unrevealedIndices.length), 1)[0];
           revealedIndices.add(idx);
         }
-        el.innerText = finalText.split('').map((c, i) =>
-          revealedIndices.has(i) ? finalText[i] : chars[Math.floor(Math.random() * chars.length)]
+        el.innerText = finalChars.map((c, i) =>
+          revealedIndices.has(i) ? finalChars[i] : chars[Math.floor(Math.random() * chars.length)]
         ).join('');
         if (unrevealedIndices.length === 0) clearInterval(interval);
       }, 80);
@@ -860,6 +883,36 @@ A statistical test for randomness that checks if the number of heads and tails a
       if (setup) setup.textContent = joke[0];
       if (punchline) punchline.textContent = joke[1];
       section.style.display = '';
+    }
+
+    async function saveCoinMessages(event) {
+      event.preventDefault();
+      const statusEl = document.getElementById('coin-messages-status');
+      const coinName = document.getElementById('cm-coin-name').value;
+      const cmac = document.getElementById('cm-cmac').value;
+      const ctr = document.getElementById('cm-ctr').value;
+      const heads = document.getElementById('cm-heads').value;
+      const tails = document.getElementById('cm-tails').value;
+      if (statusEl) statusEl.textContent = 'Saving…';
+      try {
+        const resp = await fetch('/api/coin/messages', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({coin_name: coinName, cmac, ctr, heads_message: heads, tails_message: tails}),
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          myHeadsMessage = data.heads_message;
+          myTailsMessage = data.tails_message;
+          if (statusEl) statusEl.textContent = 'Saved!';
+        } else if (resp.status === 401) {
+          if (statusEl) statusEl.textContent = 'Tap your coin again to save changes.';
+        } else {
+          if (statusEl) statusEl.textContent = data.error || 'Error saving.';
+        }
+      } catch (e) {
+        if (statusEl) statusEl.textContent = 'Network error.';
+      }
     }
 
     // Real-time updates for recent flips via Server-Sent Events
@@ -882,7 +935,8 @@ A statistical test for randomness that checks if the number of heads and tails a
               const errEl = document.getElementById('error-text');
               if (errEl) { errEl.textContent = 'Error: ' + data.error; errEl.style.display = ''; }
             } else {
-              showOutcome(data.outcome);
+              const customMsg = data.outcome === 'HEADS' ? (data.heads_message || '') : (data.tails_message || '');
+              showOutcome(data.outcome, customMsg);
               if (data.joke) showJoke(data.joke);
               if (data.active_challenges) renderBattles(data.active_challenges);
               if (data.flip && recentFlipsBody) {

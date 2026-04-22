@@ -6,6 +6,7 @@ from flask import Flask, Response, current_app, render_template, request, stream
 
 # Import from sibling modules in the same package
 from ntag424_sdm_provisioner.csv_key_manager import UID, CsvKeyManager
+from ntag424_sdm_provisioner.server.coin_message_service import CoinMessageService
 from ntag424_sdm_provisioner.server.flip_off_service import FlipOffError, FlipOffService
 from ntag424_sdm_provisioner.server.game_state_manager import SqliteGameStateManager
 from ntag424_sdm_provisioner.server.jokes import get_random_joke
@@ -57,6 +58,7 @@ def init_managers(app, key_csv_path, db_path):
     app.key_manager = CsvKeyManager(csv_path=key_csv_path)
     app.game_manager = SqliteGameStateManager(db_path=db_path)
     app.flip_off_service = FlipOffService(db_path=db_path)
+    app.coin_message_service = CoinMessageService(db_path=db_path)
 
 def parse_params(uid_str: str, ctr_str: str):
     uid = UID(uid_str)
@@ -82,6 +84,7 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
         is_test_mode = bool(request.args.get("drew_test_outcome", ""))
         uid_str = request.args.get("uid", "")
         ctr = request.args.get("ctr", "")
+        cmac = request.args.get("cmac", "")
 
         totals = game_manager.get_totals(include_test=is_test_mode)
         recent_flips = game_manager.get_recent_flips()
@@ -93,6 +96,9 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
 
         params_display = None
         challenge = None
+        coin_name = None
+        heads_message = ""
+        tails_message = ""
         if uid_str and ctr:
             try:
                 uid, _ = parse_params(uid_str, ctr)
@@ -102,6 +108,8 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
                 if is_test_mode:
                     params_display["TEST"] = "YES"
                 challenge = flip_off_service.get_latest_challenge(coin_name) if coin_name else None
+                if coin_name:
+                    heads_message, tails_message = current_app.coin_message_service.get_messages(coin_name)
             except ValueError:
                 params_display = {"Coin Name": "INVALID"}
 
@@ -116,6 +124,11 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
             active_challenges=active_challenges,
             recent_completed=recent_completed,
             flip_off_stats=flip_off_stats,
+            coin_name=coin_name,
+            cmac=cmac,
+            ctr=ctr,
+            heads_message=heads_message,
+            tails_message=tails_message,
         )
 
     @app.route("/api/flip")
@@ -194,6 +207,7 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
             "just_completed": just_completed,
         })
 
+        msgs = current_app.coin_message_service.get_messages(coin_name) if coin_name else ("", "")
         joke = get_random_joke() if new_outcome_str.lower() in ("heads", "tails") else None
         return {
             "outcome": new_outcome_str.upper(),
@@ -202,6 +216,8 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
             "challenge": challenge,
             "flip": latest_flip,
             "active_challenges": active_challenges,
+            "heads_message": msgs[0],
+            "tails_message": msgs[1],
         }, 200
 
     @app.route("/api/stream/flips")
@@ -297,6 +313,29 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
         })
         return {"status": "yielded", "challenge": result}, 200
 
+
+    @app.route("/api/coin/messages", methods=["POST"])
+    def set_coin_messages():
+        """Set custom Heads/Tails display messages for a coin (requires tap auth)."""
+        data = request.get_json(silent=True) or {}
+        coin_name = data.get("coin_name", "").strip()
+        cmac = data.get("cmac", "").strip()
+        ctr = data.get("ctr", "").strip()
+        heads = data.get("heads_message", "").strip()
+        tails = data.get("tails_message", "").strip()
+
+        if not coin_name or not cmac or not ctr:
+            return {"error": "Missing required fields"}, 400
+
+        if len([*heads]) > 50 or len([*tails]) > 50:
+            return {"error": "Message exceeds 50 characters"}, 400
+
+        svc = current_app.coin_message_service
+        if not svc.validate_tap_auth(coin_name, cmac, ctr):
+            return {"error": "auth_failed"}, 401
+
+        svc.set_messages(coin_name, heads, tails)
+        return {"heads_message": heads, "tails_message": tails}, 200
 
     @app.route("/api/recent_flips")
     def api_recent_flips():

@@ -1,16 +1,12 @@
-# Neo — Next Steps
+# Next Steps — Neo
 
-## Resume Instructions
-1. Read CHAT.md bottom 20 lines for context
-2. Run: cd ntag424_sdm_provisioner && make test_server (34 should pass)
+## Sprint §14 is implementation-complete
+Both phases done, 52/52 tests pass. Waiting on Trin UAT → Morpheus review → Oracle groom → Smith user test → Cypher launch.
 
-## Open Items
-- Playwright SW tests (test_sw_nfc.py) timeout on ARM Pi — needs investigation
-  or should be skipped/marked slow. SW works correctly (manually verified).
+## If bugs found by Trin/Morpheus
+1. Read CHAT.md for the specific issue
+2. Fix in index.html (JS/Jinja) or app.py/coin_message_service.py as appropriate
+3. Re-run make test_server to confirm 52+ pass
+4. Post fix to CHAT.md and re-hand to Trin
 
-## Key Files Changed This Session
-- server/app.py — added active_challenges to /api/flip response
-- server/templates/index.html — renderBattles in fetch callback + onmessage order fix
-- tests/test_server_flip_off_integration.py — api_flip() helper + 2 new tests
-
-*Last updated: 2026-03-27*
+*Last updated: 2026-04-22*

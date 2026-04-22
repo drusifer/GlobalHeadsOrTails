@@ -1,26 +1,27 @@
 # Neo — Context
 
-## Recent Decisions
-- Flip-off SSE-first architecture adopted (see agents/morpheus.docs/arch_flipoff_sse.md)
-- expire_stale_challenges changed from days=7/int to hours=24/list[dict]
-- EventSource moved outside recentFlipsBody guard — always connected
-- tickCountdowns setInterval added for live expiry countdown
-- end_condition type decided: win/draw/yield/expired
+## Sprint §14 — Custom Coin Messages (Phase 1 Complete, 2026-04-22)
+
+### What was built
+- `coin_message_service.py`: `CoinMessageService` class with `get_messages`, `set_messages`, `validate_tap_auth`; DB table `coin_custom_messages`
+- `app.py` wired: import + `init_managers()` + `index()` (reads cmac, fetches msgs, passes to template) + `/api/flip` (adds `heads_message`/`tails_message` to JSON) + new `POST /api/coin/messages` route
+- `tests/test_server_coin_messages.py` — 18 tests, 52/52 total pass
+
+### Key decisions
+- Followed `FlipOffService` pattern exactly for the service file
+- `validate_tap_auth` queries `scan_logs` WHERE `coin_name = ?` ORDER BY counter DESC — matches CMAC and integer counter
+- Length check uses `len([*msg])` (Unicode codepoint count, emoji-safe)
+- Route returns 401 `{"error": "auth_failed"}` on bad auth per PRD spec
+
+## Previous Sprint (flipoff-not-updating fix, 2026-03-27)
 - active_challenges added to /api/flip JSON response (flipoff fetch-callback fix)
-- renderBattles now called from fetch callback AND onmessage handler
+- renderBattles called from fetch callback AND onmessage handler
+- end_condition type: win/draw/yield/expired
 
-## Key Findings
-- app.py: _check_expired() helper wired to index + api_flip routes
-- flip_off_service.py: get_all_coin_stats() added for W/L/D leaderboard
-- index.html: renderBattles, showResultCard, hideResultCard, showFanfare, prependRecentCompleted present — SSE-first migration complete
-- Root cause of flipoff-not-updating: fetch callback updated recent flips directly from /api/flip response, but flipoff ONLY updated via SSE. On mobile NFC tap (fresh page nav), SSE can be missed/delayed.
-- Fix: added active_challenges to /api/flip response; fetch callback now calls renderBattles directly
-- Fix: renderBattles moved before showLiveFlip in onmessage so hasActiveChallenges is accurate when showLiveFlip runs
-
-## Important Notes
-- Tests: 34/34 pass (added 2 new integration tests for /api/flip challenge counting)
-- api_flip integration tests: test_api_flip_increments_challenge_flip_count, test_api_flip_response_includes_active_challenges
-- NOTE: test mode (drew_test_outcome) still does NOT increment challenge flip counts — this is intentional
-
----
-*Last updated: 2026-03-27*
+## Phase 2 — NOT YET STARTED
+See arch doc `agents/morpheus.docs/arch_custom_messages.md` Phase 2 section.
+- Edit form in `index.html` (Jinja, shown when coin_name set)
+- JS template vars + form submit handler
+- `showOutcome(outcome, customMessage)` — use custom message as finalText
+- Emoji-safe scramble (`[...str]` spread)
+- Live feed custom message for own coin only

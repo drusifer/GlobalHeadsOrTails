@@ -27,10 +27,12 @@ make chat MSG="<message>" [PERSONA="<Name>"] [CMD="<command>"] [TO="<recipient>"
 
 | Argument | Variable | Default | Description |
 |----------|----------|---------|-------------|
-| message | `MSG` | required | Message content |
+| message | `MSG` | required | Message content (max 256 characters) |
 | persona | `PERSONA` | `$USER` | Who is sending (e.g. `Neo`, `Trin`) |
 | cmd | `CMD` | `chat` | Command prefix (auto-prefixed with `*`) |
 | to | `TO` | `all` | Recipient persona name |
+
+> **256-character limit:** If your message exceeds 256 characters, write the detail to a file in the persona's `.docs/` folder and post a short summary with the file path instead.
 
 ### Output Format
 
