@@ -29,3 +29,8 @@ Thumbs.db
 *.csv
 *.txt
 cloudflared.deb
+
+
+.claude
+.cursorrules
+.via
