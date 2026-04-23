@@ -15,6 +15,8 @@ export PYTHONPYCACHEPREFIX := $(CURDIR)/.cache/pycache
 VENV_ACTIVATE := $(VENV)/bin/activate
 DEPS_MARKER := $(VENV)/.deps_updated
 
+VERSION ?= latest
+
 HELM_CHART := /home/drusifer/Projects/pi-patch/cluster/helm/sdm-provisioner
 HELM_DATA_PATH := /opt/sdm-provisioner/data
 
@@ -103,11 +105,12 @@ logs:
 
 export-image: pkg
 	@echo "Tagging image for k3s import..."
-	docker tag ntag424-sdm-provisioner localhost/ntag424-sdm-provisioner:latest
+	docker tag ntag424-sdm-provisioner localhost/ntag424-sdm-provisioner:$(VERSION)
 	@echo "Exporting image tarball..."
 	@mkdir -p dist
-	docker save localhost/ntag424-sdm-provisioner:latest -o dist/sdm-provisioner.tar
-	@echo "Image exported → dist/sdm-provisioner.tar"
+	@rm -f dist/sdm-provisioner-$(VERSION).tar
+	docker save localhost/ntag424-sdm-provisioner:$(VERSION) -o dist/sdm-provisioner-$(VERSION).tar
+	@echo "Image exported → dist/sdm-provisioner-$(VERSION).tar"
 
 # ── Helm / k3s targets ───────────────────────────────────────────────────────
 
