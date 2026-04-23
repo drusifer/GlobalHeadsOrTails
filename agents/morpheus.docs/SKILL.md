@@ -133,9 +133,9 @@ Invoke Smith with: `@Smith *user feedback <open question>`
 
 ---
 
-## via MCP — Symbol Search & Relationships
+## Via Integration
 
-The project has a live `via` MCP server. **Use `mcp__via__via_query` when mapping architecture** — find all classes, their locations, and relationships before designing.
+**Check `agents/PROJECT.md` on entry.** If `via: enabled`, use `mcp__via__via_query` when mapping architecture — find all classes, their locations, and relationships before designing. If via is not enabled, use Grep/Glob/Read instead.
 
 | Task | Args |
 |------|------|

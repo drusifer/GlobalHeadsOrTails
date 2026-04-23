@@ -48,19 +48,3 @@ class CoinMessageService:
             conn.commit()
         log.info("[COIN MSG] set_messages coin=%s heads=%r tails=%r", coin_name, heads, tails)
 
-    def validate_tap_auth(self, coin_name: str, cmac_hex: str, ctr_hex: str) -> bool:
-        """Returns True iff the coin's last scan_logs entry matches cmac and counter."""
-        try:
-            expected_counter = int(ctr_hex, 16)
-        except ValueError:
-            return False
-        with self._get_conn() as conn:
-            row = conn.execute(
-                """SELECT cmac, counter FROM scan_logs
-                   WHERE coin_name = ? ORDER BY counter DESC LIMIT 1""",
-                (coin_name,),
-            ).fetchone()
-        if not row:
-            return False
-        stored_cmac, stored_counter = row
-        return stored_cmac == cmac_hex and stored_counter == expected_counter

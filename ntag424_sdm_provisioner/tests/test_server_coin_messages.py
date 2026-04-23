@@ -1,6 +1,5 @@
 """Integration tests for §14 Custom Coin Messages — CoinMessageService and POST /api/coin/messages."""
-import shutil
-from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -12,6 +11,8 @@ from ntag424_sdm_provisioner.server.coin_message_service import CoinMessageServi
 COIN_A = "HAPPY-HAWK-001"
 UID_A_HEADS = "0401000000001A"
 UID_A_TAILS = "0401000000001B"
+FAKE_CMAC = "DEADBEEFDEADBEEF"
+FAKE_CTR = "00000001"
 
 
 @pytest.fixture
@@ -37,11 +38,18 @@ def app_ctx(tmp_path):
     app.config["TESTING"] = True
     with app.test_client() as client:
         with app.app_context():
-            yield client, app.coin_message_service
+            yield client, app.coin_message_service, app.key_manager
 
 
 def api_flip(client, uid: str, ctr: int, outcome: str):
     return client.get(f"/api/flip?uid={uid}&ctr={ctr:08x}&cmac=DEADBEEF&drew_test_outcome={outcome}")
+
+
+def post_messages(client, heads: str, tails: str, *, uid=UID_A_HEADS, cmac=FAKE_CMAC, ctr=FAKE_CTR, coin=COIN_A):
+    return client.post("/api/coin/messages", json={
+        "coin_name": coin, "uid": uid, "cmac": cmac, "ctr": ctr,
+        "heads_message": heads, "tails_message": tails,
+    })
 
 
 # --- CoinMessageService unit tests ---
@@ -89,55 +97,20 @@ def test_emoji_stored_and_retrieved_correctly(svc):
     assert t == "😢 NO"
 
 
-# --- validate_tap_auth ---
-
-def test_validate_tap_auth_returns_false_with_no_scan_history(app_ctx):
-    _, svc = app_ctx
-    assert svc.validate_tap_auth(COIN_A, "DEADBEEF", "00000001") is False
-
-
-def test_validate_tap_auth_returns_true_after_flip(app_ctx):
-    client, svc = app_ctx
-    api_flip(client, UID_A_HEADS, 1, "heads")
-    assert svc.validate_tap_auth(COIN_A, "DEADBEEF", "00000001") is True
-
-
-def test_validate_tap_auth_returns_false_wrong_cmac(app_ctx):
-    client, svc = app_ctx
-    api_flip(client, UID_A_HEADS, 1, "heads")
-    assert svc.validate_tap_auth(COIN_A, "WRONGCMAC", "00000001") is False
-
-
-def test_validate_tap_auth_returns_false_wrong_counter(app_ctx):
-    client, svc = app_ctx
-    api_flip(client, UID_A_HEADS, 1, "heads")
-    assert svc.validate_tap_auth(COIN_A, "DEADBEEF", "00000002") is False
-
-
-def test_validate_tap_auth_invalid_ctr_hex_returns_false(app_ctx):
-    _, svc = app_ctx
-    assert svc.validate_tap_auth(COIN_A, "DEADBEEF", "NOTAHEX") is False
-
-
 # --- POST /api/coin/messages route ---
 
-def test_set_coin_messages_requires_auth(app_ctx):
-    client, _ = app_ctx
-    resp = client.post("/api/coin/messages", json={
-        "coin_name": COIN_A, "cmac": "DEADBEEF", "ctr": "00000001",
-        "heads_message": "GO!", "tails_message": "No!",
-    })
+def test_set_coin_messages_invalid_cmac_returns_401(app_ctx):
+    """Factory-key tag + fake CMAC fails crypto validation → 401."""
+    client, _, _ = app_ctx
+    resp = post_messages(client, "GO!", "No!")
     assert resp.status_code == 401
     assert resp.get_json()["error"] == "auth_failed"
 
 
-def test_set_coin_messages_saves_after_valid_tap(app_ctx):
-    client, svc = app_ctx
-    api_flip(client, UID_A_HEADS, 1, "heads")
-    resp = client.post("/api/coin/messages", json={
-        "coin_name": COIN_A, "cmac": "DEADBEEF", "ctr": "00000001",
-        "heads_message": "WINNER!", "tails_message": "loser",
-    })
+def test_set_coin_messages_saves_after_valid_cmac(app_ctx):
+    client, svc, km = app_ctx
+    with patch.object(km, "validate_sdm_url", return_value={"valid": True}):
+        resp = post_messages(client, "WINNER!", "loser")
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["heads_message"] == "WINNER!"
@@ -147,37 +120,54 @@ def test_set_coin_messages_saves_after_valid_tap(app_ctx):
     assert t == "loser"
 
 
+def test_set_coin_messages_missing_uid_returns_400(app_ctx):
+    client, _, _ = app_ctx
+    resp = client.post("/api/coin/messages", json={
+        "coin_name": COIN_A, "cmac": FAKE_CMAC, "ctr": FAKE_CTR,
+        "heads_message": "Hi", "tails_message": "Bye",
+    })
+    assert resp.status_code == 400
+
+
 def test_set_coin_messages_missing_fields_returns_400(app_ctx):
-    client, _ = app_ctx
+    client, _, _ = app_ctx
     resp = client.post("/api/coin/messages", json={"coin_name": COIN_A})
     assert resp.status_code == 400
 
 
-def test_set_coin_messages_rejects_message_over_50_chars(app_ctx):
-    client, svc = app_ctx
-    api_flip(client, UID_A_HEADS, 1, "heads")
-    long_msg = "A" * 51
-    resp = client.post("/api/coin/messages", json={
-        "coin_name": COIN_A, "cmac": "DEADBEEF", "ctr": "00000001",
-        "heads_message": long_msg, "tails_message": "OK",
-    })
+def test_set_coin_messages_rejects_message_over_24_chars(app_ctx):
+    client, _, km = app_ctx
+    with patch.object(km, "validate_sdm_url", return_value={"valid": True}):
+        resp = post_messages(client, "A" * 25, "OK")
     assert resp.status_code == 400
-    assert "50" in resp.get_json()["error"]
+    assert "24" in resp.get_json()["error"]
 
 
-def test_set_coin_messages_accepts_emoji_within_limit(app_ctx):
-    client, svc = app_ctx
-    api_flip(client, UID_A_HEADS, 1, "heads")
-    emoji_msg = "🎉" * 50
-    resp = client.post("/api/coin/messages", json={
-        "coin_name": COIN_A, "cmac": "DEADBEEF", "ctr": "00000001",
-        "heads_message": emoji_msg, "tails_message": "",
-    })
+def test_set_coin_messages_accepts_exactly_24_chars(app_ctx):
+    client, svc, km = app_ctx
+    with patch.object(km, "validate_sdm_url", return_value={"valid": True}):
+        resp = post_messages(client, "A" * 24, "B" * 24)
     assert resp.status_code == 200
 
 
+def test_set_coin_messages_accepts_emoji_within_24_char_limit(app_ctx):
+    client, _, km = app_ctx
+    emoji_msg = "🎉" * 24  # 24 chars (each emoji = 1 char in len([*str]))
+    with patch.object(km, "validate_sdm_url", return_value={"valid": True}):
+        resp = post_messages(client, emoji_msg, "")
+    assert resp.status_code == 200
+
+
+def test_set_coin_messages_rejects_emoji_over_24_char_limit(app_ctx):
+    client, _, km = app_ctx
+    emoji_msg = "🎉" * 25
+    with patch.object(km, "validate_sdm_url", return_value={"valid": True}):
+        resp = post_messages(client, emoji_msg, "")
+    assert resp.status_code == 400
+
+
 def test_api_flip_response_includes_messages(app_ctx):
-    client, svc = app_ctx
+    client, svc, _ = app_ctx
     api_flip(client, UID_A_HEADS, 1, "heads")
     svc.set_messages(COIN_A, "Custom Head", "Custom Tail")
     resp = api_flip(client, UID_A_HEADS, 2, "heads")
@@ -188,7 +178,7 @@ def test_api_flip_response_includes_messages(app_ctx):
 
 
 def test_api_flip_response_messages_empty_when_not_set(app_ctx):
-    client, _ = app_ctx
+    client, _, _ = app_ctx
     resp = api_flip(client, UID_A_HEADS, 1, "heads")
     assert resp.status_code == 200
     data = resp.get_json()

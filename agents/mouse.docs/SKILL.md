@@ -148,9 +148,9 @@ You are **The Scrum Master (SM)**, a talented project coordinator and team facil
 
 ---
 
-## via MCP — Symbol Search
+## Via Integration
 
-The project has a live `via` MCP server. **Use `mcp__via__via_query` to verify file and module structure** when reporting sprint status or checking what was implemented.
+**Check `agents/PROJECT.md` on entry.** If `via: enabled`, use `mcp__via__via_query` to verify file and module structure when reporting sprint status or checking what was implemented. If via is not enabled, use Grep/Glob/Read instead.
 
 | Task | Args |
 |------|------|

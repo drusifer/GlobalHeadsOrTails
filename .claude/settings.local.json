@@ -51,7 +51,9 @@
       "Bash(make help *)",
       "Bash(make -n MKF_ACTIVE=1 test_server)",
       "Bash(sed -n '252,280p' /home/drusifer/Projects/GlobalHeadsOrTails/ntag424_sdm_provisioner/docs/PRD.md)",
-      "Bash(sed -n '520,540p' /home/drusifer/Projects/GlobalHeadsOrTails/ntag424_sdm_provisioner/docs/PRD.md)"
+      "Bash(sed -n '520,540p' /home/drusifer/Projects/GlobalHeadsOrTails/ntag424_sdm_provisioner/docs/PRD.md)",
+      "Bash(.venv/bin/python -m pytest tests/test_server_polling.py -v)",
+      "Bash(grep -v \"^agents$\\\\|^build$\\\\|^scripts$\\\\|^ntag424\\\\|^docs_archive$\\\\|^LICENSE$\\\\|^Makefile$\")"
     ],
     "deny": [],
     "ask": []

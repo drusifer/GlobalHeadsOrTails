@@ -54,8 +54,12 @@
         "via",
         "mcp",
         "serve",
+        "--no-web",
         "/home/drusifer/Projects/GlobalHeadsOrTails"
-      ]
+      ],
+      "env": {
+        "HOME": "/home/drusifer/Projects/GlobalHeadsOrTails"
+      }
     }
   }
 }

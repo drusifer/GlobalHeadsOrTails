@@ -8,6 +8,7 @@ from ntag424_sdm_provisioner.commands.iso_commands import ISOFileID, ISOReadBina
 from ntag424_sdm_provisioner.commands.select_picc_application import SelectPiccApplication
 from ntag424_sdm_provisioner.constants import FileNo, TagStatus
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, TagKeys
+from ntag424_sdm_provisioner.log_utils import mask_key
 from ntag424_sdm_provisioner.hal import NTag424CardConnection
 from ntag424_sdm_provisioner.tools.tool_helpers import read_ndef_file
 from ntag424_sdm_provisioner.uid_utils import UID
@@ -392,7 +393,7 @@ class TagDiagnosticsService:
                 if validation.get('sv2'):
                     log.info(f"[PHONE TAP]   SV2 used:        {validation.get('sv2')}")
                 if validation.get('session_key'):
-                    log.info(f"[PHONE TAP]   Session key:     {validation.get('session_key')}")
+                    log.info(f"[PHONE TAP]   Session key:     {mask_key(validation.get('session_key', ''))}")
 
             # === ANDROID NFC DETECTION CHECKS ===
             log.info("[PHONE TAP] Step 7: Running Android NFC detection checks...")

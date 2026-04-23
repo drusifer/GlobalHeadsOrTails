@@ -5,7 +5,10 @@ Type `*help` anytime to see this. One AI switches between 8 specialized personas
 **Basic usage:**
 - `*chat <message>` — auto-routes to the right persona
 - `*chat @<Persona> *<command> <args>` — direct invocation
+- `@<Persona> <message>` — direct invocation (Gemini-style)
 - `*<command> <args>` — skip the chat layer, invoke a persona directly
+
+**Note on Direct Invocations**: Different AI harnesses use different prefixes for direct persona invocation (e.g., `@persona` or `/persona` in Gemini CLI, `/persona` in Claude, `$persona` in Codex). If you are invoked directly via such a command, you MUST log the invocation to `agents/CHAT.md` immediately upon entry if it has not already been logged.
 
 ---
 
@@ -113,12 +116,12 @@ Cypher *pm plan sprint
 Morpheus *lead arch sprint
   └─ Smith *user approve / *user reject
 Mouse *sm plan sprint
-  └─ [phase loop]
+  └─ [phase Bloop]
      Neo *swe impl → Trin *qa uat → Morpheus *lead review
      └─ repeat until all phases done
 Oracle *ora groom
 Smith *user test <sprint>
-  └─ issues → Trin triage → fix loop
+  └─ issues → Trin triage → fix Bloop
 Cypher *pm launch <sprint>
 ```
 

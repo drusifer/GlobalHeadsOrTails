@@ -1,17 +1,19 @@
-# Morpheus — Next Steps
+# Next Steps
 
 ## Immediate Next Action
-After Neo implements blocking items, review:
-- end_condition set correctly in all 4 completion paths
-- renderRecentCompleted is truly declarative (full replace, no dedup/prepend)
-- SSE payloads consistent across all push sites
+Review Neo's implementation after Tasks 1-5 complete.
 
 ## Waiting On
-Neo to implement neo.docs/next_steps.md items, then Trin UAT re-run.
+- Neo: implement Tasks 1-5 (game_state_manager.py, flip_off_service.py, app.py, index.html)
+- Trin: Task 6 — tests for /api/flips/since and /api/state
 
-## References
-- Arch: agents/morpheus.docs/arch_flipoff_sse.md
-- PRD §13.7, §13.9
+## If Resuming Cold
+1. Read agents/CHAT.md bottom 20 messages for Neo/Trin progress
+2. Load this file + context.md
+3. Review neo's changes against the plan in context.md
+4. Do arch review: confirm gevent removed from pyproject.toml, SSE code fully deleted, poll interval 3s
 
----
-*Last updated: 2026-03-26*
+## Planned Work
+- [ ] Architecture review after Neo's implementation
+- [ ] Confirm gevent removed from pyproject.toml dependencies
+- [ ] Verify no SSE code remains (grep for EventSource, _sse_listeners, text/event-stream)

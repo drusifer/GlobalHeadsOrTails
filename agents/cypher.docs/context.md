@@ -2,20 +2,21 @@
 
 ## Recent Decisions
 
-- **2026-03-26**: Dad Jokes feature added to PRD (section 12). Static in-code catalog, server-side random.choice(), passed to Jinja2 template. No external API dependency.
-- **2026-03-26**: Flip Off Challenge feature added to PRD (section 13). Validated NFC tap initiates challenge, opponent selected from leaderboard (not own coin), 10/25/50/100 flip battle sizes, Shannon entropy determines winner. New `flip_off_challenges` DB table. Passive flip collection via existing validated tap flow.
+- Added §14 Custom Coin Messages to PRD — covers form UX, CMAC auth model, 24-char limit, persistence
+- Added §15 Secret Masking — documents mask_key utility and what is/isn't masked
+- PRD lives at: `ntag424_sdm_provisioner/docs/PRD.md`
 
 ## Key Findings
-- **App stack**: Flask + Jinja2 templates. Main route in `server/app.py`, template at `server/templates/index.html`.
-- **All render paths** in `app.py` call `render_template("index.html", ...)` — all paths must pass the `joke` variable.
-- **Styling**: Page uses inline CSS with a blue gradient header; joke section should fit this aesthetic.
+
+- WHAT: PRD was last updated 2026-03-26 (through §13 Flip Off)
+  - WHY: Neo implemented Custom Messages and secret masking in 2026-04-22 session; PRD needed catching up
+- WHAT: Custom message auth model changed from DB-based validate_tap_auth to direct CMAC crypto
+  - WHY: "Tap again" was unworkable UX — new tap opens a new page, the old cmac+ctr would be stale
 
 ## Important Notes
-- PRD is at `ntag424_sdm_provisioner/docs/PRD.md` (not `agents/` — it's in the app's own docs).
-- The web page is the *game results* page (shows Heads/Tails flip outcome + stats). Dad Joke adds a fun element.
-- Jokes must show even on error states (invalid CMAC, missing params, etc.).
 
-- **2026-04-22**: Custom Coin Messages (§14) drafted. Per-tag custom display text for HEADS/TAILS; canonical outcome unchanged. Auth via NFC tap. 4 user stories in `cypher.docs/custom_messages_prd.md`. Pending User review.
+- §14 Definition of Done has two open items: unit tests for set_coin_messages and Trin QA sign-off
+- §13 (Flip Off) still has open items: end_condition column, SSE payload standardization, yield fanfare
 
 ---
 *Last updated: 2026-04-22*

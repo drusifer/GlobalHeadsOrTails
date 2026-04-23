@@ -72,3 +72,24 @@ This document records key decisions made during the project lifecycle.
     - ⚠️ Breaking change: Plain mode no longer supported (but was never spec-compliant anyway)
 - **Status**: Accepted
 - **Date**: 2025-11-23
+
+## 5. Replace SSE with Two-Endpoint Polling
+- **Context**:
+    The server used Server-Sent Events (SSE) via `GET /api/stream/flips` to push real-time flip updates to browsers. This required `gevent` for async queue signalling, held persistent connections open (fragile through proxies), maintained an in-memory `_sse_listeners` list (lost on restart), and forced a timing race where `/api/flip` could only be called after the SSE `onopen` event fired.
+- **Decision**:
+    Replace SSE with a cheap two-endpoint poll protocol:
+    - `GET /api/flips/since?ts=<ISO>` → `{"has_new": bool}` — single `SELECT 1 FROM scan_logs WHERE timestamp > ? LIMIT 1`
+    - `GET /api/state?since=<ISO>` → full state payload (recent_flips, totals, active_challenges, recent_completed, latest_flip, just_completed, latest_timestamp)
+    - Client polls every 3 seconds; full state fetch only fires when `has_new=true`
+    - Fire `/api/flip` immediately on page load — no waiting for a stream connection
+    - Remove `gevent` from server dependencies entirely
+- **Consequences**:
+    - ✅ Eliminates gevent dependency and monkey-patching complexity
+    - ✅ Stateless server — no per-client queues, survives restarts
+    - ✅ Works transparently through proxies, load balancers, nginx
+    - ✅ Simplified client code — no EventSource race condition
+    - ✅ Check endpoint is extremely cheap (indexed SQL, one row)
+    - ⚠️ ~20 lightweight requests/min per open tab (acceptable for SQLite)
+- **Status**: Accepted
+- **Date**: 2026-04-22
+- **Related**: `agents/morpheus.docs/context.md`, `tests/test_server_polling.py`

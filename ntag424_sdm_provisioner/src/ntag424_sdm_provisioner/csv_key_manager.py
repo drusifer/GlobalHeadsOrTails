@@ -23,7 +23,10 @@ from ntag424_sdm_provisioner.key_manager_interface import KEY_DEFAULT_FACTORY
 from ntag424_sdm_provisioner.uid_utils import UID
 
 
+from ntag424_sdm_provisioner.log_utils import mask_key
+
 log = logging.getLogger(__name__)
+
 
 def generate_coin_name() -> str:
     """Generate a unique, memorable coin name.
@@ -109,9 +112,9 @@ class TagKeys:
             f"TagKeys(\n"
             f"  UID: {self.uid} [Tag: {asset_tag}]\n"
             f"  {coin_display} ({self.outcome.value})\n"
-            f"  PICC Master Key: {self.picc_master_key}\n"
-            f"  App Read Key: {self.app_read_key}\n"
-            f"  SDM MAC Key: {self.sdm_mac_key}\n"
+            f"  PICC Master Key: {mask_key(self.picc_master_key)}\n"
+            f"  App Read Key: {mask_key(self.app_read_key)}\n"
+            f"  SDM MAC Key: {mask_key(self.sdm_mac_key)}\n"
             f"  Provisioned: {self.provisioned_date}\n"
             f"  Status: {self.status}\n"
             f"  Notes: {self.notes[:50]}{'...' if len(self.notes) > 50 else ''}\n"
@@ -296,7 +299,8 @@ class CsvKeyManager:
                 for row in reader:
                     if row["uid"].upper() == uid.uid:
                         print(
-                            f"[OK] Found keys for {uid.uid} in main database ({json.dumps(row)})"
+                            f"[OK] Found keys for {uid.uid} in main database "
+                            f"(coin={row.get('coin_name')!r}, status={row.get('status')!r})"
                         )
                         row["outcome"] = Outcome(row.get("outcome", "invalid"))
                         return TagKeys(**row)
@@ -377,19 +381,19 @@ class CsvKeyManager:
         keys: TagKeys = self.get_tag_keys(uid)
         log.info(f"  Database path:      {self.csv_path}")
         log.info(f"  Key status:         {keys.status}")
-        log.info(f"  PICC Master Key:    {keys.picc_master_key}")
-        log.info(f"  App Read Key:       {keys.app_read_key}")
-        log.info(f"  SDM MAC Key (K3):   {keys.sdm_mac_key}")
+        log.info(f"  PICC Master Key:    {mask_key(keys.picc_master_key)}")
+        log.info(f"  App Read Key:       {mask_key(keys.app_read_key)}")
+        log.info(f"  SDM MAC Key (K3):   {mask_key(keys.sdm_mac_key)}")
 
         sdm_mac_key_bytes = keys.get_sdm_mac_key_bytes()
         log.info("[STEP 4] Deriving Session MAC Key...")
-        log.info(f"  SDM MAC Key (bytes): {sdm_mac_key_bytes.hex().upper()}")
+        log.info(f"  SDM MAC Key (bytes): {mask_key(sdm_mac_key_bytes.hex().upper())}")
         log.info(f"  SV2 (bytes):         {sv_bytes.hex().upper()}")
         log.info("  Session Key = CMAC(SV2, SDM_MAC_Key)")
 
         # Derive session MAC key using SDM MAC key (Key 3), not App Read key (Key 1)
         session_key = calculate_cmac_full(sv_bytes, sdm_mac_key_bytes)
-        log.info(f"  Session Key:         {session_key.hex().upper()}")
+        log.info(f"  Session Key:         {mask_key(session_key.hex().upper())}")
         result["session_key"] = session_key.hex().upper()
 
         # Build CMAC message: UID&ctr=COUNTER&cmac=
@@ -408,16 +412,13 @@ class CsvKeyManager:
         log.info("[STEP 6] Calculating full CMAC...")
         log.info("  Full CMAC = CMAC(message, session_key)")
         full_cmac = calculate_cmac_full(cmac_message, session_key)
-        log.info(f"  Full CMAC (16 bytes): {full_cmac.hex().upper()}")
+        log.info(f"  Full CMAC (16 bytes): {mask_key(full_cmac.hex().upper())}")
         result["full_cmac"] = full_cmac.hex().upper()
 
         # SDM uses special truncation: take every other byte starting at index 1
         # Indices: 1, 3, 5, 7, 9, 11, 13, 15 (per AN12196)
         log.info("[STEP 7] Truncating CMAC (AN12196 spec)...")
         log.info("  NXP 'even-numbered bytes' (1-indexed) = indices 1,3,5,7,9,11,13,15")
-        log.info(f"  Full CMAC bytes:  {' '.join(f'{b:02X}' for b in full_cmac)}")
-        log.info(f"  Byte positions:   {' '.join(f'{i:2d}' for i in range(16))}")
-        log.info(f"  Selected (odd idx): {full_cmac[1]:02X} {full_cmac[3]:02X} {full_cmac[5]:02X} {full_cmac[7]:02X} {full_cmac[9]:02X} {full_cmac[11]:02X} {full_cmac[13]:02X} {full_cmac[15]:02X}")
 
         calc_mac = truncate_cmac(full_cmac)
         log.info(f"  Truncated CMAC:     {calc_mac.hex().upper()}")

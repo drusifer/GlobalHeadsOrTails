@@ -131,9 +131,9 @@ all tools:
 
 ---
 
-## via MCP — Symbol Search
+## Via Integration
 
-The project has a live `via` MCP server. **Use `mcp__via__via_query` when writing acceptance criteria** — verify that the feature's classes and functions exist (or don't yet) before specifying behavior.
+**Check `agents/PROJECT.md` on entry.** If `via: enabled`, use `mcp__via__via_query` when writing acceptance criteria — verify that the feature's classes and functions exist (or don't yet) before specifying behavior. If via is not enabled, use Grep/Glob/Read instead.
 
 | Task | Args |
 |------|------|

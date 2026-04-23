@@ -563,3 +563,142 @@ All items must be met before this feature is considered complete.
 **Last Updated**: 2026-03-26
 **Open items**: end_condition column, SSE payload standardization, renderRecentCompleted migration, yield fanfare text
 
+---
+
+## 14. Custom Coin Messages Feature
+
+**Added**: 2026-04-22
+**Owner**: Cypher
+**Implemented by**: Neo
+
+### 14.1 Overview
+
+Coin owners can personalize the HEADS and TAILS outcome text displayed on the flip results page. Messages are stored per coin and shown in place of the default "HEADS" / "TAILS" text. Access to the customization form is gated on a valid, non-replayed NFC tap — proving physical possession of the coin.
+
+---
+
+### 14.2 User Stories
+
+**US-1 — Set custom messages**
+As a coin owner who has just tapped my coin, I want to set a custom message for HEADS and TAILS outcomes, so my coin has a unique personality on the results page.
+
+**US-2 — See my custom messages on flip**
+As a coin owner or spectator, I want to see the coin's custom outcome text when a flip lands, so the result feels personal and distinctive.
+
+**US-3 — Form access controlled by tap validity**
+As a system, I want the customization form to appear only when the NFC tap CMAC is cryptographically valid and not a replay, so only the physical coin holder can modify messages.
+
+---
+
+### 14.3 Acceptance Criteria
+
+#### Form Display
+- [x] Customization form is hidden by default on page load
+- [x] A ✏️ icon appears above the params table, right-aligned, when the tap is valid
+- [x] Clicking ✏️ expands the form above the params table; icon changes to ❌
+- [x] Clicking ❌ collapses the form; icon reverts to ✏️
+- [x] The ✏️/❌ icon is **not shown** when:
+  - There is no NFC tap in the URL
+  - The CMAC is invalid (crypto verification fails)
+  - The counter is a replay (`ctr ≤ last_counter`)
+  - The flip returns "Replay Detected" error
+
+#### Message Constraints
+- [x] Each message (heads and tails) is capped at **24 characters**
+- [x] Character limit enforced in the HTML form (`maxlength="24"`) and server-side
+- [x] Long custom outcome text wraps within the header rather than overflowing (`word-break: break-word`)
+
+#### Save Authentication
+- [x] Save request sends `uid`, `cmac`, and `ctr` from the tap URL (baked into hidden form fields at render time)
+- [x] Server validates the CMAC cryptographically against the tag's SDM MAC key — no database lookup required
+- [x] No "tap again" prompt — the tap that opened the page is sufficient for one save
+- [x] Auth failure returns 401; generic error shown (no misleading "tap again" UX)
+
+#### Persistence & Display
+- [x] Messages stored in `coin_custom_messages` table (`coin_name`, `heads_message`, `tails_message`)
+- [x] Custom messages displayed in place of "HEADS"/"TAILS" in the outcome scramble animation
+- [x] Custom messages used in the live flip indicator during Flip Off battles
+- [x] Empty message falls back to default "HEADS" / "TAILS"
+
+---
+
+### 14.4 Auth Model
+
+Authentication is based on the NTAG424 CMAC from the tap URL — the same mechanism used by `/api/flip`. No session tokens or DB-stored state are involved.
+
+**Index route gate** (`/`):
+- `coin_name` (and thus the ✏️ button and form) is only set when:
+  1. `uid`, `ctr`, and `cmac` are all present in the URL
+  2. `ctr_int > last_counter` (not a replay)
+  3. `validate_sdm_url(uid, ctr_int, cmac)["valid"]` returns True
+
+**Save endpoint** (`POST /api/coin/messages`):
+- Receives `uid`, `cmac`, `ctr` from form hidden fields
+- Calls `key_manager.validate_sdm_url(uid, ctr_int, cmac)` directly
+- Returns 401 if CMAC invalid; 400 if fields missing or message too long
+
+---
+
+### 14.5 Database Schema
+
+```sql
+CREATE TABLE IF NOT EXISTS coin_custom_messages (
+    coin_name     TEXT PRIMARY KEY,
+    heads_message TEXT NOT NULL DEFAULT '',
+    tails_message TEXT NOT NULL DEFAULT ''
+);
+```
+
+---
+
+### 14.6 Out of Scope
+
+- Per-tap message preview before saving
+- Message history / undo
+- Emoji or special character validation beyond length
+- Admin override of coin messages
+
+---
+
+### 14.7 Definition of Done
+
+- [x] Form hidden by default; revealed only on valid tap
+- [x] ✏️/❌ toggle works correctly; form opens above params table
+- [x] CMAC auth works without DB lookup
+- [x] Replay detection gates the edit button
+- [x] 24-char limit enforced client and server side
+- [x] Long messages wrap in outcome display
+- [x] Debug logging in save endpoint
+- [ ] Unit tests for `set_coin_messages` (auth pass/fail, length validation)
+- [ ] QA sign-off by Trin
+
+---
+
+## 15. Security: Secret Masking in Logs
+
+**Added**: 2026-04-22
+**Owner**: Cypher
+**Implemented by**: Neo
+
+### 15.1 Overview
+
+AES-128 key material (stored keys, derived session keys, intermediate CMACs) was previously emitted in plaintext to application logs at INFO and DEBUG level. This is now masked using a shared utility.
+
+### 15.2 Requirements
+
+- [x] `log_utils.mask_key(key: str) -> str` utility created at package root — shows only first 4 and last 4 hex chars (`AABB...3344`)
+- [x] Applied in `csv_key_manager.py`: PICC Master Key, App Read Key, SDM MAC Key, SDM MAC key bytes, Session Key, Full CMAC (16-byte), per-byte CMAC breakdown removed
+- [x] Applied in `services/diagnostics_service.py`: Session key from validation result dict
+- [x] Applied in `server/app.py`: `safe` dict built before logging validation result, masking `session_key` and `full_cmac` fields
+- [x] `get_tag_keys` print statement no longer dumps full CSV row via `json.dumps` — logs only `coin_name` and `status`
+- [x] `TagKeys.__str__` masks all three key fields (affects any debug log that calls `str(tag_keys)`)
+
+### 15.3 Not Masked (intentionally public)
+
+- UID (NFC tag identifier, present in every URL)
+- Counter / CTR (increments publicly with each tap)
+- SV2 / System Vector (derived from public UID + counter)
+- CMAC message string (derived from public data)
+- Truncated CMAC (8 bytes already present in the tap URL)
+- `cmac_received` / `cmac_calculated` comparison (truncated, public)
+

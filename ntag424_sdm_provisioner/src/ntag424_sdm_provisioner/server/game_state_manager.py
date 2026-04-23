@@ -180,6 +180,11 @@ class SqliteGameStateManager(IGameStateManager):
 
             return coins
 
+    def has_flip_since(self, ts: str) -> bool:
+        """Returns True if any flip was recorded after the given ISO timestamp."""
+        rows = self._query("SELECT 1 FROM scan_logs WHERE timestamp > ? LIMIT 1", (ts,))
+        return len(rows) > 0
+
     def get_recent_flips(self, limit: int = 88) -> list[dict]:
         # Fetch the most recent scans, ensuring we get the coin_name
         query = "SELECT coin_name, uid, LOWER(outcome), timestamp FROM scan_logs ORDER BY id DESC LIMIT ?"
@@ -283,6 +288,9 @@ class SqliteGameStateManager(IGameStateManager):
         results = self._query(query, params)
         coin_names = [row[0] for row in results]
 
+        ts_query = f"SELECT coin_name, MAX(timestamp) FROM scan_logs WHERE {' AND '.join(conditions)} GROUP BY coin_name"
+        ts_map = {row[0]: row[1] for row in self._query(ts_query, params)}
+
         leaderboard = []
         for coin_name in coin_names:
             # 2. Get stats for each UID
@@ -290,6 +298,7 @@ class SqliteGameStateManager(IGameStateManager):
             if stats and stats.get("total_bits", 0) > 0:
                 leaderboard.append({
                     "coin_name": coin_name,
+                    "last_flip_timestamp": ts_map.get(coin_name, ""),
                     **stats
                 })
 

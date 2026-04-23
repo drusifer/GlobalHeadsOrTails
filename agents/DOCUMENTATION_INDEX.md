@@ -1,6 +1,6 @@
 # BobProtocol Documentation Index
 
-**Last Updated:** 2026-03-22
+**Last Updated:** 2026-04-22
 
 ## Quick Access
 
@@ -73,11 +73,35 @@ Located in `agents/templates/`:
 
 ---
 
+## Project Knowledge Base (ntag424_sdm_provisioner/)
+
+| File | Purpose |
+|------|---------|
+| `DECISIONS.md` | Architecture decisions log (5 entries, latest: SSE→Polling 2026-04-22) |
+| `ARCH.md` | System architecture — provisioner TUI service layer |
+| `LESSONS.md` | Lessons learned |
+| `docs/PRD.md` | Product Requirements Document (§15 current) |
+| `docs/ROADMAP.md` | Feature roadmap |
+| `docs/ISO Compliant NDEF Reference.md` | NDEF/NXP reference specification |
+| `task.md` | Sprint log (current + recent sprints) |
+
+## Morpheus Architecture Docs
+
+| File | Status |
+|------|--------|
+| `morpheus.docs/arch_flipoff.md` | Active — Flip-Off challenge design |
+| `morpheus.docs/arch_custom_messages.md` | Active — Custom coin messages |
+| `morpheus.docs/arch_flipoff_sse.md` | **SUPERSEDED** — SSE design (replaced by polling 2026-04-22) |
+
+---
+
 ## Archived Documentation
 
 Files prefixed with `.archive_` are historical and no longer active:
 - `.archive_COMMANDS.md` - (Consolidated into HELP.md)
 - `.archive_state_management_fix.md` - (Implemented in protocol)
+
+Root-level VS Code era docs (2025-12) archived to `docs_archive/`.
 
 ---
 

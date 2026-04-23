@@ -1,19 +1,16 @@
-# Trin — Current Task
+# Current Task
 
-**Status:** Pending UAT
-**Last active:** 2026-03-26
+**Status:** Complete
+**Assigned to:** Trin
+**Started:** 2026-04-22
 
-## Pending: UAT of Neo's session work
-- end_condition in all completion paths (win/draw/yield/expired)
-- recent_completed SSE on all pushes
-- renderRecentCompleted full replace
-- renderRecentFlips full replace (no polling)
-- SW NFC tab reuse (sw.js)
-- yieldChallenge fire-and-forget
+## Task Description
+UAT — SSE → polling refactor. Write and pass tests for /api/flips/since and /api/state.
 
-## Playwright Tests
-- test_sw_nfc.py written, 5 tests
-- ARM timeout issue — needs `@pytest.mark.slow` marker or separate make target
-- SW interception manually verified working
+## Progress
+- [x] Wrote `tests/test_server_polling.py` (10 tests)
+- [x] All 60 server tests pass (50 existing + 10 new)
+- [x] Handoff to Morpheus for review
 
-*Last updated: 2026-03-26*
+## Result
+GREEN — 60/60 passing.

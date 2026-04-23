@@ -1,12 +1,14 @@
-# Next Steps — Neo
+# Next Steps
 
-## Sprint §14 is implementation-complete
-Both phases done, 52/52 tests pass. Waiting on Trin UAT → Morpheus review → Oracle groom → Smith user test → Cypher launch.
+## Immediate Next Action
+Await Trin UAT results. If failures, fix them.
 
-## If bugs found by Trin/Morpheus
-1. Read CHAT.md for the specific issue
-2. Fix in index.html (JS/Jinja) or app.py/coin_message_service.py as appropriate
-3. Re-run make test_server to confirm 52+ pass
-4. Post fix to CHAT.md and re-hand to Trin
+## Key Files Changed
+- `ntag424_sdm_provisioner/src/ntag424_sdm_provisioner/server/game_state_manager.py` — added `has_flip_since`
+- `ntag424_sdm_provisioner/src/ntag424_sdm_provisioner/server/flip_off_service.py` — added `get_completed_since`
+- `ntag424_sdm_provisioner/src/ntag424_sdm_provisioner/server/app.py` — SSE removed, polling endpoints added
+- `ntag424_sdm_provisioner/src/ntag424_sdm_provisioner/server/templates/index.html` — JS polling loop
 
-*Last updated: 2026-04-22*
+## Cold Start
+1. Read CHAT.md bottom 20 messages
+2. `cd ntag424_sdm_provisioner && make test_server` to check baseline

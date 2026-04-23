@@ -316,6 +316,30 @@ class FlipOffService:
             rows = cursor.fetchall()
         return [self._row_to_dict(row) for row in rows]
 
+    def has_completed_since(self, ts: str) -> bool:
+        """Returns True if any challenge was completed after the given ISO timestamp."""
+        with self._get_conn() as conn:
+            rows = conn.execute(
+                "SELECT 1 FROM flip_off_challenges WHERE status = 'complete' AND completed_at > ? LIMIT 1",
+                (ts,),
+            ).fetchall()
+        return bool(rows)
+
+    def get_completed_since(self, ts: str) -> list:
+        """Returns challenges completed after the given ISO timestamp."""
+        with self._get_conn() as conn:
+            cursor = conn.execute(
+                """SELECT id, created_at, baseline_scan_id, challenger_coin_name, challenged_coin_name,
+                          flip_count, status, challenger_flips_done, challenged_flips_done,
+                          challenger_entropy, challenged_entropy, winner_coin_name, completed_at, end_condition
+                   FROM flip_off_challenges
+                   WHERE status = 'complete' AND completed_at > ?
+                   ORDER BY completed_at ASC""",
+                (ts,),
+            )
+            rows = cursor.fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
     def get_all_coin_stats(self) -> dict:
         """Returns flip-off W/L/D stats per coin for completed challenges."""
         with self._get_conn() as conn:

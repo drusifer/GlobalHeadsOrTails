@@ -1,27 +1,28 @@
-# Neo — Context
+# Agent Local Context
 
-## Sprint §14 — Custom Coin Messages (Phase 1 Complete, 2026-04-22)
+## Recent Decisions
 
-### What was built
-- `coin_message_service.py`: `CoinMessageService` class with `get_messages`, `set_messages`, `validate_tap_auth`; DB table `coin_custom_messages`
-- `app.py` wired: import + `init_managers()` + `index()` (reads cmac, fetches msgs, passes to template) + `/api/flip` (adds `heads_message`/`tails_message` to JSON) + new `POST /api/coin/messages` route
-- `tests/test_server_coin_messages.py` — 18 tests, 52/52 total pass
+- **Customize form gate**: `coin_name` (which controls the ✏️ button and form) is only set in the index route when CMAC is cryptographically valid AND `ctr_int > last_counter` (replay check). Params table still shows on any valid uid+ctr visit.
+- **auth model**: Removed DB-based `validate_tap_auth`. Save endpoint (`/api/coin/messages`) now calls `key_manager.validate_sdm_url(uid, ctr_int, cmac)` directly — same crypto the flip endpoint uses. Counter still required for CMAC math but not checked against DB.
+- **mask_key**: Moved to `ntag424_sdm_provisioner/log_utils.py`. Imported by `csv_key_manager.py`, `diagnostics_service.py`, and `server/app.py`.
+- **Max message length**: 24 chars (was 50). Enforced in `maxlength` attr on both inputs and server-side in `set_coin_messages`.
+- **UI order**: ✏️ button (right-aligned) → form (hidden by default) → params table. Form opens above params.
+- **Icons**: ✏️ = open, ❌ = close (unicode emoji, not SVG or letter x).
 
-### Key decisions
-- Followed `FlipOffService` pattern exactly for the service file
-- `validate_tap_auth` queries `scan_logs` WHERE `coin_name = ?` ORDER BY counter DESC — matches CMAC and integer counter
-- Length check uses `len([*msg])` (Unicode codepoint count, emoji-safe)
-- Route returns 401 `{"error": "auth_failed"}` on bad auth per PRD spec
+## Key Findings
 
-## Previous Sprint (flipoff-not-updating fix, 2026-03-27)
-- active_challenges added to /api/flip JSON response (flipoff fetch-callback fix)
-- renderBattles called from fetch callback AND onmessage handler
-- end_condition type: win/draw/yield/expired
+- WHAT: `validate_sdm_url` in `csv_key_manager.py` logs all 3 AES keys, session key, and full CMAC in plaintext at INFO level
+  - WHY: Was debug-era logging; now all masked via `mask_key()`
+- WHAT: `app.py` debug log dumped raw `validation_result` dict including `session_key` and `full_cmac`
+  - WHY: Fixed by building `safe` dict with those two fields masked before logging
+- WHAT: Replay detection (ctr <= last_counter) only existed in `/api/flip`, not in the index route
+  - WHY: Index route now fetches `game_manager.get_state(uid_str).last_counter` and gates `tap_valid` on it
 
-## Phase 2 — NOT YET STARTED
-See arch doc `agents/morpheus.docs/arch_custom_messages.md` Phase 2 section.
-- Edit form in `index.html` (Jinja, shown when coin_name set)
-- JS template vars + form submit handler
-- `showOutcome(outcome, customMessage)` — use custom message as finalText
-- Emoji-safe scramble (`[...str]` spread)
-- Live feed custom message for own coin only
+## Important Notes
+
+- `coin_name` template var is the single gate for all customize UI: button, form, JS vars, challenge lookup, messages fetch
+- `tap_valid` is a local var in the index route — not passed to template; `coin_name` being set is the signal
+- `via: enabled` per PROJECT.md — use `mcp__via__via_query` for symbol lookup
+
+---
+*Last updated: 2026-04-22*

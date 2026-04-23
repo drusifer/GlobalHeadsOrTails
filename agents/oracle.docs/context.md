@@ -1,16 +1,23 @@
-# Oracle — Context
+# Oracle Context
 
 ## Recent Decisions
-- §14 implementation complete (2026-04-22): both phases done, 52/52 tests, handed to Smith for user test
+
+### Groom Pass — 2026-04-22
+Complete doc groom executed. See current_task.md for full list.
 
 ## Key Findings
-- §14 added `coin_message_service.py` + `POST /api/coin/messages` route + full template/JS integration
-- Architecture: same shared SQLite DB, `CoinMessageService` follows `FlipOffService` pattern
-- Test coverage: `tests/test_server_coin_messages.py` (18 tests)
+- **Root clutter (2025-12 era)**: 9 VS Code integration docs archived to `docs_archive/`
+- **NDEF reference**: was at root, moved to `ntag424_sdm_provisioner/docs/`
+- **SSE arch doc**: `agents/morpheus.docs/arch_flipoff_sse.md` — marked SUPERSEDED (SSE replaced by polling 2026-04-22)
+- **DECISIONS.md**: Added §5 SSE→Polling decision
+- **task.md**: Updated to reflect §14 complete + SSE refactor complete
+- **DOCUMENTATION_INDEX.md**: Added project knowledge base table + arch docs status table
 
 ## Important Notes
-- PRD: `agents/cypher.docs/custom_messages_prd.md`
-- Arch doc: `agents/morpheus.docs/arch_custom_messages.md`
+- Root now has only 3 files: `AGENTS.md`, `START_HERE.md`, `task.md` (all intentional)
+- `AGENTS.md` at root = duplicate of `agents/AGENTS.md` — intentional (different AI indexing)
+- `docs_archive/` at root contains stale 2025-12 VS Code integration docs
+- `ntag424_sdm_provisioner/docs_archive/` contains older provisioner session/investigation docs
 
 ---
 *Last updated: 2026-04-22*

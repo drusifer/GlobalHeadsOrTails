@@ -16,7 +16,7 @@
     .params-table tr { background: linear-gradient(120deg, transparent 40%, rgba(0,255,255,0.2) 45%, rgba(255,0,255,0.2) 50%, rgba(255,255,0,0.2) 55%, transparent 60%) no-repeat; background-size: 300% 100%; color: transparent; animation: chrome-shimmer 0.4s linear 1, text-reveal 0.4s ease-in 1 forwards; }
     .params-table td { padding: 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.2); color: inherit; }
     .params-table .coin-name { font-weight: bold; }
-    .fancy-text { padding: 10px; font-family: monospace; font-size: 4rem; font-weight: bold; color: #ff6347; text-shadow: 2px 2px 0 #fff; }
+    .fancy-text { padding: 10px; font-family: monospace; font-size: 4rem; font-weight: bold; color: #ff6347; text-shadow: 2px 2px 0 #fff; word-break: break-word; overflow-wrap: break-word; text-align: center; width: 100%; }
     .error-text { color: #ffcccc; font-weight: bold; margin-top: 10px; font-size: 1.2em; }
     .new-row-animation { animation: fadeInAndSlide 0.5s ease-out; }
     @keyframes fadeInAndSlide { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
@@ -61,6 +61,19 @@
       .recent-flips-table, .stats-table, .results-table { table-layout: auto; }
     }
 
+    .poll-spinner {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border: 2px solid rgba(108, 117, 125, 0.25);
+      border-top-color: #6c757d;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     .increment-animation {
       animation: number-increment 0.7s ease-out;
     }
@@ -86,9 +99,17 @@
     .flip-off-section .section-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0; }
     .start-flipoff-toggle-btn { background: #007BFF; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-family: 'Courier New', monospace; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
     .start-flipoff-toggle-btn:hover { background: #0056b3; }
-    .flip-off-select { width: 100%; padding: 8px; font-family: 'Courier New', monospace; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; }
+    .opponent-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .opponent-section-label { font-size: 0.7rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 0 2px 0; }
+    .opponent-divider { border: none; border-top: 1px solid #e0e0e0; margin: 4px 0; }
+    .opponent-alpha-list { max-height: 224px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .opponent-option { display: flex; flex-direction: column; justify-content: center; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; background: white; min-height: 56px; transition: border-color 0.15s, background 0.15s; }
+    .opponent-option:has(input:checked) { border-color: #007BFF; background: #f0f7ff; }
+    .opponent-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .opponent-coin-name { font-weight: bold; font-size: 1rem; color: #333; }
+    .opponent-stats { font-size: 0.78rem; color: #6c757d; margin-top: 2px; }
     .flip-count-buttons { display: flex; gap: 8px; margin-bottom: 12px; }
-    .flip-count-btn { flex: 1; padding: 8px; border: 1px solid #007BFF; border-radius: 6px; background: white; color: #007BFF; cursor: pointer; font-family: 'Courier New', monospace; font-size: 0.9rem; }
+    .flip-count-btn { flex: 1; padding: 12px 8px; border: 1px solid #007BFF; border-radius: 6px; background: white; color: #007BFF; cursor: pointer; font-family: 'Courier New', monospace; font-size: 0.9rem; }
     .flip-count-btn:hover, .flip-count-btn.selected { background: #007BFF; color: white; }
     .challenge-submit-btn { width: 100%; padding: 10px; background: #007BFF; color: white; border: none; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 1rem; cursor: pointer; }
     .challenge-submit-btn:hover { background: #0056b3; }
@@ -190,6 +211,27 @@
     <div id="outcome-container" style="display:none;"><span id="outcome-text" class="fancy-text" data-outcome=""></span></div>
     <div class="error-text" id="error-text" style="display:none;"></div>
 
+    {% if coin_name %}
+    <div style="width:100%;display:flex;justify-content:flex-end;margin-bottom:4px;">
+      <button onclick="toggleCoinMessagesForm()" id="edit-messages-btn" title="Customize flip messages"
+        style="background:none;border:none;cursor:pointer;font-size:1.1rem;line-height:1;padding:2px 4px;border-radius:4px;">✏️</button>
+    </div>
+    <div id="coin-messages-section" style="margin-bottom:10px;display:none;">
+      <form id="coin-messages-form" onsubmit="saveCoinMessages(event)" style="display:flex;flex-direction:column;gap:8px;">
+        <input type="hidden" id="cm-coin-name" value="{{ coin_name }}">
+        <input type="hidden" id="cm-uid" value="{{ uid }}">
+        <input type="hidden" id="cm-cmac" value="{{ cmac }}">
+        <input type="hidden" id="cm-ctr" value="{{ ctr }}">
+        <label style="font-size:0.85rem;font-weight:bold;">Custom Heads message:</label>
+        <input type="text" id="cm-heads" maxlength="24" value="{{ heads_message }}" placeholder="HEADS" style="padding:6px 8px;border-radius:6px;border:1px solid #ccc;font-size:0.9rem;">
+        <label style="font-size:0.85rem;font-weight:bold;">Custom Tails message:</label>
+        <input type="text" id="cm-tails" maxlength="24" value="{{ tails_message }}" placeholder="TAILS" style="padding:6px 8px;border-radius:6px;border:1px solid #ccc;font-size:0.9rem;">
+        <button type="submit" style="align-self:flex-start;padding:6px 16px;border-radius:6px;border:none;background:#4a90e2;color:#fff;font-size:0.9rem;cursor:pointer;">Save messages</button>
+      </form>
+      <div id="coin-messages-status" style="margin-top:6px;font-size:0.85rem;"></div>
+    </div>
+    {% endif %}
+
     {% if params %}
     <table class="params-table">
       <tbody>
@@ -201,22 +243,6 @@
         {% endfor %}
       </tbody>
     </table>
-    {% endif %}
-
-    {% if coin_name %}
-    <div id="coin-messages-section" style="margin-top:14px;">
-      <form id="coin-messages-form" onsubmit="saveCoinMessages(event)" style="display:flex;flex-direction:column;gap:8px;">
-        <input type="hidden" id="cm-coin-name" value="{{ coin_name }}">
-        <input type="hidden" id="cm-cmac" value="{{ cmac }}">
-        <input type="hidden" id="cm-ctr" value="{{ ctr }}">
-        <label style="font-size:0.85rem;font-weight:bold;">Custom Heads message:</label>
-        <input type="text" id="cm-heads" maxlength="50" value="{{ heads_message }}" placeholder="HEADS" style="padding:6px 8px;border-radius:6px;border:1px solid #ccc;font-size:0.9rem;">
-        <label style="font-size:0.85rem;font-weight:bold;">Custom Tails message:</label>
-        <input type="text" id="cm-tails" maxlength="50" value="{{ tails_message }}" placeholder="TAILS" style="padding:6px 8px;border-radius:6px;border:1px solid #ccc;font-size:0.9rem;">
-        <button type="submit" style="align-self:flex-start;padding:6px 16px;border-radius:6px;border:none;background:#4a90e2;color:#fff;font-size:0.9rem;cursor:pointer;">Save messages</button>
-      </form>
-      <div id="coin-messages-status" style="margin-top:6px;font-size:0.85rem;"></div>
-    </div>
     {% endif %}
   </div>
 
@@ -282,8 +308,7 @@
   {# --- Unified Flip Off Section --- #}
   {% set my_coin = params.get('Coin Name') if params else None %}
   {% set coin_in_battle = challenge and challenge.status in ('pending', 'in_progress') %}
-  {% set opponents = (leaderboard_stats | selectattr('coin_name', '!=', my_coin) | sort(attribute='coin_name') | list) if my_coin and leaderboard_stats else [] %}
-  {% set can_start = my_coin and not coin_in_battle and opponents | length > 0 %}
+  {% set can_start = my_coin and not coin_in_battle and (recent_opponents or other_opponents) %}
   <div class="flip-off-section">
     <div class="flip-off-header">
       <div class="section-label">⚡ Flip Offs</div>
@@ -303,12 +328,27 @@
     <div id="flip-off-form-wrapper" style="display:none; margin-top:8px;">
       <form id="flip-off-form">
         <input type="hidden" name="challenger_coin" value="{{ my_coin }}">
-        <select class="flip-off-select" name="challenged_coin" required>
-          <option value="" disabled selected>Select your opponent…</option>
-          {% for coin in opponents %}
-          <option value="{{ coin.coin_name }}">{{ coin.coin_name }} ({{ coin.total_bits }} flips, ent={{ "%.4f"|format(coin.entropy) }})</option>
+        <div class="opponent-list">
+          {% if recent_opponents %}
+          <div class="opponent-section-label">Recently Active</div>
+          {% for coin in recent_opponents %}
+          <label class="opponent-option">
+            <input type="radio" name="challenged_coin" value="{{ coin.coin_name }}" required>
+            <span class="opponent-coin-name">{{ coin.coin_name }}</span>
+            <span class="opponent-stats" data-ts="{{ coin.last_flip_timestamp }}"></span>
+          </label>
           {% endfor %}
-        </select>
+          {% if other_opponents %}<hr class="opponent-divider">{% endif %}
+          {% endif %}
+          <div class="opponent-alpha-list">
+          {% for coin in other_opponents %}
+          <label class="opponent-option">
+            <input type="radio" name="challenged_coin" value="{{ coin.coin_name }}" required>
+            <span class="opponent-coin-name">{{ coin.coin_name }}</span>
+          </label>
+          {% endfor %}
+          </div>
+        </div>
         <div class="flip-count-buttons">
           {% for count in [10, 25, 50, 100] %}
           <button type="button" class="flip-count-btn" onclick="selectFlipCount(this, {{ count }})">{{ count }}</button>
@@ -427,7 +467,7 @@
 
   <div class="tab-container">
     <div class="tab-buttons">
-      <button class="tab-button active" onclick="openTab(event, 'RecentFlips')">Recent Flips</button>
+      <button class="tab-button active" onclick="openTab(event, 'RecentFlips')">Recent Flips <span id="poll-indicator" class="poll-spinner"></span></button>
       <button class="tab-button" onclick="openTab(event, 'Leaderboard')">Leaderboard</button>
     </div>
 
@@ -733,7 +773,7 @@ A statistical test for randomness that checks if the number of heads and tails a
           if (statusMsg) statusMsg.textContent = 'Error: ' + (json.error || 'Unknown error');
           return;
         }
-        // SSE delivers all state updates — no direct state calls needed
+        // Poll loop will pick up the updated state on next tick
       } catch {
         if (statusMsg) statusMsg.textContent = 'Error submitting yield.';
       }
@@ -754,6 +794,14 @@ A statistical test for randomness that checks if the number of heads and tails a
       indicator.style.display = 'flex';
       clearTimeout(indicator._fadeTimer);
       indicator._fadeTimer = setTimeout(() => { indicator.style.display = 'none'; }, 4000);
+    }
+
+    function toggleCoinMessagesForm() {
+      const section = document.getElementById('coin-messages-section');
+      const btn = document.getElementById('edit-messages-btn');
+      const isHidden = section.style.display === 'none';
+      section.style.display = isHidden ? '' : 'none';
+      if (btn) btn.textContent = isHidden ? '❌' : '✏️';
     }
 
     function toggleFlipOffForm() {
@@ -817,6 +865,10 @@ A statistical test for randomness that checks if the number of heads and tails a
           const ts = tr.dataset.timestamp;
           const timeCell = tr.querySelector('.time-cell');
           if (ts && timeCell) timeCell.textContent = timeAgo(ts);
+        });
+        document.querySelectorAll('.opponent-stats[data-ts]').forEach(el => {
+          const ts = el.getAttribute('data-ts');
+          if (ts) el.textContent = 'last flip ' + timeAgo(ts);
         });
       }
       updateTimeAgo();
@@ -889,6 +941,7 @@ A statistical test for randomness that checks if the number of heads and tails a
       event.preventDefault();
       const statusEl = document.getElementById('coin-messages-status');
       const coinName = document.getElementById('cm-coin-name').value;
+      const uid = document.getElementById('cm-uid').value;
       const cmac = document.getElementById('cm-cmac').value;
       const ctr = document.getElementById('cm-ctr').value;
       const heads = document.getElementById('cm-heads').value;
@@ -898,15 +951,13 @@ A statistical test for randomness that checks if the number of heads and tails a
         const resp = await fetch('/api/coin/messages', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({coin_name: coinName, cmac, ctr, heads_message: heads, tails_message: tails}),
+          body: JSON.stringify({coin_name: coinName, uid, cmac, ctr, heads_message: heads, tails_message: tails}),
         });
         const data = await resp.json();
         if (resp.ok) {
           myHeadsMessage = data.heads_message;
           myTailsMessage = data.tails_message;
           if (statusEl) statusEl.textContent = 'Saved!';
-        } else if (resp.status === 401) {
-          if (statusEl) statusEl.textContent = 'Tap your coin again to save changes.';
         } else {
           if (statusEl) statusEl.textContent = data.error || 'Error saving.';
         }
@@ -915,49 +966,14 @@ A statistical test for randomness that checks if the number of heads and tails a
       }
     }
 
-    // Real-time updates for recent flips via Server-Sent Events
+    // Real-time updates via polling
     const MAX_ROWS = 88;
+    const POLL_IDLE_TIMEOUT_MS = 3 * 60 * 1000;
     const recentFlipsBody = document.getElementById('recent-flips-body');
+    let lastTs = '';
+    let lastActivityTime = Date.now();
 
-    // Start SSE first so the server-side listener is registered before /api/flip pushes its event
-    const evtSource = new EventSource('/api/stream/flips' + window.location.search);
-    let tapFired = false;
-    evtSource.onopen = function() {
-      if (tapFired) return;
-      tapFired = true;
-      // Call /api/flip now that SSE stream is ready to receive the push
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('uid') && urlParams.get('ctr') && urlParams.get('cmac')) {
-        fetch('/api/flip' + window.location.search)
-          .then(r => r.json())
-          .then(data => {
-            if (data.error) {
-              const errEl = document.getElementById('error-text');
-              if (errEl) { errEl.textContent = 'Error: ' + data.error; errEl.style.display = ''; }
-            } else {
-              const customMsg = data.outcome === 'HEADS' ? (data.heads_message || '') : (data.tails_message || '');
-              showOutcome(data.outcome, customMsg);
-              if (data.joke) showJoke(data.joke);
-              if (data.active_challenges) renderBattles(data.active_challenges);
-              if (data.flip && recentFlipsBody) {
-                const flip = data.flip;
-                const existingTimestamps = new Set(Array.from(recentFlipsBody.querySelectorAll('tr')).map(tr => tr.dataset.timestamp));
-                if (!existingTimestamps.has(flip.timestamp)) {
-                  const tr = document.createElement('tr');
-                  tr.dataset.timestamp = flip.timestamp;
-                  tr.classList.add('highlight-row', 'new-row-animation');
-                  tr.innerHTML = `<td>${flip.coin_name || 'N/A'}</td><td>${flip.asset_tag}</td><td>${flip.outcome.toUpperCase()}</td><td class="time-cell">${timeAgo(flip.timestamp)}</td>`;
-                  recentFlipsBody.prepend(tr);
-                }
-              }
-            }
-          })
-          .catch(() => {});
-      }
-    };
-    evtSource.onmessage = function(event) {
-      const data = JSON.parse(event.data);
-
+    function applyState(data) {
       if (data.active_challenges) renderBattles(data.active_challenges);
       if (data.latest_flip) showLiveFlip(data.latest_flip);
       if (data.recent_completed) renderRecentCompleted(data.recent_completed);
@@ -967,9 +983,8 @@ A statistical test for randomness that checks if the number of heads and tails a
         if (myBattle) showResultCard(myBattle);
       }
       if (data.recent_flips?.length && recentFlipsBody) renderRecentFlips(data.recent_flips);
-
-      if (!data.totals) return;
-      const newTotals = data.totals;
+      if (data.totals) {
+        const newTotals = data.totals;
         const headsEl = document.getElementById('heads-total');
         const tailsEl = document.getElementById('tails-total');
         const totalFlips = newTotals.heads + newTotals.tails;
@@ -983,7 +998,82 @@ A statistical test for randomness that checks if the number of heads and tails a
         }
         headsEl.innerHTML = `${newTotals.heads}${headsPctHtml}`;
         tailsEl.innerHTML = `${newTotals.tails}${tailsPctHtml}`;
-      };
+      }
+      if (data.latest_timestamp) lastTs = data.latest_timestamp;
+    }
+
+    function setPollActive(active) {
+      const el = document.getElementById('poll-indicator');
+      if (el) el.style.display = active ? '' : 'none';
+    }
+
+    function startPollLoop() {
+      const intervalId = setInterval(async () => {
+        try {
+          const checkUrl = '/api/flips/since' + (lastTs ? '?ts=' + encodeURIComponent(lastTs) : '');
+          const r = await fetch(checkUrl);
+          const check = await r.json();
+          if (!check.has_new) {
+            if (Date.now() - lastActivityTime > POLL_IDLE_TIMEOUT_MS) {
+              clearInterval(intervalId);
+              setPollActive(false);
+            }
+            return;
+          }
+          lastActivityTime = Date.now();
+          const stateUrl = '/api/state' + (lastTs ? '?since=' + encodeURIComponent(lastTs) : '');
+          const sr = await fetch(stateUrl);
+          const state = await sr.json();
+          applyState(state);
+        } catch (_) {}
+      }, 3000);
+    }
+
+    // Fire the tap immediately — no waiting for a stream connection
+    (async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('uid') && urlParams.get('ctr') && urlParams.get('cmac')) {
+        try {
+          const r = await fetch('/api/flip' + window.location.search);
+          const data = await r.json();
+          if (data.error) {
+            const errEl = document.getElementById('error-text');
+            if (errEl) { errEl.textContent = 'Error: ' + data.error; errEl.style.display = ''; }
+          } else {
+            const customMsg = data.outcome === 'HEADS' ? (data.heads_message || '') : (data.tails_message || '');
+            showOutcome(data.outcome, customMsg);
+            if (data.joke) showJoke(data.joke);
+            if (data.active_challenges) renderBattles(data.active_challenges);
+            if (data.just_completed && data.just_completed.length > 0) {
+              showFanfare(data.just_completed[0]);
+              const myBattle = data.just_completed.find(b => amInBattle(b));
+              if (myBattle) showResultCard(myBattle);
+            }
+            if (data.flip && recentFlipsBody) {
+              const flip = data.flip;
+              const existingTimestamps = new Set(Array.from(recentFlipsBody.querySelectorAll('tr')).map(tr => tr.dataset.timestamp));
+              if (!existingTimestamps.has(flip.timestamp)) {
+                const tr = document.createElement('tr');
+                tr.dataset.timestamp = flip.timestamp;
+                tr.classList.add('highlight-row', 'new-row-animation');
+                tr.innerHTML = `<td>${flip.coin_name || 'N/A'}</td><td>${flip.asset_tag}</td><td>${flip.outcome.toUpperCase()}</td><td class="time-cell">${timeAgo(flip.timestamp)}</td>`;
+                recentFlipsBody.prepend(tr);
+              }
+              lastTs = flip.timestamp;
+            }
+            if (data.totals) applyState({totals: data.totals});
+          }
+        } catch (_) {}
+      } else {
+        // Spectator/leaderboard page — seed lastTs from current state
+        try {
+          const sr = await fetch('/api/state');
+          const state = await sr.json();
+          if (state.latest_timestamp) lastTs = state.latest_timestamp;
+        } catch (_) {}
+      }
+      startPollLoop();
+    })();
   </script>
 </body>
 </html>

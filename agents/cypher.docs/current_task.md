@@ -1,15 +1,20 @@
-# Cypher — Current Task
+# Current Task
 
-**Status:** COMPLETE — §14 Custom Coin Messages shipped
-**Last active:** 2026-04-22
+**Status:** Complete
+**Assigned to:** Cypher
+**Started:** 2026-04-22
 
-## §14 Sprint Summary
-- 6 user stories delivered (US-14-1 through US-14-6)
-- New: `coin_message_service.py`, `POST /api/coin/messages`, edit form in `index.html`
-- 52/52 tests pass
+## Task Description
+Update PRD with Neo's session changes.
 
-## Next Sprint
-TBD — awaiting user direction.
+## Progress
+- [x] Read PRD and Cypher state
+- [x] Added §14 Custom Coin Messages (form UX, auth model, DB schema, acceptance criteria, DoD)
+- [x] Added §15 Secret Masking in Logs (mask_key utility, what's masked/not)
+- [x] Posted to CHAT.md
+
+## Blockers
+None
 
 ---
 *Last updated: 2026-04-22*

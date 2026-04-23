@@ -1,17 +1,12 @@
-# Cypher — Next Steps
+# Next Steps
 
 ## Immediate Next Action
-After Neo + Trin sign off, close sprint:
-1. Mark §13.9 blocking items complete in PRD
-2. Update Document Status to "Complete"
-3. Post: make chat MSG="*pm launch flip-off sprint" PERSONA="Cypher" CMD="pm launch" TO="all"
+Await new task. Open product items:
+- §13 Flip Off: end_condition column, SSE payload standardization, yield fanfare text
+- §14 Custom Messages: unit tests + Trin QA sign-off outstanding
 
-## Waiting On
-- Neo: 4 blocking items (neo.docs/next_steps.md)
-- Trin: QA re-run + sign-off (trin.docs/next_steps.md)
-
-## References
-- PRD: ntag424_sdm_provisioner/docs/PRD.md §13
+## Planned Work
+- [ ] When Trin completes QA on §14, mark DoD items complete in PRD
 
 ---
-*Last updated: 2026-03-26*
+*Last updated: 2026-04-22*

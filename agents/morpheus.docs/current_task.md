@@ -1,16 +1,18 @@
-# Morpheus — Current Task
+# Current Task
 
-**Status:** Complete — §14 arch done, handed to Mouse
-**Last active:** 2026-04-22
+**Status:** Complete
+**Assigned to:** Morpheus
+**Started:** 2026-04-22
 
-## Completed This Session
-- §14 Custom Coin Messages architecture (`arch_custom_messages.md`)
-- 2-phase sprint defined: Phase 1 = Python/backend, Phase 2 = template/JS
-- Key decisions: CoinMessageService, CMAC auth via scan_logs, same DB file
-- Handed off to Mouse for sprint planning
+## Task Description
+Plan + review SSE → polling refactor.
 
-## Open
-- Mouse to plan and break into tasks
-- Smith gate 2 (arch review) — not yet formally done; User approved PRD already
+## Completed
+- [x] Survey SSE implementation (app.py + index.html)
+- [x] Design two-endpoint polling architecture
+- [x] Deliver task breakdown for Neo + Trin
+- [x] Architecture review after implementation
+- [x] Caught: gevent still in pyproject.toml → removed it
 
-*Last updated: 2026-04-22*
+## Result
+Refactor complete. 60/60 tests. Approved.
