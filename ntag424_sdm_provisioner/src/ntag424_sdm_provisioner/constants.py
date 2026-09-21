@@ -865,6 +865,37 @@ class FileSettingsResponse:
 
         return "\n".join(lines)
 
+    def summary(self) -> str:
+        """Compact description for space-constrained displays (vs. the full __str__)."""
+        sdm_enabled = bool(self.file_option & FileOption.SDM_ENABLED)
+        lines = [
+            f"File 0x{self.file_no:02X}: {self.file_size} B, opt 0x{self.file_option:02X}",
+            f"Comm: {self.get_comm_mode().name}  SDM: {'ON' if sdm_enabled else 'OFF'}",
+        ]
+
+        try:
+            rights = AccessRights.from_bytes(self.access_rights)
+            lines.append(f"R:{rights.read.name} W:{rights.write.name}")
+            lines.append(f"RW:{rights.read_write.name} Chg:{rights.change.name}")
+        except Exception:
+            lines.append(f"Access: {self.access_rights.hex().upper()}")
+
+        if sdm_enabled and self.sdm_options is not None:
+            features = [
+                name
+                for mask, name in (
+                    (FileOption.UID_MIRROR, "UID"),
+                    (FileOption.READ_COUNTER, "Ctr"),
+                    (0x01, "ASCII"),
+                )
+                if self.sdm_options & mask
+            ]
+            lines.append(f"SDM 0x{self.sdm_options:02X}: {'+'.join(features)}")
+            if self.uid_offset is not None and self.read_ctr_offset is not None:
+                lines.append(f"Off UID:{self.uid_offset} Ctr:{self.read_ctr_offset}")
+
+        return "\n".join(lines)
+
 
 @dataclass
 class KeyVersionResponse:

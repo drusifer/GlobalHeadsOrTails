@@ -46,16 +46,15 @@ class ReadTagScreen(Screen):
     CSS = """
     .tile {
         border: solid $accent;
-        padding: 1;
-        margin: 1;
+        padding: 0 1;
+        margin: 0 1;
+        width: 1fr;
         height: auto;
-        min-height: 8;
         background: $surface;
     }
 
     #dashboard_row1, #dashboard_row2, #dashboard_row3 {
         height: auto;
-        margin-bottom: 1;
     }
 
     #url_tile {
@@ -85,12 +84,12 @@ class ReadTagScreen(Screen):
             # Dashboard tiles for chip data
             Horizontal(
                 Static("", id="chip_tile", classes="tile"),
+                Static("", id="files_tile", classes="tile"),
                 Static("", id="database_tile", classes="tile"),
                 Static("", id="keys_tile", classes="tile"),
                 id="dashboard_row1",
             ),
             Horizontal(
-                Static("", id="files_tile", classes="tile"),
                 Static("", id="ndef_tile", classes="tile"),
                 Static("", id="extra_tile", classes="tile"),
                 id="dashboard_row2",
@@ -175,16 +174,8 @@ class ReadTagScreen(Screen):
         self.query_one("#keys_tile", Static).update(keys_content)
 
         # File Settings Tile
-        file_settings = diagnostics.get("file_settings_unauth", "N/A")
-        files_content = "[bold cyan]FILE SETTINGS[/]\n"
-        if isinstance(file_settings, str):
-            # file_settings is a string representation
-            files_content += f"{file_settings}"
-        elif isinstance(file_settings, dict):
-            for file_id, settings in file_settings.items():
-                files_content += f"{file_id}: {settings}\n"
-        else:
-            files_content += "N/A"
+        file_settings = diagnostics.get("file_settings_summary", "N/A")
+        files_content = f"[bold cyan]FILE SETTINGS[/]\n{file_settings}"
         self.query_one("#files_tile", Static).update(files_content)
 
         # NDEF Tile
@@ -219,10 +210,9 @@ class ReadTagScreen(Screen):
             log.debug(f"[Dashboard] URL from sdm_validation: '{url}' (type: {type(url)})")
 
             if url:
-                # Show the SDM parameters part prominently (last ~80 chars)
-                url_display = "..." + url[-77:] if len(url) > 80 else url
-                sdm_content += f"[cyan]{url_display}[/]\n\n"
-                log.info(f"[Dashboard] Added URL to display: {url_display}")
+                # Full URL (the tile wraps long lines)
+                sdm_content += f"[cyan]{url}[/]\n\n"
+                log.info(f"[Dashboard] Added URL to display: {url}")
             else:
                 log.warning("[Dashboard] URL is empty or None!")
 

@@ -223,6 +223,10 @@ class TagDiagnosticsService:
         # === UNAUTHENTICATED COMMANDS ===
         log.info("Running unauthenticated diagnostics...")
 
+        # Native commands (GetKeyVersion, GetFileSettings, ...) only work with the NDEF
+        # application selected. Don't rely on state left over from a previous scan.
+        self.card.send(SelectPiccApplication())
+
         # Chip Info
         version = self.get_chip_info()
         if version:
@@ -244,8 +248,10 @@ class TagDiagnosticsService:
         settings = self.get_file_settings(FileNo.NDEF_FILE)
         if settings:
             diagnostics["file_settings_unauth"] = str(settings)
+            diagnostics["file_settings_summary"] = settings.summary()
         else:
             diagnostics["file_settings_unauth"] = "Permission denied or not available"
+            diagnostics["file_settings_summary"] = "Permission denied or not available"
 
         # CC File
         diagnostics["cc_file"] = self.read_cc_file()
