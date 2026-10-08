@@ -60,6 +60,9 @@ reference = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"ntag424_sdm_provisioner.server" = ["templates/*.html", "sticker_catalog.json", "static/*.js", "static/*.css", "static/stickers/*.webp"]
+
 # Command-line scripts
 [project.scripts]
 provision-tag = "ntag424_sdm_provisioner.main:cli"

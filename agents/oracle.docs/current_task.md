@@ -1,6 +1,6 @@
 # Current Task
 
-**Status:** Complete
+**Status:** Complete — Collectables documentation and sprint close recorded
 **Assigned to:** Oracle
 **Started:** 2026-04-22
 

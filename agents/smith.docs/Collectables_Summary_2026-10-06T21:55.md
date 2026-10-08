@@ -1,0 +1,2 @@
+# Collectables design summary
+Produced collectables_catalog.md with shared Twelve Claims narrative, 12 original factions, 36 named forms/quotes, distinct visual directions and UX acceptance notes. Approved Gate 1 stories and Gate 2 transactional inventory/CMAC-bound wagering architecture. Exact stakes visible before agreement; changes clear consent; locked copies excluded from evolution. No application testing or production artwork generation claimed. Handoff to Morpheus/Neo for implementation and Trin/Smith for actual testing.

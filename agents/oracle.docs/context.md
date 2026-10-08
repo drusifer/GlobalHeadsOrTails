@@ -2,6 +2,11 @@
 
 ## Recent Decisions
 
+### Collectables sprint — 2026-10-06
+- Recorded coin-owned collection/atomic reward-and-wager persistence in project DECISIONS.md §6 and PRD §16.
+- Feature guide: ntag424_sdm_provisioner/docs/COLLECTABLES.md; art workflow: tools/STICKER_ART.md; indexed in agents/DOCUMENTATION_INDEX.md.
+- Existing tracked app.db receives migrations on module import during tests. Restore only the session-generated DB delta after the final checks; do not ship local runtime contents.
+
 ### Groom Pass — 2026-04-22
 Complete doc groom executed. See current_task.md for full list.
 

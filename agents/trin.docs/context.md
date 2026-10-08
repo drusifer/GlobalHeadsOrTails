@@ -1,19 +1,8 @@
 # Trin Context
 
-## Recent Decisions
-- Run tests from `ntag424_sdm_provisioner/` subdir using `make test_server`
-- Root `make test` is broken (Makefile.prj deleted) — do not use it
-
-## Key Findings
-- **All 50 server tests pass** — Neo's coin_message + CMAC auth changes are clean
-  - No test fixes were needed
-- **Test command**: `cd ntag424_sdm_provisioner && make test_server`
-  - Covers: test_server_coin_messages.py, test_server_flip_off.py, test_server_flip_off_integration.py, test_server_logic.py
-
-## Important Notes
-- CoinMessageService tests (§14) fully cover: get/set messages, whitespace strip, upsert, 24-char cap, emoji, auth via CMAC mock
-- api/flip now returns heads_message and tails_message in response payload
-- PRD §14 and §15 documented by Cypher — Trin QA sign-off complete
-
----
-*Last updated: 2026-04-22*
+## Collectables QA — 2026-10-06
+- Confirmed requirements from user discussion and Smith catalog. Coin owns copies; 50% eligible real-tap drops, four rarities, 3:1 unlocked evolution to level3; optional pre-agreed locked Flip Off stakes.
+- 107 server tests pass via make -C ntag424_sdm_provisioner test_collectables. Added independent API file tests/test_server_sticker_api.py (22 tests), plus borrowed transaction and settlement evolution regressions.
+- SignedKeys fixture is a simple deterministic valid/invalid validation seam and uses UID.uid (UID.__str__ is descriptive). Crypto algorithm independently covered elsewhere; these tests verify endpoint authorization, not CMAC primitive mathematics.
+- Discovered and resolved with root: raw-case UID replay, malformed JSON crashes, scan/drop/progress separate-transaction crash gap. Borrowed connections ensure rollback all scan/drop/progress/terminal stake updates. Final uncommitted HEADS tap determines entropy winner in full API regression.
+- Inventory decoration caches immutable catalog and omits art prompts. Wager evolution_events migration persists consumed-copy explanation; optional include_expired exposes returned/cancelled state for album.

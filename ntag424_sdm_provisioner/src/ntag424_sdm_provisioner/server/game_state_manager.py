@@ -145,6 +145,34 @@ class SqliteGameStateManager(IGameStateManager):
         log_prefix = "[TEST] " if is_test else ""
         log.info(f"{log_prefix}[GAME STATE SQLITE] Logged scan for {uid}: coin='{coin_name}', outcome={outcome.lower()}, ctr={counter}")
 
+    def record_validated_flip(
+        self, uid: str, counter: int, outcome: str, coin_name: str, cmac: str,
+        sticker_service, flip_off_service=None,
+    ) -> dict:
+        """Commit a genuine scan and its award together, serializing replay checks."""
+        uid = uid.upper()
+        conn = self._get_conn()
+        try:
+            with conn:
+                conn.execute("BEGIN IMMEDIATE")
+                row = conn.execute(
+                    "SELECT COALESCE(MAX(counter), 0) FROM scan_logs WHERE uid = ?", (uid,),
+                ).fetchone()
+                if counter <= row[0]:
+                    raise ValueError("Replay detected")
+                conn.execute(
+                    "INSERT INTO scan_logs (uid,counter,outcome,coin_name,cmac,is_test) VALUES (?,?,?,?,?,FALSE)",
+                    (uid, counter, outcome.lower(), coin_name, cmac),
+                )
+                if coin_name and outcome.lower() in ("heads", "tails"):
+                    award = sticker_service.award_flip(coin_name, uid, counter, conn=conn)
+                    if flip_off_service is not None:
+                        flip_off_service.record_flip(coin_name, conn=conn)
+                    return award
+                return {"drop": None, "evolutions": []}
+        finally:
+            conn.close()
+
     def get_totals(self, include_test: bool = False) -> Dict[str, int]:
         """Get total heads and tails across all unique coins."""
         

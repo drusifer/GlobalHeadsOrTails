@@ -1,0 +1,26 @@
+.collection-section { padding:12px; }
+.collection-section h2 { margin:0 0 8px; font-size:1.3rem; }
+.collection-section p { line-height:1.5; }
+.collection-section summary { cursor:pointer; min-height:44px; padding:12px 0; font-weight:bold; }
+.sticker-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; }
+.sticker-card { border:1px solid #e0e0e0; border-radius:8px; padding:12px; overflow-wrap:anywhere; }
+.sticker-card img { display:block; width:100%; aspect-ratio:1; object-fit:contain; border-radius:8px; }
+.sticker-card h4 { margin:8px 0 4px; font-size:.95rem; }
+.sticker-card blockquote { margin:8px 0; font-size:.8rem; line-height:1.4; color:#6c757d; }
+.sticker-meta { font-size:.8rem; line-height:1.6; }
+.sticker-rarity { font-weight:bold; text-transform:capitalize; }
+.sticker-rarity.legendary { color:#805800; }.sticker-rarity.rare { color:#77408d; }.sticker-rarity.uncommon { color:#216c44; }
+.sticker-reveal { border-left:4px solid #a77717; padding:10px; background:#fff0c5; margin:12px 0; }
+.sticker-choice { display:flex; gap:10px; align-items:center; border:1px solid #d7c8a9; border-radius:8px; padding:10px; min-height:56px; margin:6px 0; cursor:pointer; }
+.sticker-choice:has(input:checked) { border:2px solid #007bff; background:#f0f7ff; }
+.sticker-choice img { width:48px; height:48px; object-fit:contain; }
+.sticker-choice input { flex-shrink:0; }
+.sticker-choices { max-height:300px; overflow:auto; }
+.wager-panel { padding:12px; margin:12px 0; background:#f8f3e7; border:1px solid #d7c8a9; border-radius:8px; }
+.wager-panel button, .collection-section button { min-height:44px; padding:10px 14px; font-size:1rem; cursor:pointer; margin:4px; }
+.wager-panel button:disabled { cursor:default; opacity:.55; }
+.wager-error { color:#a72424; }
+.wager-terms { font-weight:bold; font-size:.9rem; }
+.yield-btn,.start-flipoff-toggle-btn,.challenge-submit-btn { min-height:44px; }
+@media(max-width:400px) { .sticker-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(prefers-reduced-motion:reduce) { .collection-section * { animation:none!important; transition:none!important; } }

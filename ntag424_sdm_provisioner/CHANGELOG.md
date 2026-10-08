@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-06 — Collectables: The Twelve Clans
+
+- Coin-owned sticker album with 12 original RPG factions, 36 named/illustrated forms and narrative lore quotes.
+- 50% random drops, four rarity tiers, and automatic three-copy evolution through level 3.
+- Optional mutually agreed Flip Off wagers, locked copies, winner transfers and returns on ties/cancellation/expiry.
+- Atomic scan/reward/battle settlement, authenticated wager ownership checks and migrated SQLite persistence.
+- Reusable recard RTG art-generation/packing workflow; all 36 images verified and visually reviewed.
+- Sticker Book uses existing bottom-tab styles, shows season lore and only the tapped coin’s owned forms.
+- Developer test Heads/Tails taps award stickers with normal odds and automatic evolution.
+- Validation: 110 server tests, syntax checks and actual mobile browser acceptance passed.
+
 ## 2026-03-26 - Flip Off Challenge Feature
 
 ### ✅ Added

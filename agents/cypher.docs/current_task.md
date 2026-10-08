@@ -1,11 +1,11 @@
 # Current Task
 
-**Status:** Complete
+**Status:** Complete — Collectables locally launched
 **Assigned to:** Cypher
 **Started:** 2026-04-22
 
 ## Task Description
-Update PRD with Neo's session changes.
+Delivered collectables sprint: 12 factions/36 illustrated forms, random coin-owned rewards, auto evolution, optional authenticated locked wagers and mobile album. All Smith/Morpheus/Trin gates passed. Final109 server tests, browser checks, syntax checks and36-image validation pass. Retrospective and changelog recorded. No deployment performed.
 
 ## Progress
 - [x] Read PRD and Cypher state

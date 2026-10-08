@@ -1,6 +1,10 @@
 # Next Steps
 
 ## Immediate Next Action
+
+Final collectables status: all36 artwork/QA/UX/code gates passed; task.md, changelog and retrospective recorded. Await next documentation request. Earlier pending-close notes are superseded.
+
+2026-10-06: Feature guide, PRD §16, DECISIONS §6 and documentation index updated. After 36-image verification, record final validation and retro; hand off Cypher launch. Retain prior unrelated documentation history below.
 No pending doc work. Suite is groomed as of 2026-04-22.
 
 ## Planned (Optional Future Work)

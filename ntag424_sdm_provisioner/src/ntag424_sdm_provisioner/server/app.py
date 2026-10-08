@@ -10,6 +10,8 @@ from ntag424_sdm_provisioner.server.coin_message_service import CoinMessageServi
 from ntag424_sdm_provisioner.server.flip_off_service import FlipOffError, FlipOffService
 from ntag424_sdm_provisioner.server.game_state_manager import SqliteGameStateManager
 from ntag424_sdm_provisioner.server.jokes import get_random_joke
+from ntag424_sdm_provisioner.server.sticker_service import StickerService
+from ntag424_sdm_provisioner.server.sticker_routes import register_sticker_routes, authenticated_coin
 
 # Configure Logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -25,7 +27,8 @@ def init_managers(app, key_csv_path, db_path):
     """Initializes and attaches the key and game managers to the app instance."""
     app.key_manager = CsvKeyManager(csv_path=key_csv_path)
     app.game_manager = SqliteGameStateManager(db_path=db_path)
-    app.flip_off_service = FlipOffService(db_path=db_path)
+    app.sticker_service = StickerService(db_path=db_path)
+    app.flip_off_service = FlipOffService(db_path=db_path, sticker_service=app.sticker_service)
     app.coin_message_service = CoinMessageService(db_path=db_path)
 
 def parse_params(uid_str: str, ctr_str: str):
@@ -40,6 +43,7 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
     with app.app_context():
         Path("data").mkdir(exist_ok=True)
         init_managers(current_app, key_csv_path, db_path)
+    register_sticker_routes(app)
 
     @app.route("/")
     def index():
@@ -145,6 +149,7 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
             uid, ctr_int = parse_params(uid_str, ctr)
         except ValueError:
             return {"error": "Invalid counter format"}, 400
+        uid_str = uid.uid
 
         tag_keys = key_manager.get_tag_keys(uid)
         coin_name = tag_keys.coin_name
@@ -172,13 +177,25 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
         # Snapshot active challenge before recording to detect completions
         active_before = flip_off_service.get_active_challenge(coin_name) if coin_name else None
 
-        game_manager.update_state(
-            uid_str, ctr_int, new_outcome_str, coin_name=coin_name, cmac=cmac, is_test=is_test_mode
-        )
-
-        if not is_test_mode and coin_name:
-            flip_off_service.record_flip(coin_name)
-
+        sticker_award = {"drop": None, "evolutions": []}
+        if is_test_mode:
+            game_manager.update_state(
+                uid_str, ctr_int, new_outcome_str, coin_name=coin_name, cmac=cmac, is_test=True,
+            )
+            if new_outcome_str in ("heads", "tails"):
+                sticker_award = current_app.sticker_service.award_flip(
+                    coin_name, f"test:{uid_str}", ctr_int,
+                )
+        else:
+            try:
+                sticker_award = game_manager.record_validated_flip(
+                    uid_str, ctr_int, new_outcome_str, coin_name, cmac,
+                    current_app.sticker_service, flip_off_service,
+                )
+            except ValueError as exc:
+                if str(exc) == "Replay detected":
+                    return {"error": "Replay detected"}, 409
+                raise
         active_challenges = flip_off_service.get_all_active_challenges()
         challenge = flip_off_service.get_latest_challenge(coin_name) if coin_name else None
 
@@ -203,6 +220,8 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
             "heads_message": msgs[0],
             "tails_message": msgs[1],
             "totals": game_manager.get_totals(include_test=is_test_mode),
+            "sticker_award": sticker_award,
+            "stickers": current_app.sticker_service.collection(coin_name) if coin_name else [],
         }, 200
 
     @app.route("/api/flips/since")
@@ -262,9 +281,20 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
             return {"error": "Missing coin names"}, 400
 
         try:
-            challenge_id = flip_off_service.create_challenge(challenger_coin, challenged_coin, flip_count)
+            sticker_id = request.form.get("sticker_id", "").strip()
+            if sticker_id:
+                verified_coin, error = authenticated_coin(request.form, challenger_coin)
+                if error:
+                    return error
+                challenger_coin = verified_coin
+            challenge_id = flip_off_service.create_challenge(
+                challenger_coin, challenged_coin, flip_count,
+                sticker_id=sticker_id or None,
+            )
         except FlipOffError as e:
             return {"error": str(e)}, 400
+        except ValueError:
+            return {"error": "Choose a valid sticker copy."}, 400
 
         log.info("[FLIP OFF] Challenge %d created via POST", challenge_id)
         return {"challenge_id": challenge_id, "status": "pending"}, 201
@@ -276,8 +306,15 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
         coin_name = request.form.get("coin_name", "").strip()
         if not coin_name:
             return {"error": "Missing coin_name"}, 400
+        active = flip_off_service.get_active_challenge(coin_name)
+        wager_authorized = False
+        if (active and active.get("wagered")) or request.form.get("cmac"):
+            _, error = authenticated_coin(request.form, coin_name)
+            if error:
+                return error
+            wager_authorized = True
         try:
-            result = flip_off_service.yield_challenge(coin_name)
+            result = flip_off_service.yield_challenge(coin_name, allow_wager=wager_authorized)
         except FlipOffError as e:
             return {"error": str(e)}, 400
         return {"status": "yielded", "challenge": result}, 200

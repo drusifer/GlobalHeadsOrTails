@@ -1,0 +1,19 @@
+# Art tasks reuse ../recard RTG's generic image pipeline without editing it.
+.PHONY: sticker-art-gallery
+sticker-art-gallery: ## Browse clan artwork (HOST=0.0.0.0 PORT=8765)
+	python3 tools/sticker_gallery.py --host $(or $(HOST),0.0.0.0) --port $(or $(PORT),8765)
+.PHONY: sticker-catalog sticker-art-manifest sticker-art-generate sticker-art-pack sticker-art-verify sticker-art-review sticker-art-unlock
+sticker-catalog: ## Build runtime faction catalog from Smith's reviewed design
+	node tools/sticker_art.mjs catalog
+sticker-art-manifest: ## Build and validate the 36-artwork generation manifest
+	node tools/sticker_art.mjs manifest
+sticker-art-generate: ## Resumably generate artwork using recard's runner with safe Codex permissions
+	node tools/sticker_art.mjs generate
+sticker-art-pack: ## Pack generated masters with recard's image packer
+	node tools/sticker_art.mjs pack
+sticker-art-verify: ## Verify all 36 shipped sticker artworks
+	node tools/sticker_art.mjs verify
+sticker-art-review: ## Create an inspection contact sheet from actual packed artwork
+	node tools/sticker_art.mjs review
+sticker-art-unlock: ## Clear specified stale artwork locks after checking no backend owns them
+	node tools/sticker_art.mjs unlock

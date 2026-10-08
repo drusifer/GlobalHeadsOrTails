@@ -63,6 +63,15 @@ test_server: deps_test
 	@echo "Running server tests..."
 	$(PYTHON) -m pytest tests/*_server*.py -v
 
+.PHONY: test_collectables
+test_collectables: ## Run server regression and collectables tests without reinstalling dependencies
+	PYTHONPATH=$(CURDIR)/src $(PYTHON) -m pytest tests/test_server*.py $(ARGS) -q
+
+.PHONY: lint_collectables
+lint_collectables: ## Check changed server code for syntax/name errors and validate album JavaScript
+	$(PYTHON) -m ruff check --select E9,F63,F7,F82 src/ntag424_sdm_provisioner/server/
+	node --check src/ntag424_sdm_provisioner/server/static/stickers.js
+
 test: deps_test
 	@echo "Running tests..."
 	$(PYTHON) -m pytest tests/ -v
@@ -141,3 +150,11 @@ helm-uninstall:
 helm-logs:
 	@echo "Streaming pod logs..."
 	kubectl logs -n sdm -l app=sdm-provisioner -f
+
+.PHONY: test_sticker_ui
+test_sticker_ui: ## Exercise actual coin sticker UI in mobile Chromium with temporary Flask database
+	PYTHONPATH=$(CURDIR)/src $(PYTHON) scripts/check_sticker_ui.py
+
+.PHONY: verify_collectables_image
+verify_collectables_image: ## Verify installed sticker catalog and all 36 images in the rebuilt container
+	docker run --rm --network none --read-only --tmpfs /tmp --entrypoint python ntag424-sdm-provisioner -c 'from importlib.resources import files; from ntag424_sdm_provisioner.server.sticker_service import StickerService; root = files("ntag424_sdm_provisioner.server"); service = StickerService("/tmp/sticker-check.db"); catalog = service.catalog; assert len(catalog["families"]) == 12; assets = [root.joinpath("static", "stickers", str(f["id"])+"-"+str(form["level"])+".webp") for f in catalog["families"] for form in f["forms"]]; assert len(assets) == 36 and all(p.is_file() and p.read_bytes()[:4] == b"RIFF" for p in assets); assert root.joinpath("static", "stickers.js").is_file(); print("PASS: installed catalog, sticker service and 36 artwork files")'

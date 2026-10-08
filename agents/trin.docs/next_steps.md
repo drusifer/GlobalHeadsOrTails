@@ -1,10 +1,3 @@
 # Next Steps
 
-## Immediate Next Action
-Await Morpheus review outcome. If review flags issues, fix them.
-
-## Test Command
-`cd ntag424_sdm_provisioner && make test_server`
-
-## New Test File
-`tests/test_server_polling.py` — covers /api/flips/since and /api/state
+Await final browser/Smith review. If root changes domain or endpoints, run make -C ntag424_sdm_provisioner test_collectables. Keep sticker_api tests deterministic using SignedKeys UID.uid and FixedRandom. New service borrowed-transaction APIs must never commit/close caller connections. Root owns app.py, game_state_manager.py, sticker_routes.py and UI; report issues before editing those.

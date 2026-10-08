@@ -1,6 +1,14 @@
 # BobProtocol Documentation Index
 
-**Last Updated:** 2026-04-22
+**Last Updated:** 2026-10-06
+
+## Collectables — The Twelve Clans
+
+- [Feature guide and validation commands](../ntag424_sdm_provisioner/docs/COLLECTABLES.md)
+- [Accepted requirements, PRD §16](../ntag424_sdm_provisioner/docs/PRD.md)
+- [Sprint stories and architecture](cypher.docs/collectables_sprint.md)
+- [Smith faction catalog and UX criteria](smith.docs/collectables_catalog.md)
+- [Reusable RTG artwork pipeline](../tools/STICKER_ART.md)
 
 ## Quick Access
 

@@ -702,3 +702,21 @@ AES-128 key material (stored keys, derived session keys, intermediate CMACs) was
 - Truncated CMAC (8 bytes already present in the tap URL)
 - `cmac_received` / `cmac_calculated` comparison (truncated, public)
 
+---
+
+## 16. Collectable Stickers — The Twelve Clans
+
+**Added:** 2026-10-06. **Owner:** Cypher. Creative/UX review: Smith.
+
+The physical coin is the only identity. Its database collection persists across taps and devices. Every genuine validated Heads/Tails flip, including Flip Off flips, independently has a 50% chance to award one level-1 sticker. Developer test Heads/Tails flips also award stickers with the same odds and evolution. Replays and invalid flips award nothing. Conditional on a drop, rarity probabilities are Common 60%, Uncommon 25%, Rare 12%, Legendary 3%; each family within its rarity is equally likely.
+
+The launch pack has twelve competing original RPG clans: five Common, four Uncommon, two Rare, one Legendary. Each clan has three named evolutionary forms, distinct artwork per level, kinship traditions, ancestral ambitions, rivalries and original lore quotes. The clan chronicles in the album tell their shared story. Three unlocked copies of the same family and level automatically combine into one copy at the next level, cascading to level 3. Rarity never changes. Level-3 duplicates remain collectible. Stable family IDs preserve ownership and artwork when clan display names change.
+
+The album shows all 36 forms, owned and locked copy counts, progress, rarity and evolution level as separate text. Drops and evolution produce visible explanations. Names and quotes are HTML, outside the illustrations. Artwork uses the adjacent recard RTG image-generation scripts; repeatable generation and packing commands are documented in `COLLECTABLES.md`.
+
+Sticker wagers are optional. A challenger offers one exact copy; the challenged coin chooses its own copy after reviewing the offer and accepts the fixed terms. The challenger commits to accepting whichever copy the opponent chooses. Neither offer can change. No battle flips count until acceptance. Both stakes lock against other wagers and evolution. A win, including an accepted-match yield, transfers both copies to the winner. Draws, cancellations, declines and expiry return each original copy. Pending offers may be cancelled by either participant; accepted matches cannot be unilaterally cancelled to avoid a loss. Yielding before acceptance returns the offered copy. Unlocked/received stickers immediately participate in automatic evolution.
+
+Wager mutations authenticate the coin from signed UID/counter/CMAC credentials and enforce inventory ownership server-side. Scans, award decisions, challenge progress and terminal settlement share one SQLite transaction; duplicate requests cannot reroll rewards or double-count progress. Existing database contents migrate in place. Independent album polling shows offers and acceptance even when no flip occurs.
+
+Acceptance criteria and sprint phases: `../../agents/cypher.docs/collectables_sprint.md`. Validation results are recorded in the sprint close summary after all gates pass.
+

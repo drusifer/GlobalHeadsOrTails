@@ -93,3 +93,11 @@ This document records key decisions made during the project lifecycle.
 - **Status**: Accepted
 - **Date**: 2026-04-22
 - **Related**: `agents/morpheus.docs/context.md`, `tests/test_server_polling.py`
+
+## 6. Coin-owned Collectables and Atomic Sticker Wagers
+- **Context**: Random rewards and wagers must survive retries, concurrent taps and worker crashes without duplicate awards, lost stakes or counted-but-unrewarded flips.
+- **Decision**: Retain coin identity and SQLite. Persist individual sticker copies and per-UID/counter award decisions. Commit the genuine scan, reward/evolution, challenge progress and terminal stake transfer in one `BEGIN IMMEDIATE` transaction. Exclude locked copies from automatic 3:1 evolution. Authenticate wager actions from the signed tap's resolved coin, and recheck yield authorization against the actual current wager inside its write transaction.
+- **Consequences**: Existing databases migrate without resetting data. Each wager has fixed exact-copy terms, explicit opponent acceptance and exactly-once terminal settlement. Public collection reads poll independently because an offer/acceptance can happen without a new flip. The original polling completion overlay now deduplicates battle IDs.
+- **Status**: Accepted
+- **Date**: 2026-10-06
+- **Related**: `docs/COLLECTABLES.md`, `docs/PRD.md` §16, `../agents/cypher.docs/collectables_sprint.md`.
