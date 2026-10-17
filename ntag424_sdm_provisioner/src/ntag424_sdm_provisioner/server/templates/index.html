@@ -545,10 +545,15 @@
   <section id="StickerBook" class="tab-content" aria-labelledby="sticker-title">
     <div class="collection-section">
     <h2 id="sticker-title">The Twelve Clans</h2>
-    <p>Twelve rival clans contest their ancestral seals. Every flip is an omen.</p>
+    <div class="sticker-filters">
+      <label for="sticker-pack">Sticker pack <select id="sticker-pack" aria-label="Sticker pack"></select></label>
+      <label for="sticker-search">Search your collection <input id="sticker-search" type="search" placeholder="Player or family name" autocomplete="off" disabled></label>
+    </div>
     <p id="sticker-lore"></p>
+    <p>Physically flip your coin before each tap for the best sticker odds. Tap the face that lands. Drops are random; repeated same-side outcomes can lower your chance.</p>
+    <p id="sticker-odds" role="status"></p>
     <p id="sticker-progress" role="status">Loading collection…</p>
-    <details><summary>Collection rules and drop odds</summary><p>Each valid flip has an independent 50% chance to find a level-1 sticker. When a sticker drops: Common 60%, Uncommon 25%, Rare 12%, Legendary 3%. Three unlocked matching copies automatically combine into one at the next level, up to level 3. Rarity stays the same. Wagered copies stay locked until the Flip Off ends.</p></details>
+    <details><summary>Collection rules and drop odds</summary><p>Each valid flip has a 5%–50% chance to find a level-1 sticker, weighted by your coin’s entropy and monobit p-value. Lower scores lower the odds, with a 5% minimum. Entropy applies from the first flip; p-value weighting begins at 100 flips. Both faces share the coin’s history. The next flip can change your chance. These balance scores do not prove randomness. Three unlocked matching copies automatically combine into one at the next level, up to level 3. Rarity stays the same. Wagered copies stay locked until the Flip Off ends.</p><p id="sticker-rarity-policy"></p></details>
     <div id="sticker-album"></div>
     </div>
   </section>

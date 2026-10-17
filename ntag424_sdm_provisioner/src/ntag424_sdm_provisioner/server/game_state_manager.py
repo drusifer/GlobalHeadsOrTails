@@ -11,6 +11,7 @@ from ntag424_sdm_provisioner.crypto.crypto_primitives import (
     nist_frequency_monobit_test,
 )
 from ntag424_sdm_provisioner.csv_key_manager import UID
+from ntag424_sdm_provisioner.server.sticker_odds import coin_sticker_odds
 
 
 log = logging.getLogger(__name__)
@@ -147,26 +148,32 @@ class SqliteGameStateManager(IGameStateManager):
 
     def record_validated_flip(
         self, uid: str, counter: int, outcome: str, coin_name: str, cmac: str,
-        sticker_service, flip_off_service=None,
+        sticker_service, flip_off_service=None, is_test: bool = False,
     ) -> dict:
-        """Commit a genuine scan and its award together, serializing replay checks."""
+        """Commit scan, score and award together; test retries return their prior award."""
         uid = uid.upper()
         conn = self._get_conn()
         try:
             with conn:
                 conn.execute("BEGIN IMMEDIATE")
+                award_uid = f"test:{uid}" if is_test else uid
+                if is_test:
+                    prior = conn.execute("SELECT 1 FROM sticker_awards WHERE uid=? AND counter=?", (award_uid,counter)).fetchone()
+                    if prior:
+                        return sticker_service.award_flip(coin_name, award_uid, counter, conn=conn)
                 row = conn.execute(
                     "SELECT COALESCE(MAX(counter), 0) FROM scan_logs WHERE uid = ?", (uid,),
                 ).fetchone()
-                if counter <= row[0]:
+                if not is_test and counter <= row[0]:
                     raise ValueError("Replay detected")
                 conn.execute(
-                    "INSERT INTO scan_logs (uid,counter,outcome,coin_name,cmac,is_test) VALUES (?,?,?,?,?,FALSE)",
-                    (uid, counter, outcome.lower(), coin_name, cmac),
+                    "INSERT INTO scan_logs (uid,counter,outcome,coin_name,cmac,is_test) VALUES (?,?,?,?,?,?)",
+                    (uid, counter, outcome.lower(), coin_name, cmac, is_test),
                 )
                 if coin_name and outcome.lower() in ("heads", "tails"):
-                    award = sticker_service.award_flip(coin_name, uid, counter, conn=conn)
-                    if flip_off_service is not None:
+                    odds = coin_sticker_odds(conn, coin_name, include_test=is_test)
+                    award = sticker_service.award_flip(coin_name, award_uid, counter, conn=conn, odds=odds)
+                    if flip_off_service is not None and not is_test:
                         flip_off_service.record_flip(coin_name, conn=conn)
                     return award
                 return {"drop": None, "evolutions": []}

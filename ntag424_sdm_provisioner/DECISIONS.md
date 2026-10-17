@@ -101,3 +101,16 @@ This document records key decisions made during the project lifecycle.
 - **Status**: Accepted
 - **Date**: 2026-10-06
 - **Related**: `docs/COLLECTABLES.md`, `docs/PRD.md` §16, `../agents/cypher.docs/collectables_sprint.md`.
+
+## 7. Entropy-weighted sticker drops
+- **Decision**: Use exact Heads/Tails counts pooled by coin name across both face UIDs. Drop chance is 0.5 * max(0.1, entropy/8 * p_weight), a 5%-50% range. Monobit p_weight is neutral before 100 actual flips; at 100 it becomes erfc(abs(heads-tails)/sqrt(2*n)). Do not reuse byte-padded leaderboard metrics.
+- **Persistence**: Genuine scan, score snapshot, award, evolution and battle progression share one transaction. Test scans/awards also commit together; retry returns its stored decision before inserting a scan. Test history never contributes to real odds. Legacy ledger rows remain readable without new metadata.
+- **UX**: Show current chance, early-history explanation and physical-flip guidance. Balance scores cannot prove randomness or guarantee a sticker.
+- **Status**: Accepted, 2026-10-07; Smith gates and Morpheus code review approved.
+
+## 8. Archive-safe multi-pack Rangers collection
+- **Context**: Full historical player coverage and changing seasons must preserve old collections, wagers, evolution and award replay without per-UID ownership splits.
+- **Decision**: Keep globally unique stable family IDs and coin-name inventory, with a validated immutable multi-pack registry and indexed family/form lookup. Only the active pack draws new awards. Rangers uses direct individual rarity weights 8/4/2/1; Twelve Clans retains its existing tier-first policy. Public polling sends pack headers plus owned-family metadata rather than the whole historical roster.
+- **Artwork**: One unique original portrait per player, shared by three structural/text-labeled CSS treatments. Full 1,162 portraits/3,486 form references must validate before activation. Reuse the existing Recard-backed safe generator, validator and packer; retain resumable masters, per-ID locks and portable source audits. Generic NHL silhouettes are rejected. Candidate downloads do not verify likeness; disclose archival interpretations where no usable photo exists.
+- **Consequences**: No ownership DB migration; historic awards and stakes remain readable. Stats stay Rangers-only, split by competition and role with historical nulls preserved. Old pack stays active until full-art/final-review gates pass.
+- **Status**: Accepted, 2026-10-07; Smith story/architecture/actual 18-card sample and Morpheus reviews approved. Production BLOCKED by quota at478 masters/684 missing; reset2026-10-08 22:44:02 America/New_York. No image calls before reset; preserve valid masters and clear only confirmed stale locks.147 QA and isolated active-browser approvals cover preparation only; no release claim.

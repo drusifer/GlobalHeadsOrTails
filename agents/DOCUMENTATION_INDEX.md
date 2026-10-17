@@ -1,14 +1,25 @@
 # BobProtocol Documentation Index
 
-**Last Updated:** 2026-10-06
+**Last Updated:** 2026-10-07
 
 ## Collectables — The Twelve Clans
 
 - [Feature guide and validation commands](../ntag424_sdm_provisioner/docs/COLLECTABLES.md)
 - [Accepted requirements, PRD §16](../ntag424_sdm_provisioner/docs/PRD.md)
 - [Sprint stories and architecture](cypher.docs/collectables_sprint.md)
+- [Entropy-weighted awards stories and architecture](cypher.docs/entropy_stickers_sprint.md)
 - [Smith faction catalog and UX criteria](smith.docs/collectables_catalog.md)
 - [Reusable RTG artwork pipeline](../tools/STICKER_ART.md)
+
+## Rangers historical pack — BLOCKED, not released
+
+- [Accepted stories and editorial rarity](cypher.docs/rangers_stickers_sprint.md)
+- [Archive-safe pack architecture](morpheus.docs/rangers_stickers_architecture.md)
+- [Official roster audit and caveats](oracle.docs/rangers_roster_sources.md)
+- [Portable portrait-source status audit](oracle.docs/rangers_art_sources.json)
+- [Actual sample acceptance criteria](smith.docs/rangers_art_acceptance.md)
+- [Six-phase sprint progress](mouse.docs/rangers_sprint_log.md)
+- [Open release gates](cypher.docs/rangers_release_checklist.md)
 
 ## Quick Access
 
@@ -85,10 +96,10 @@ Located in `agents/templates/`:
 
 | File | Purpose |
 |------|---------|
-| `DECISIONS.md` | Architecture decisions log (5 entries, latest: SSE→Polling 2026-04-22) |
+| `DECISIONS.md` | Architecture decisions log (7 entries; latest entropy-weighted awards2026-10-07) |
 | `ARCH.md` | System architecture — provisioner TUI service layer |
 | `LESSONS.md` | Lessons learned |
-| `docs/PRD.md` | Product Requirements Document (§15 current) |
+| `docs/PRD.md` | Product Requirements Document (§16 collectables and weighted awards current) |
 | `docs/ROADMAP.md` | Feature roadmap |
 | `docs/ISO Compliant NDEF Reference.md` | NDEF/NXP reference specification |
 | `task.md` | Sprint log (current + recent sprints) |
@@ -153,3 +164,5 @@ Root-level VS Code era docs (2025-12) archived to `docs_archive/`.
 ---
 
 **For Help:** Type `*help` or read `agents/bob.docs/HELP.md`
+
+- [Quota block and exact missing player IDs](neo.docs/rangers_art_blocker.json)

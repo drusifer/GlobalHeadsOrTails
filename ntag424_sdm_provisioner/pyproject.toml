@@ -61,7 +61,7 @@ reference = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-"ntag424_sdm_provisioner.server" = ["templates/*.html", "sticker_catalog.json", "static/*.js", "static/*.css", "static/stickers/*.webp"]
+"ntag424_sdm_provisioner.server" = ["templates/*.html", "sticker_catalog*.json", "sticker_packs.json", "static/*.js", "static/*.css", "static/stickers/*.webp", "static/stickers/rangers-history/*.webp"]
 
 # Command-line scripts
 [project.scripts]

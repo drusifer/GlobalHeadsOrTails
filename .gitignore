@@ -34,3 +34,7 @@ cloudflared.deb
 .claude
 .cursorrules
 .via
+
+# Bob Protocol / via — machine-local config and index, not portable
+.mcp.json
+.via/

@@ -155,6 +155,25 @@ helm-logs:
 test_sticker_ui: ## Exercise actual coin sticker UI in mobile Chromium with temporary Flask database
 	PYTHONPATH=$(CURDIR)/src $(PYTHON) scripts/check_sticker_ui.py
 
+.PHONY: test_rangers_art_ui
+test_rangers_art_ui: ## Capture six actual Rangers portraits in all three frames at mobile and desktop sizes
+	PYTHONPATH=$(CURDIR)/src $(PYTHON) scripts/check_rangers_art_ui.py
+
+.PHONY: test_rangers_active_ui
+test_rangers_active_ui: ## Exercise temporary active Rangers defaults, actual weighted drops, test replay and legacy archive
+	PYTHONPATH=$(CURDIR)/src $(PYTHON) scripts/check_rangers_art_ui.py --active-rangers
+
+.PHONY: verify_rangers_package
+verify_rangers_package: ## Build a local wheel only after full artwork exists, then verify exact release assets
+	$(PYTHON) scripts/check_rangers_package.py --source-only
+	$(PYTHON) -m build --wheel --no-isolation --outdir build/rangers-wheel
+	$(PYTHON) scripts/check_rangers_package.py
+
+.PHONY: lint_rangers_validation
+lint_rangers_validation: ## Check Rangers package and browser validation scripts without requiring full artwork
+	$(PYTHON) -m py_compile scripts/check_rangers_package.py scripts/check_rangers_art_ui.py scripts/check_sticker_ui.py scripts/sticker_pack_fixtures.py
+	$(PYTHON) -m ruff check --select E9,F63,F7,F82 scripts/check_rangers_package.py scripts/check_rangers_art_ui.py scripts/check_sticker_ui.py scripts/sticker_pack_fixtures.py tests/test_server_sticker_packs.py
+
 .PHONY: verify_collectables_image
 verify_collectables_image: ## Verify installed sticker catalog and all 36 images in the rebuilt container
 	docker run --rm --network none --read-only --tmpfs /tmp --entrypoint python ntag424-sdm-provisioner -c 'from importlib.resources import files; from ntag424_sdm_provisioner.server.sticker_service import StickerService; root = files("ntag424_sdm_provisioner.server"); service = StickerService("/tmp/sticker-check.db"); catalog = service.catalog; assert len(catalog["families"]) == 12; assets = [root.joinpath("static", "stickers", str(f["id"])+"-"+str(form["level"])+".webp") for f in catalog["families"] for form in f["forms"]]; assert len(assets) == 36 and all(p.is_file() and p.read_bytes()[:4] == b"RIFF" for p in assets); assert root.joinpath("static", "stickers.js").is_file(); print("PASS: installed catalog, sticker service and 36 artwork files")'

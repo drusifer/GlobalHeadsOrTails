@@ -1,6 +1,10 @@
 """Collection reads and coin-authenticated wager actions."""
 
 from collections.abc import Mapping
+from contextlib import closing
+import sqlite3
+
+from ntag424_sdm_provisioner.server.sticker_odds import coin_sticker_odds
 
 from flask import Flask, current_app, request
 
@@ -35,19 +39,14 @@ def register_sticker_routes(app: Flask) -> None:
         coin = request.args.get("coin_name", "").strip()
         service = current_app.flip_off_service
         service.expire_stale_challenges()
+        with closing(sqlite3.connect(current_app.sticker_service.db_path)) as conn:
+            odds = coin_sticker_odds(conn, coin, include_test=bool(request.args.get("drew_test_outcome"))) if coin else None
+        collection = current_app.sticker_service.collection(coin) if coin else []
         return {
-            "catalog": {
-                **current_app.sticker_service.catalog,
-                "families": [
-                    {**family, "forms": [
-                        {key: value for key, value in form.items() if key != "art_prompt"}
-                        for form in family["forms"]
-                    ]}
-                    for family in current_app.sticker_service.catalog["families"]
-                ],
-            },
+            "odds": odds,
+            "catalog": current_app.sticker_service.public_catalog(collection),
             "coin_name": coin,
-            "stickers": current_app.sticker_service.collection(coin) if coin else [],
+            "stickers": collection,
             "challenge": service.get_latest_challenge(coin, include_expired=True) if coin else None,
             "active_challenges": service.get_all_active_challenges(),
             "recent_completed": service.get_recent_completed(3),

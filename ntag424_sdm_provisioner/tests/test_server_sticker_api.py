@@ -9,6 +9,7 @@ from ntag424_sdm_provisioner.csv_key_manager import Outcome
 from ntag424_sdm_provisioner.server.app import create_app
 from ntag424_sdm_provisioner.server.flip_off_service import FlipOffService
 from tests.test_server_stickers import FixedRandom
+from scripts.sticker_pack_fixtures import select_fixture_pack
 
 UID_A = '0401000000001A'
 UID_B = '0402000000002A'
@@ -36,6 +37,7 @@ def api(tmp_path):
     app = create_app(str(tmp_path / 'keys.csv'), str(tmp_path / 'game.db'))
     app.config['TESTING'] = True
     app.key_manager = SignedKeys()
+    select_fixture_pack(app.sticker_service, tmp_path, 'twelve-clans')
     app.sticker_service.rng = FixedRandom()
     return app
 

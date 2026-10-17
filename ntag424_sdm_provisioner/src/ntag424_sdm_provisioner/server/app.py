@@ -7,6 +7,7 @@ from flask import Flask, current_app, render_template, request
 from ntag424_sdm_provisioner.csv_key_manager import UID, CsvKeyManager
 from ntag424_sdm_provisioner.log_utils import mask_key
 from ntag424_sdm_provisioner.server.coin_message_service import CoinMessageService
+from ntag424_sdm_provisioner.server.vip_service import VipService
 from ntag424_sdm_provisioner.server.flip_off_service import FlipOffError, FlipOffService
 from ntag424_sdm_provisioner.server.game_state_manager import SqliteGameStateManager
 from ntag424_sdm_provisioner.server.jokes import get_random_joke
@@ -23,26 +24,37 @@ def _check_expired(flip_off_service) -> None:
     flip_off_service.expire_stale_challenges()
 
 
-def init_managers(app, key_csv_path, db_path):
+def init_managers(app, key_csv_path, db_path, vip_key_csv_path="data/vip_tag_keys.csv"):
     """Initializes and attaches the key and game managers to the app instance."""
     app.key_manager = CsvKeyManager(csv_path=key_csv_path)
+    vip_csv = getenv("VIP_KEY_CSV_PATH", vip_key_csv_path)
+    app.vip_key_manager = CsvKeyManager(
+        csv_path=vip_csv,
+        backup_path=f"{vip_csv}.bak",
+        timestamped_backup_dir=str(Path(vip_csv).parent / "vip_backups"),
+    )
     app.game_manager = SqliteGameStateManager(db_path=db_path)
     app.sticker_service = StickerService(db_path=db_path)
     app.flip_off_service = FlipOffService(db_path=db_path, sticker_service=app.sticker_service)
     app.coin_message_service = CoinMessageService(db_path=db_path)
+    app.vip_service = VipService(db_path=db_path)
 
 def parse_params(uid_str: str, ctr_str: str):
     uid = UID(uid_str)
     ctr_int = int(ctr_str, 16)
     return uid, ctr_int
 
-def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
+def create_app(
+    key_csv_path="data/tag_keys.csv",
+    db_path="data/app.db",
+    vip_key_csv_path="data/vip_tag_keys.csv",
+):
     """Application factory for the Flask app."""
     app = Flask(__name__)
 
     with app.app_context():
         Path("data").mkdir(exist_ok=True)
-        init_managers(current_app, key_csv_path, db_path)
+        init_managers(current_app, key_csv_path, db_path, vip_key_csv_path=vip_key_csv_path)
     register_sticker_routes(app)
 
     @app.route("/")
@@ -367,6 +379,72 @@ def create_app(key_csv_path="data/tag_keys.csv", db_path="data/app.db"):
             "recent_flips": game_manager.get_recent_flips(),
             "totals": game_manager.get_totals(include_test=is_test_mode),
         }
+
+
+    @app.route("/api/vip/validate", methods=["GET"])
+    def api_vip_validate():
+        """Validate an NTAG 424 DNA SDM tap for gs.works/contact VIP mode."""
+        uid_str = (request.args.get("uid") or request.args.get("id") or "").strip()
+        ctr = (request.args.get("ctr") or request.args.get("counter") or "").strip()
+        cmac = (request.args.get("cmac") or "").strip()
+
+        if not uid_str or not ctr or not cmac:
+            return {"valid": False, "vip": False, "reason": "missing_params"}, 400
+
+        try:
+            uid, ctr_int = parse_params(uid_str, ctr)
+        except ValueError:
+            return {"valid": False, "vip": False, "reason": "invalid_params"}, 400
+
+        result = current_app.vip_key_manager.validate_sdm_url(uid, ctr_int, cmac)
+        if not result.get("valid"):
+            return {"valid": False, "vip": False, "reason": "invalid_cmac"}, 401
+
+        if not current_app.vip_service.is_counter_fresh(uid.uid, ctr_int):
+            return {"valid": False, "vip": False, "reason": "replayed_counter"}, 401
+
+        return {
+            "valid": True,
+            "vip": True,
+            "uid": uid.uid,
+            "counter": ctr_int,
+        }, 200
+
+    @app.route("/api/vip/send", methods=["POST"])
+    def api_vip_send():
+        """Verify SDM tap, persist VIP Bat Signal message, and notify via ntfy.sh."""
+        data = request.get_json(silent=True) or {}
+        uid_str = (data.get("uid") or "").strip()
+        ctr = (data.get("ctr") or "").strip()
+        cmac = (data.get("cmac") or "").strip()
+        sender = (data.get("sender") or "").strip()
+        message = (data.get("message") or "").strip()
+
+        if not sender or len(sender) > 120 or not message or len(message) > 1000:
+            return {"ok": False, "error": "Invalid sender or message"}, 400
+
+        if not uid_str or not ctr or not cmac:
+            return {"ok": False, "error": "auth_failed"}, 401
+
+        try:
+            uid, ctr_int = parse_params(uid_str, ctr)
+        except ValueError:
+            return {"ok": False, "error": "auth_failed"}, 401
+
+        result = current_app.vip_key_manager.validate_sdm_url(uid, ctr_int, cmac)
+        if not result.get("valid"):
+            return {"ok": False, "error": "auth_failed"}, 401
+
+        if not current_app.vip_service.is_counter_fresh(uid.uid, ctr_int):
+            return {"ok": False, "error": "auth_failed"}, 401
+
+        ok, reason = current_app.vip_service.send_bat_signal(
+            uid.uid, ctr_int, sender, message
+        )
+        if not ok:
+            return {"ok": False, "error": reason}, 502
+
+        return {"ok": True}, 200
 
     return app
 

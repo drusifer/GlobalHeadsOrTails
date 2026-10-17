@@ -1,22 +1,5 @@
-# Current Task
+# Oracle current task
 
-**Status:** Complete — Collectables documentation and sprint close recorded
-**Assigned to:** Oracle
-**Started:** 2026-04-22
+Quota-block grooming complete. **BLOCKED — not released.** Image generation returned `usage_limit_reached` (HTTP429). At the stop checkpoint, 478 of 1,162 masters existed and 684 player IDs remained missing. All four managed lanes stopped cleanly. Reset: **2026-10-08 22:44:02 America/New_York** (2026-10-09 02:44:02 UTC; epoch1791513842). Exact missing IDs and evidence: `agents/neo.docs/rangers_art_blocker.json`; ignored quota report: `build/rangers-art/quota-report.json`. Packing the 478 existing masters does not satisfy full-art completeness. Twelve Clans remains active.
 
-## Task Description
-`*ora groom` — documentation audit and cleanup.
-
-## Completed
-- [x] Surveyed all markdown files across project
-- [x] Archived 9 stale root-level docs → `docs_archive/`
-- [x] Moved `ISO Compliant NDEF Reference.md` → `ntag424_sdm_provisioner/docs/`
-- [x] Moved `agents/feedback_flipoff_ux.md` → `agents/smith.docs/`
-- [x] Moved `agents/neo.docs/via_mcp_fix_Summary*.md` → `agents/oracle.docs/`
-- [x] Marked `arch_flipoff_sse.md` SUPERSEDED
-- [x] Added Decision §5 (SSE→Polling) to `DECISIONS.md`
-- [x] Updated `task.md` with sprint completion status
-- [x] Updated `DOCUMENTATION_INDEX.md` with knowledge base table
-
-## Result
-Root: 3 files. Docs indexed. Decisions current.
+Root owns packing/review of existing masters; no release or activation.

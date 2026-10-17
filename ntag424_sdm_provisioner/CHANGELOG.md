@@ -1,5 +1,21 @@
 # Changelog
 
+## Upcoming - Rangers historical pack (BLOCKED, not released)
+
+- Artwork quota block:478 masters/684 missing; all managed lanes stopped. Reset2026-10-08 22:44:02 America/New_York. Twelve Clans remains active; full artwork/package/final review/launch gates remain open.
+- Full official 1,162-player catalog with Rangers-only stats, sourced facts and original cartoon humor.
+- Multi-pack archive support, owned-only name search, player/source details and three structural evolution frames.
+- Editorial fan-favorite rarity with individual 8/4/2/1 weights; old inventory, wagers, entropy odds and stored awards preserved.
+- Existing Recard art generator reused; six-portrait/eighteen-card sample approved. Full roster artwork and activation remain pending.
+- Current validation:147 server tests, syntax, sample artwork and isolated active-Rangers browser preparation pass.
+
+## 2026-10-07 — Entropy-weighted sticker drops
+
+- Odds vary from 5% to 50% based on exact coin entropy and monobit p-value, shared across both face UIDs.
+- Current odds, warm-up policy and real physical-flip instructions appear in the Sticker Book.
+- Test awards use the same policy without affecting real odds; retries preserve original score/drop decisions.
+- Validation: 126 server tests, syntax checks and actual mobile browser acceptance pass, including mature odds, test labels/history isolation and existing album/evolution/wager flows.
+
 ## 2026-10-06 — Collectables: The Twelve Clans
 
 - Coin-owned sticker album with 12 original RPG factions, 36 named/illustrated forms and narrative lore quotes.

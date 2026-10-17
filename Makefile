@@ -215,8 +215,11 @@ chat: ## Post a message to CHAT.md (usage: make chat MSG="<msg>" [PERSONA="<name
 test: ## Run unit tests
 	@./agents/tools/mkf.py $(V) $@
 
+sticker-production-start sticker-production-status sticker-production-stop sticker-production-clear-quota:
+	@./agents/tools/mkf.py $(V) $@
+
 .PHONY: sticker-catalog sticker-art-manifest sticker-art-generate sticker-art-pack sticker-art-verify sticker-art-review sticker-art-unlock
-sticker-catalog sticker-art-manifest sticker-art-generate sticker-art-pack sticker-art-verify sticker-art-review sticker-art-unlock sticker-art-gallery:
+sticker-catalog sticker-art-manifest sticker-art-generate sticker-art-pack sticker-art-verify sticker-art-review sticker-art-unlock sticker-art-syntax sticker-art-references sticker-art-regenerate sticker-art-activate sticker-art-gallery test-sticker-gallery rangers-roster-audit rangers-roster-seasons rangers-catalog rangers-reference-index:
 	@./agents/tools/mkf.py $(V) $@
 
 via_index: ## Build the via index required by the via MCP server

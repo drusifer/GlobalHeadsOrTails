@@ -5,6 +5,20 @@
 .sticker-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; }
 .sticker-card { border:1px solid #e0e0e0; border-radius:8px; padding:12px; overflow-wrap:anywhere; }
 .sticker-card img { display:block; width:100%; aspect-ratio:1; object-fit:contain; border-radius:8px; }
+.sticker-filters { display:flex; flex-wrap:wrap; gap:12px; margin:12px 0; }
+.sticker-filters label { flex:1 1 220px; min-width:0; font-size:.9rem; }
+.sticker-filters input,.sticker-filters select { display:block; width:100%; box-sizing:border-box; min-height:44px; margin-top:6px; padding:8px; border:1px solid #ccc; border-radius:4px; font:inherit; color:inherit; background:#fff; }
+.sticker-portrait { border:1px solid transparent; padding:3px; }
+.sticker-level-1 .sticker-portrait { border:1px solid #adb5bd; border-radius:4px; }
+.sticker-level-2 .sticker-portrait { border:4px double #6c757d; border-radius:12px 2px; }
+.sticker-level-3 .sticker-portrait { border:3px solid #6c757d; outline:2px dashed #adb5bd; outline-offset:3px; border-radius:18px 18px 2px 2px; margin:4px; }
+.sticker-player-tenure,.sticker-stats-label { font-size:.75rem; line-height:1.4; margin:8px 0 4px; }
+.sticker-stat-line { display:flex; flex-wrap:wrap; gap:3px 8px; font-size:.75rem; line-height:1.5; }
+.sticker-stat-line span { white-space:nowrap; }
+.sticker-player-details { font-size:.8rem; line-height:1.5; }
+.collection-section .sticker-player-details summary { font-size:.8rem; font-weight:normal; }
+.sticker-player-details ul { padding-left:18px; }
+.sticker-mini { width:48px; height:48px; object-fit:contain; vertical-align:middle; margin-right:8px; }
 .sticker-card h4 { margin:8px 0 4px; font-size:.95rem; }
 .sticker-card blockquote { margin:8px 0; font-size:.8rem; line-height:1.4; color:#6c757d; }
 .sticker-meta { font-size:.8rem; line-height:1.6; }
