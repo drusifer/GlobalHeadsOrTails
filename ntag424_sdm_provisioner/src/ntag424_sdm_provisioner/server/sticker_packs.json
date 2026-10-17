@@ -1,0 +1,18 @@
+{
+  "active_pack_id": "twelve-clans",
+  "packs": [
+    {
+      "id": "twelve-clans",
+      "catalog": "sticker_catalog.json",
+      "selection": {"type": "legacy_tiers"}
+    },
+    {
+      "id": "rangers-history",
+      "catalog": "sticker_catalog_rangers.json",
+      "selection": {
+        "type": "player_weights",
+        "weights": {"common": 8, "uncommon": 4, "rare": 2, "legendary": 1}
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+# Completed478portrait checkpoint
+
+2026-10-08: verified all257previously reviewed packaged WebP hashes unchanged. Current review-index contains exactly221new IDs with zero overlap. Viewed all seven current contact sheets001–007; ignored stale008. Full-resolution spot checks: Bob Froese8446982, Spencer Martin8477484 and Larry Kwong8447254.
+
+Quality accepted for these221new portraits, bringing recorded visual review to478completed assets. No specific regeneration issue identified at contact-sheet/spot-check scale. Cream-background painted style, differentiated faces and era gear, clear goalie/skater silhouettes and gentle bagel humor remain consistent. Full-resolution spot checks show clean sticks, gloves/pads/skates without obvious duplicated limbs or stray text. Repeated bagel motif remains a nonblocking variety constraint. Source identity candidates and disclosed archival interpretations remain unverified as marked; this does not certify likeness independently.
+
+Exact478reviewed IDs and asset hashes merged into rangers_reviewed_art.json. Full1162release is NOT approved:684portraits missing due external image quota. Root reports all workers stopped and reset2026-10-08 22:44:02America/New_York. No more generation before reset; use guarded recovery workflow then review new/changed IDs. Old pack remains active. Final asset/coverage/package/app gates, retrospective and launch remain outstanding.

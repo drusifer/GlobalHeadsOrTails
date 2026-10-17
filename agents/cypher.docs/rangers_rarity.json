@@ -1,0 +1,357 @@
+{
+  "schema_version": 1,
+  "pack_id": "rangers-history",
+  "snapshot_date": "2026-10-07",
+  "review_status": "smith_approved",
+  "policy": "Editorial fan-favorite rarity informed by official honors and team recognition; not an objective popularity ranking or fan-vote result.",
+  "weights": {
+    "common": 8,
+    "uncommon": 4,
+    "rare": 2,
+    "legendary": 1
+  },
+  "selection": "Choose a player with probability equal to their rarity weight divided by the sum of all player weights, conditional on a sticker drop. Overall entropy-based drop chance is unchanged.",
+  "default_rule": {
+    "uncommon_min_regular_season_games": 150,
+    "uncommon_basis": "At least 150 Rangers NHL regular-season appearances in any single recorded role, after overrides. An editorial service-length seed, not a popularity metric. Do not add mixed-role GP.",
+    "otherwise": "common",
+    "source_url": "https://api.nhle.com/stats/rest/en/{skater|goalie}/summary?isAggregate=true&isGame=false&cayenneExp=teamId%3D3%20and%20gameTypeId%3D2",
+    "source_plan": "agents/oracle.docs/rangers_roster_sources.md"
+  },
+  "override_precedence": "Explicit NHL player-ID overrides take precedence over the appearance-based seed.",
+  "overrides": [
+    {
+      "player_id": 8445032,
+      "name": "Andy Bathgate",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8445461,
+      "name": "Jeff Beukeboom",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8446454,
+      "name": "Tie Domi",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8446658,
+      "name": "Vic Hadfield",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8446712,
+      "name": "Jan Erixon",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8446926,
+      "name": "Harry Howell",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8446940,
+      "name": "Nick Fotiu",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8447172,
+      "name": "Rod Gilbert",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8447350,
+      "name": "Tony Granato",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8447364,
+      "name": "Adam Graves",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8447400,
+      "name": "Wayne Gretzky",
+      "rarity": "legendary",
+      "reason": "Global hockey icon with Rangers tenure; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/timeline"
+      ]
+    },
+    {
+      "player_id": 8448208,
+      "name": "Jaromir Jagr",
+      "rarity": "legendary",
+      "reason": "Global hockey icon and Rangers record-setting star; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/timeline",
+        "https://www.nhl.com/rangers/news/jaromir-jagr-and-brendan-shanahan-the-600-goal-club"
+      ]
+    },
+    {
+      "player_id": 8448707,
+      "name": "Pierre Larouche",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8448769,
+      "name": "Brian Leetch",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8449102,
+      "name": "Don Maloney",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8449513,
+      "name": "George McPhee",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8449573,
+      "name": "Mark Messier",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8449883,
+      "name": "Chris Nilan",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8449979,
+      "name": "Eddie Giacomin",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8450646,
+      "name": "Jean Ratelle",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8450833,
+      "name": "Mike Richter",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8458566,
+      "name": "Sandy McCarthy",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8459391,
+      "name": "Darren Langdon",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8459431,
+      "name": "Todd Harvey",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8468224,
+      "name": "Sean Avery",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8468685,
+      "name": "Henrik Lundqvist",
+      "rarity": "legendary",
+      "reason": "Retired-number honoree; editorial top-tier selection.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/retired-numbers",
+        "https://view.ceros.com/msg/nyr-retired-numbers"
+      ]
+    },
+    {
+      "player_id": 8468778,
+      "name": "Colton Orr",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8470072,
+      "name": "Petr Prucha",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8471273,
+      "name": "Brandon Dubinsky",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8471283,
+      "name": "Brandon Prust",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8471339,
+      "name": "Ryan Callahan",
+      "rarity": "rare",
+      "reason": "Official centennial fan-favorite recognition; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/centennial/fan-favorites"
+      ]
+    },
+    {
+      "player_id": 8475184,
+      "name": "Chris Kreider",
+      "rarity": "rare",
+      "reason": "Modern franchise star highlighted in official team history; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/timeline"
+      ]
+    },
+    {
+      "player_id": 8478048,
+      "name": "Igor Shesterkin",
+      "rarity": "rare",
+      "reason": "Modern franchise star highlighted in official team history; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/timeline"
+      ]
+    },
+    {
+      "player_id": 8478550,
+      "name": "Artemi Panarin",
+      "rarity": "rare",
+      "reason": "Modern franchise star highlighted in official team history; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/timeline"
+      ]
+    },
+    {
+      "player_id": 8479323,
+      "name": "Adam Fox",
+      "rarity": "rare",
+      "reason": "Modern franchise star highlighted in official team history; editorial promotion.",
+      "source_urls": [
+        "https://www.nhl.com/rangers/team/history/timeline"
+      ]
+    }
+  ],
+  "notes": [
+    "Canonical API names are retained: Eddie Giacomin, not shortened Ed; Jaromir Jagr spelling follows the official stats response.",
+    "The official Legendary Blueshirts centennial event page currently exposes its roster as image-only cards. It is not used as an unverified name list in this manifest.",
+    "Retired-number players Lundqvist and Graves also appear in Fan Favorites; Legendary takes precedence.",
+    "A future refresh must reconcile source changes and review the finite editorial override list."
+  ]
+}
