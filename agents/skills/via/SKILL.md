@@ -43,9 +43,21 @@ To refine results and avoid unnecessary matching across large codebases, use qua
 via -mg 'DatabaseStore.connect' -tf -Q --via calls -mg '*' -tf
 ```
 
-## 3. Prohibited Query Methods & Fallback Rules
+## 3. Section-Scoped Reads for Large, Growing Markdown Docs
+
+Files that accumulate dated entries over a project's life (`agents/oracle/lessons.md`, `agents/oracle/memory.md`, `docs/ARCH.md`) get progressively more expensive to read in full on every entry. `via` indexes markdown headers (`-tH`), so you can locate a named section without reading or grepping the whole file:
+
+```bash
+via -mg '*SectionName*' -tH        # returns: header:<file>:<start>-<end>:... — the header's own line range
+```
+
+This gives you the section's **starting line number** in the target file. Pair it with a scoped `Read` (`offset=<line>`, a generous `limit`) to fetch just that section, instead of a full-file `Read`.
+
+**Do not rely on `-oR -A N` alone to bound a section.** `-A N` (and `-C N`) is a blind line-count context window, not section-aware — verified directly: `via -mg '*Package*' -tH -oR -A 25` happened to stop near the section boundary by coincidence, but `via -mg '*Package*' -tH -oR -A 100` ran straight through the next two headers. If you use `-oR`, keep `N` deliberately small and prefer the locate-then-scoped-Read pattern above whenever you need the exact section body.
+
+## 4. Prohibited Query Methods & Fallback Rules
 To maintain the integrity of the tool and the consistency of the indexing system:
-- **MCP vs. CLI Fallback**: If `via: enabled` is set in `agents/PROJECT.md` but the `mcp__via__via_query` tool is missing from your toolset, you **MUST** run `via` queries using the CLI (via the `run_command` tool or `make via` targets) instead of falling back to raw `grep_search` or manual file scanning for symbol lookups.
+- **MCP vs. CLI Fallback**: If `via: enabled` is set in `agents/PROJECT.md` but the `mcp__via__via_query` tool is missing from your toolset, you **MUST** run `via` queries using the CLI (via the `run_command` tool or `bobp make via` targets) instead of falling back to raw `grep_search` or manual file scanning for symbol lookups.
 - **Direct SQLite DB Queries are Forbidden**: DO NOT write direct SQL queries (e.g., `sqlite3 .via/index.db "SELECT ..."` or using Python's `sqlite3` client directly in commands) to fetch relationship or symbol details, except under explicitly authorized gauntlet benchmarks. Always use the `via` command-line interface.
 - **Raw File-Reads and Grep Fallbacks are Forbidden for Symbols**: All specialist personas MUST NEVER perform fallback file-reading (e.g., `view_file` or `cat`) or `grep_search` to locate symbol definitions, trace imports, map call sites, or analyze inheritance structures. The `via` query tool is the exclusive and mandatory interface for retrieving code symbols and relationship details.
 - **Grep Scope Restriction**: Use `grep_search` ONLY for free-text search inside code (e.g., string literals, comments, logs, or raw SQL queries) or when `via` returns no results.

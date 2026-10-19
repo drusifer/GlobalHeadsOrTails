@@ -1,7 +1,0 @@
-# Rangers phase 3 implementation
-
-Integrated current/archive selection, owned-name search, dynamic counts and pack narrative into the existing Sticker Book tab. Added Rangers-only labeled regular-season/postseason role stats, unavailable-rate marks, tenure, original factual summary, separate original humorous flavor and official source links. Shared image resolution now honors explicit form URLs on cards, drop thumbnails and wager choices/stakes. Three level frames differ structurally and retain visible level labels. Pack/search choices survive polling; no tap renders no cards.
-
-Actual mobile Flask/SQLite/Chromium acceptance passed, preserving existing entropy/test-mode/drop/evolution/wager flows and verifying both face UIDs share coin A's collection, owned-only search, no-tap descriptions, mixed-role Lester Patrick, exact stats/source links and three computed frame styles. The first run caught alphabetical JSON keys showing playoffs ahead of regular-season totals; explicit order fixed and complete rerun passed. Critical syntax and whitespace checks pass.
-
-Screenshots are in nested build/collectables-mobile.png and build/rangers-stickers-mobile.png. The Rangers layout screenshot uses synthetic owned records while actual portrait generation remains gated, so missing portrait URLs there are expected and it is not artwork release evidence. Root owns artwork samples/full production and final database cleanup. No backend/art-tool edits in this phase.

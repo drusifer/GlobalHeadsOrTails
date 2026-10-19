@@ -20,12 +20,12 @@ TLDR:
 - The line above `TLDR:` must be blank, and above that must be the one-line summary
 - **Do not use `TL;DR:`, `tldr:`, or any other variant**
 
-### `make tldr` — how it works
+### `bobp tldr` — how it works
 
-`make tldr` runs `agents/tools/tldr.py`, which uses `via` to discover all `*.py` and `*.md`
+`bobp tldr` asks the system `via` command for all `*.py` and `*.md`
 files in the project, then reads each for a `TLDR:` block and prints a sorted summary.
 
-To appear in `make tldr` output a file must have:
+To appear in `bobp tldr` output a file must have:
 1. A one-liner summary line
 2. A blank line
 3. `TLDR:` on its own line
@@ -111,8 +111,8 @@ License: GPL-3.0
 
 ---
 
-## `make tldr` Discoverability
+## `bobp tldr` Discoverability
 
-`make tldr` scans all `*.md` and `*.py` files for `TLDR:` and reports which files have summaries.
+`bobp tldr` scans all `*.md` and `*.py` files for `TLDR:` and reports which files have summaries.
 
-To ensure a file shows up in `make tldr`, it must contain the exact marker `TLDR:` (uppercase, colon).
+To ensure a file shows up in `bobp tldr`, it must contain the exact marker `TLDR:` (uppercase, colon).

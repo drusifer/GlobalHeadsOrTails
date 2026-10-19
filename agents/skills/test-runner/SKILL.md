@@ -7,7 +7,7 @@ triggers: ["*test", "*qa test"]
 One-line summary: Run the project test suite through the Makefile for consistent environment setup.
 
 TLDR:
-    Use `make test` to run all tests; use `pytest` directly (with `.venv` activated) for targeted runs by file, pattern, or coverage.
+    Use `bobp make test` to run all tests; use `pytest` directly (with `.venv` activated) for targeted runs by file, pattern, or coverage.
     On failure: read the error, fix the issue, re-run the specific failing test first, then the full suite.
     Used by Neo (`*swe test`) after implementation changes and by Trin (`*qa test`) for full verification.
 
@@ -21,7 +21,7 @@ This skill provides standardized test execution using the project's Makefile. Al
 
 ### Run All Tests
 ```bash
-make test
+bobp make test
 ```
 Runs the complete test suite with pytest.
 
@@ -44,7 +44,7 @@ source .venv/bin/activate && pytest --cov=via tests/ -v
 
 | Action | Command |
 |--------|---------|
-| All tests | `make test` |
+| All tests | `bobp make test` |
 | Unit tests only | `source .venv/bin/activate && pytest tests/unit/ -v` |
 | Integration tests | `source .venv/bin/activate && pytest tests/integration/ -v` |
 | Single file | `source .venv/bin/activate && pytest tests/unit/test_X.py -v` |
@@ -54,7 +54,7 @@ source .venv/bin/activate && pytest --cov=via tests/ -v
 
 ## Workflow
 
-1. **Before testing**: Ensure dependencies are installed (`make install`)
+1. **Before testing**: Ensure dependencies are installed (`bobp make install`)
 2. **Run tests**: Use appropriate command from above
 3. **On failure**: Read error output, identify failing test, fix issue
 4. **Re-run**: Run specific failing test first, then full suite

@@ -1,8 +1,8 @@
 ---
 name: bob-protocol
-description: Multi-persona coordination protocol. Enables AI to switch between specialized personas (Neo, Morpheus, Trin, Oracle, Mouse, Cypher, Bob, Smith) based on task needs. Use for *chat workflow, state management, and cross-agent communication.
+description: Multi-persona coordination protocol. Enables AI to switch between specialized personas (Neo, Morpheus, Trin, Oracle, Mouse, Cypher, Bob, Smith, Tank) based on task needs. Use for *chat workflow, state management, and cross-agent communication.
 triggers: ["*chat"]
-requires: ["chat", "bloop", "sprint", "make"]
+requires: ["chat", "bloop", "sprint", "make", "init", "prep-clear"]
 ---
 
 Orchestrates multi-persona AI coordination through a shared chat log using the `*chat` trigger.
@@ -21,7 +21,7 @@ One AI dynamically switches between specialized personas. All coordination happe
 
 ## Available Personas
 
-Each persona is defined in `agents/<name>.docs/SKILL.md`:
+Each persona is defined in `agents/<name>/SKILL.md`:
 
 | Persona | Role | Prefix | Use When |
 |---------|------|--------|----------|
@@ -33,6 +33,7 @@ Each persona is defined in `agents/<name>.docs/SKILL.md`:
 | **Cypher** | Product Manager | `*pm` | Requirements, user stories |
 | **Bob** | Prompt Engineer | `*prompt` | Agent creation, process improvement |
 | **Smith** | HCI Expert | `*user` | UX review, usability testing, sprint gates |
+| **Tank** | DevOps Engineer | `*devops` | Infrastructure, CI/CD, deployment, env hygiene |
 
 ---
 
@@ -40,7 +41,7 @@ Each persona is defined in `agents/<name>.docs/SKILL.md`:
 
 ### Step 1: Log User Message (ALWAYS FIRST)
 ```bash
-make chat MSG="<user's message>" PERSONA="User" CMD="request"
+bobp chat "<user's message>" --persona User --cmd request
 ```
 
 **Note on External Invocations**: Different AI harnesses use different prefixes for direct persona invocation (e.g., `@persona` or `/persona` in Gemini CLI, `/persona` in Claude, `$persona` in Codex). If you are invoked directly via such a command, you MUST log the invocation to `agents/CHAT.md` immediately upon entry if it has not already been logged. This ensures the shared team context is complete.
@@ -72,12 +73,13 @@ Analyze the request and route to the best persona:
 | Requirements, user stories | Cypher (`*pm`) |
 | Agent creation, prompt improvement | Bob (`*prompt`) |
 | UX review, usability, sprint gates | Smith (`*user`) |
+| Infrastructure, CI/CD, deployment | Tank (`*devops`) |
 
 For multi-step workflows, use a Bloop command instead: `*fix`, `*impl`, `*qa`, `*review`, `*plan sprint`.
 
 ### Step 4: Load Persona and Execute
-1. Read `agents/<name>.docs/SKILL.md`
-2. Load persona's state files: `context.md`, `current_task.md`, `next_steps.md`
+1. Read `agents/<name>/SKILL.md`
+2. Load persona's state: `agents/<name>/state.md` (context, current task, and resume plan in one file)
 3. If PROJECT.md exists: read `agents/PROJECT.md` for project capabilities
 4. Adopt the persona and execute the command
 
@@ -86,56 +88,62 @@ Execute one focused task. **Short iterations are key** — complete one thing, t
 
 ### Step 6: Post Response to Chat
 ```bash
-make chat MSG="<response>" PERSONA="<Name>" CMD="<command>" TO="<recipient>"
+bobp chat "<response>" --persona <Name> --cmd <command> --to <recipient>
 ```
 
 ### Step 7: Save State — HARD GATE (MANDATORY BEFORE ANY SWITCH)
-**Do not switch personas until all four steps below are complete.**
+**Do not switch personas until both steps below are complete.**
 
-1. Write `agents/[persona].docs/context.md` — what was learned, key decisions
-2. Write `agents/[persona].docs/current_task.md` — progress %, what was done, what's next
-3. Write `agents/[persona].docs/next_steps.md` — exact resume instructions for a cold start
-4. Post handoff: `make chat MSG="<summary> @Next *command" PERSONA="<Name>" CMD="handoff" TO="<next>"`
+1. Write `agents/[persona]/state.md` — what was learned/decided, progress %, what's next, and exact resume instructions for a cold start, all in one file
+2. Post handoff: `bobp chat "<summary> @Next *command" --persona <Name> --cmd handoff --to <next>`
 
 ---
 
 ## State Management
 
-**State files are the only memory that survives context overflow and session restarts.**
-Write them as if you will never be asked again and someone else must continue.
+**`state.md` is the only memory that survives context overflow and session restarts.**
+Write it as if you will never be asked again and someone else must continue.
+
+Each persona has exactly one state file — `agents/[persona]/state.md` — with three sections: `## Context` (what was learned, key decisions), `## Current Task` (progress %, what was done, what's next), `## Next Steps` (exact resume instructions for a cold start). This replaces the older three-file convention (`context.md`/`current_task.md`/`next_steps.md`); consolidating cut state-management tool calls per switch by two-thirds with no loss of resilience, since the file is still written every switch, just as one call instead of three.
+
+For a **large, growing reference doc** (not `state.md` itself — those stay small) like `agents/oracle/lessons.md`, `agents/oracle/memory.md`, or `docs/ARCH.md`, don't re-read the whole file on every entry once it accumulates many dated entries. If `via` is enabled, locate the section you need first (`via -mg '*SectionName*' -tH` returns `file:start-end`), then read only that range (`Read` with `offset`/`limit`) — see the `via` skill's "Section-Scoped Reads" note. Do not rely on `via`'s `-oR -A N` alone for this: `-A N` is a blind line-count window, not section-aware, and will run past the section boundary into the next one if `N` is too large.
 
 ### ENTRY (When Activating / Rapid Startup)
+
+See instructions here -> `agents/skills/init/SKILL.md`
+
 1. Read `agents/CHAT.md` — last 10-20 messages
-2. Load `agents/[persona].docs/context.md`
-3. Load `agents/[persona].docs/current_task.md`
-4. Load `agents/[persona].docs/next_steps.md`
-5. **Rapid Startup Option (CRITICAL)**: Do NOT run a full test suite baseline check (`make test`) or other heavy execution cycles on initialization unless explicitly requested or implementing/testing bug fixes. Reconcile state files quickly and proceed.
-6. Verify that agent links are synced (run `setup_agent_links.py` if needed).
-7. Post your persona initialization message using `make chat` immediately.
-8. If `agents/PROJECT.md` exists — read it for project capabilities
+2. Load `agents/[persona]/state.md`
+3. **Rapid Startup Option (CRITICAL)**: Do NOT run a full test suite baseline check (`bobp make test`) or other heavy execution cycles on initialization unless explicitly requested or implementing/testing bug fixes. Reconcile state quickly and proceed.
+4. Verify that agent links are synced (run `bobp setup-agent-links` if needed).
+5. Post your persona initialization message using `bobp chat` immediately.
+6. If `agents/PROJECT.md` exists — read it for project capabilities
 
 ### WORK
-6. Execute assigned tasks
-7. Post updates to `agents/CHAT.md` after each significant step
+7. Execute assigned tasks
+8. Post updates to `agents/CHAT.md` after each significant step
 
 ### EXIT — HARD GATE
-8. Update `context.md`
-9. Update `current_task.md`
-10. Update `next_steps.md`
-11. Post handoff message
-12. Only now switch or stop
+
+See instructions here -> `agents/skills/prep-clear/SKILL.md`
+
+9. Update `agents/[persona]/state.md` (Context, Current Task, Next Steps sections)
+10. Post handoff message
+11. Only now switch or stop
 
 ---
 
 ## Cold Start Recovery
 
+See instructions here -> `agents/skills/init/SKILL.md`
+
 When resuming after a context clear or new session with no memory:
 
 1. Read bottom 20 messages of `agents/CHAT.md` — find the last handoff
 2. Identify which persona was active and what command was pending
-3. Load that persona's state files (`context.md`, `current_task.md`, `next_steps.md`)
-4. Post a resume message: `make chat MSG="Resuming <task> from last session." PERSONA="<Name>" CMD="resume"`
-5. Continue from `next_steps.md` — do not restart from scratch
+3. Load that persona's `state.md`
+4. Post a resume message: `bobp chat "Resuming <task> from last session." --persona <Name> --cmd resume`
+5. Continue from the `## Next Steps` section of `state.md` — do not restart from scratch
 
 If CHAT.md has no clear handoff, ask the user: "I'm resuming — what should I pick up?"
 
@@ -146,10 +154,10 @@ If CHAT.md has no clear handoff, ask the user: "I'm resuming — what should I p
 Use `@mentions` in CHAT.md to route work:
 
 ```bash
-make chat MSG="@Neo *swe impl Task 4" PERSONA="Morpheus" CMD="lead handoff" TO="Neo"
-make chat MSG="@Trin *qa test all" PERSONA="Neo" CMD="swe handoff" TO="Trin"
-make chat MSG="@Oracle *ora ask Have we seen this error before?" PERSONA="Neo" CMD="swe ask" TO="Oracle"
-make chat MSG="@Morpheus *lead decide <choice>" PERSONA="Trin" CMD="qa handoff" TO="Morpheus"
+bobp chat "@Neo *swe impl Task 4" --persona Morpheus --cmd "lead handoff" --to Neo
+bobp chat "@Trin *qa test all" --persona Neo --cmd "swe handoff" --to Trin
+bobp chat "@Oracle *ora ask Have we seen this error before?" --persona Neo --cmd "swe ask" --to Oracle
+bobp chat "@Morpheus *lead decide <choice>" --persona Trin --cmd "qa handoff" --to Morpheus
 ```
 
 ---
@@ -159,10 +167,10 @@ make chat MSG="@Morpheus *lead decide <choice>" PERSONA="Trin" CMD="qa handoff" 
 If a fix attempt fails:
 
 1. **STOP** — do not retry the same approach
-2. **Consult Oracle**: `make chat MSG="@Oracle *ora ask Have we seen this error before? Error: <error>" PERSONA="<Name>" CMD="ask" TO="Oracle"`
+2. **Consult Oracle**: `bobp chat "@Oracle *ora ask Have we seen this error before? Error: <error>" --persona <Name> --cmd ask --to Oracle`
 3. Read error logs carefully — understand the root cause
 4. ONE retry with a new approach
-5. If that also fails → escalate: `make chat MSG="Blocked after 2 attempts on <task>. Tried: <A>, <B>. Recommend: <C>. Awaiting user input." PERSONA="<Name>" CMD="blocked" TO="User"`
+5. If that also fails → escalate: `bobp chat "Blocked after 2 attempts on <task>. Tried: <A>, <B>. Recommend: <C>. Awaiting user input." --persona <Name> --cmd blocked --to User`
 
 **No third attempt without Oracle consult + explicit user approval.**
 
@@ -192,3 +200,5 @@ If a fix attempt fails:
 | `*chat @bob *prompt P` | Bob | `*prompt P` |
 | `*chat @smith *user review S` | Smith | `*user review S` |
 | `*chat @smith *user approve` | Smith | `*user approve` |
+| `*chat @tank *devops deploy` | Tank | `*devops deploy` |
+| `*chat @tank *devops sdlc` | Tank | `*devops sdlc` |

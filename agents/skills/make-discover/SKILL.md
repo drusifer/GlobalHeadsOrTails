@@ -1,94 +1,41 @@
 ---
 name: make-discover
-description: Self-discovery guide for Makefile targets. Run `make help` to see all current targets. Covers Makefile structure, when to add targets, and how to extend the build correctly.
-triggers: ["*make help", "*make discover", "*build help"]
+description: Self-discovery guide for a project's Makefile targets. Run `bobp make help` (or read the Makefile) to see what's available — there's no bob-authored target list to rely on.
+triggers: ["*bobp make help", "*make discover", "*build help"]
 ---
 
-One-line summary: Self-discovery guide for Makefile targets — always run `make help` before assuming what targets exist.
-
-TLDR:
-    Run `make help` to get the current, authoritative target list; never rely on hardcoded lists in docs or memory.
-    New targets require a real recipe in `ifdef MKF_ACTIVE` and a public stub in `else`, both with a `## comment` for discoverability.
-    Bob-managed targets live in `agents/Makefile.bob` (included via `-include`); inspect last build output at `build/build.out`.
+One-line summary: This project's Makefile is not bob-managed — discover its targets the normal way, then invoke them via the `make` skill's `bobp make <target>`.
 
 # Make Target Discovery
 
-## Discover Available Targets
+## Discover available targets
 
-**Always run this first** to see the current, authoritative list of targets:
-
-```bash
-make help
-```
-
-This outputs all targets with their descriptions. The list is always up to date — do not rely on hardcoded lists in docs or memory.
-
-## Makefile Structure
-
-The Makefile uses two blocks:
-
-```makefile
-ifdef MKF_ACTIVE
-    # ── Real recipes ─────────────────────────────────────────
-    # Actual shell commands go here.
-    # mkf routes all output through build/build.out.
-
-else
-    # ── Interception layer ────────────────────────────────────
-    # Targets visible to users/agents go here.
-    # All targets (except help and chat) delegate to mkf:
-    #   @./agents/tools/mkf.py $(V) $@
-    # Special targets (help, chat) are defined here directly.
-
-endif
-```
-
-### Rules for Adding a New Target
-
-1. **Real recipe** goes inside `ifdef MKF_ACTIVE` — this is where the shell commands live.
-2. **Public stub** goes inside `else` — a one-liner that delegates to mkf (or runs directly for interactive/bypass targets).
-3. **Always add a `## comment`** to the public stub so it appears in `make help`.
-
-#### Example: adding `make lint`
-
-```makefile
-ifdef MKF_ACTIVE
-
-lint: ## Run linting checks
-    @ruff check .
-
-else
-
-lint: ## Run linting checks
-    @./agents/tools/mkf.py $(V) $@
-
-endif
-```
-
-## Bypass vs mkf Targets
-
-| Type | Where defined | When to use |
-|------|--------------|-------------|
-| Normal targets | Both blocks | Default — output captured by mkf |
-| Bypass targets (like `help`, `chat`) | `else` block only | Interactive output, must reach terminal directly |
-
-## Quick Discovery Workflow
+Bob doesn't install, template, or own this project's `Makefile` — it's an ordinary Makefile
+that belongs to the project. There's no second file, no `ifdef` block, and no guaranteed
+`bobp make help` target contributed by bob. To find out what's available:
 
 ```bash
-make help              # list all targets
-cat build/build.out    # inspect last build output
-make <target> V=-vv    # run with filtered stdout (errors only)
-make <target> V=-vvv   # run with full stdout
+bobp make help                              # if the project defines one — often the fastest path
+grep -E '^[a-zA-Z_-]+:' Makefile       # otherwise, read the target names directly
+cat Makefile                           # or just read the whole thing if it's short
 ```
 
-See the `make` skill for full mkf verbosity and output details.
+Don't rely on hardcoded target lists in docs or memory — the Makefile is the source of truth
+and can change independently of bob.
 
-## How Bob Targets Arrive in a Project
+## Running a target
 
-Bob installs a self-contained fragment at `agents/Makefile.bob`. The project Makefile includes it:
+See the `make` skill for the full invocation contract. Short version:
 
-```makefile
--include agents/Makefile.bob
+```bash
+bobp make <target>              # captured to build/build.out, status posted to CHAT.md
+bobp make -vv <target>          # same, but show failures live
 ```
 
-The `-include` (note the dash) means make silently ignores the file if missing — safe to commit before install runs. `agents/Makefile.bob` is updated automatically when `make update_bob TARGET=<path>` is run.
+Never invoke a target with bare `make <target>` when you want the capture/CHAT.md behavior —
+that's what `bobp make` is for.
+
+## Adding a new target
+
+Add it to the project's Makefile exactly as you would in any other repo. No dual-file
+convention, no stub/recipe split — `bobp make <target>` runs whatever `make <target>` runs.
