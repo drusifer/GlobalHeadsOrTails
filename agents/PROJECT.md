@@ -27,7 +27,7 @@ Follow the repository instructions in `AGENTS.md` and persona state files.
 ## Key Artifacts
 - `agents/CHAT.md` — Team communication log
 - `agents/AGENTS.md` — Shared agent instructions
-- `agents/*.docs/` — Persona state and instructions
+- `agents/*/` — Persona state and instructions
 
 ## Notes
 Update this file when project capabilities change.

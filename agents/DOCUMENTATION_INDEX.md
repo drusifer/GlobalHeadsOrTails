@@ -6,20 +6,20 @@
 
 - [Feature guide and validation commands](../ntag424_sdm_provisioner/docs/COLLECTABLES.md)
 - [Accepted requirements, PRD §16](../ntag424_sdm_provisioner/docs/PRD.md)
-- [Sprint stories and architecture](cypher.docs/collectables_sprint.md)
-- [Entropy-weighted awards stories and architecture](cypher.docs/entropy_stickers_sprint.md)
-- [Smith faction catalog and UX criteria](smith.docs/collectables_catalog.md)
+- [Sprint stories and architecture](cypher/collectables_sprint.md)
+- [Entropy-weighted awards stories and architecture](cypher/entropy_stickers_sprint.md)
+- [Smith faction catalog and UX criteria](smith/collectables_catalog.md)
 - [Reusable RTG artwork pipeline](../tools/STICKER_ART.md)
 
 ## Rangers historical pack — BLOCKED, not released
 
-- [Accepted stories and editorial rarity](cypher.docs/rangers_stickers_sprint.md)
-- [Archive-safe pack architecture](morpheus.docs/rangers_stickers_architecture.md)
-- [Official roster audit and caveats](oracle.docs/rangers_roster_sources.md)
-- [Portable portrait-source status audit](oracle.docs/rangers_art_sources.json)
-- [Actual sample acceptance criteria](smith.docs/rangers_art_acceptance.md)
-- [Six-phase sprint progress](mouse.docs/rangers_sprint_log.md)
-- [Open release gates](cypher.docs/rangers_release_checklist.md)
+- [Accepted stories and editorial rarity](cypher/rangers_stickers_sprint.md)
+- [Archive-safe pack architecture](morpheus/rangers_stickers_architecture.md)
+- [Official roster audit and caveats](oracle/rangers_roster_sources.md)
+- [Portable portrait-source status audit](oracle/rangers_art_sources.json)
+- [Actual sample acceptance criteria](smith/rangers_art_acceptance.md)
+- [Six-phase sprint progress](mouse/rangers_sprint_log.md)
+- [Open release gates](cypher/rangers_release_checklist.md)
 
 ## Quick Access
 
@@ -33,7 +33,7 @@ Type `*help` for complete command reference with examples.
 - **[STARTUP.md](../STARTUP.md)** - LLM startup instructions
 - **[README.md](../README.md)** - Project overview and team reference
 - **[SHORTHAND_GUIDE.md](../SHORTHAND_GUIDE.md)** - Complete trigger/command reference
-- **[HELP.md](bob.docs/HELP.md)** - Quick reference for all 8 personas and commands
+- **[HELP.md](bob/HELP.md)** - Quick reference for all 8 personas and commands
 
 ### Tools
 - **[tools/](tools/)** - Agent tooling scripts (`chat.py`, `mkf.py`, `setup_agent_links.py`)
@@ -46,21 +46,21 @@ Type `*help` for complete command reference with examples.
 
 | Persona | Role | SKILL.md | Prefix |
 |---------|------|----------|--------|
-| Bob | Prompt Engineering Expert | [bob.docs/SKILL.md](bob.docs/SKILL.md) | `*new` / `*reprompt` / `*learn` |
-| Cypher | Product Manager | [cypher.docs/SKILL.md](cypher.docs/SKILL.md) | `*pm` |
-| Morpheus | Tech Lead / Architect | [morpheus.docs/SKILL.md](morpheus.docs/SKILL.md) | `*lead` |
-| Neo | Senior Software Engineer | [neo.docs/SKILL.md](neo.docs/SKILL.md) | `*swe` |
-| Oracle | Knowledge Officer | [oracle.docs/SKILL.md](oracle.docs/SKILL.md) | `*ora` |
-| Trin | QA / Guardian | [trin.docs/SKILL.md](trin.docs/SKILL.md) | `*qa` |
-| Mouse | Scrum Master | [mouse.docs/SKILL.md](mouse.docs/SKILL.md) | `*sm` |
-| Smith | Expert User & UX Advocate | [smith.docs/SKILL.md](smith.docs/SKILL.md) | `*user` |
+| Bob | Prompt Engineering Expert | [bob/SKILL.md](bob/SKILL.md) | `*new` / `*reprompt` / `*learn` |
+| Cypher | Product Manager | [cypher/SKILL.md](cypher/SKILL.md) | `*pm` |
+| Morpheus | Tech Lead / Architect | [morpheus/SKILL.md](morpheus/SKILL.md) | `*lead` |
+| Neo | Senior Software Engineer | [neo/SKILL.md](neo/SKILL.md) | `*swe` |
+| Oracle | Knowledge Officer | [oracle/SKILL.md](oracle/SKILL.md) | `*ora` |
+| Trin | QA / Guardian | [trin/SKILL.md](trin/SKILL.md) | `*qa` |
+| Mouse | Scrum Master | [mouse/SKILL.md](mouse/SKILL.md) | `*sm` |
+| Smith | Expert User & UX Advocate | [smith/SKILL.md](smith/SKILL.md) | `*user` |
 
 ---
 
 ## Team Communication
 
 - **[CHAT.md](CHAT.md)** - Team communication log (append-only)
-- Each persona maintains state in their `.docs/` folder:
+- Each persona maintains state in their `<name>/` folder:
   - `context.md` - Working memory
   - `current_task.md` - Active work
   - `next_steps.md` - Resume plan
@@ -108,9 +108,9 @@ Located in `agents/templates/`:
 
 | File | Status |
 |------|--------|
-| `morpheus.docs/arch_flipoff.md` | Active — Flip-Off challenge design |
-| `morpheus.docs/arch_custom_messages.md` | Active — Custom coin messages |
-| `morpheus.docs/arch_flipoff_sse.md` | **SUPERSEDED** — SSE design (replaced by polling 2026-04-22) |
+| `morpheus/arch_flipoff.md` | Active — Flip-Off challenge design |
+| `morpheus/arch_custom_messages.md` | Active — Custom coin messages |
+| `morpheus/arch_flipoff_sse.md` | **SUPERSEDED** — SSE design (replaced by polling 2026-04-22) |
 
 ---
 
@@ -134,10 +134,10 @@ Root-level VS Code era docs (2025-12) archived to `docs_archive/`.
 - Archived: `.archive_*.md`
 
 ### Structure
-- All persona docs in `agents/[persona].docs/`
+- All persona docs in `agents/[persona]/`
 - All MCP tool docs in `agents/tools/`
 - Team communication in `agents/CHAT.md`
-- Primary references in `agents/bob.docs/`
+- Primary references in `agents/bob/`
 
 ### Maintenance
 - Update `*help` when adding commands
@@ -163,6 +163,6 @@ Root-level VS Code era docs (2025-12) archived to `docs_archive/`.
 
 ---
 
-**For Help:** Type `*help` or read `agents/bob.docs/HELP.md`
+**For Help:** Type `*help` or read `agents/bob/HELP.md`
 
-- [Quota block and exact missing player IDs](neo.docs/rangers_art_blocker.json)
+- [Quota block and exact missing player IDs](neo/rangers_art_blocker.json)

@@ -1,5 +1,0 @@
-# Rangers phase 2 implementation
-
-Added explicit immutable multi-pack registry, cached family/form lookups and direct player-weight selection with legacy tier-first compatibility. Preserved DB schemas, entropy decision, replay results, automatic family-specific evolution and historical stakes. Polling sends compact pack headers and only owned family metadata; decorated forms include explicit image URLs with legacy fallback. Packaging includes both catalogs, registry and Rangers asset subtree.
-
-TDD:14 new cases initially failed, all now pass. Covers normalized draw boundaries, active-pack transition/replayed no-drop decisions, old/new evolution separation, consumed historical stakes, invalid registry data and small no-tap/owned-only responses. Critical syntax target passes. Full server run144/145 passed; remaining failure is phase1's literal 'playoffs' expectation after rootOracle edited the sourced fact to grammatical 'playoff appearances'. Root notified to reconcile its copy/test. No application UI, art tools or importer modifications made by this phase. Old pack remains active.

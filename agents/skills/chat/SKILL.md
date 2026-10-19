@@ -9,20 +9,22 @@ triggers: ["*chat", "*msg", "*chat log"]
 
 The `chat` skill posts structured messages to `agents/CHAT.md`, the shared team communication log. All personas use this to coordinate work and hand off tasks.
 
+Every post also regenerates `agents/CHAT.diagram.md` — a Mermaid sequence diagram view of the same log, for humans following the conversation flow. It's a derived file; don't hand-edit it or read it back into agent context. Regenerate on demand with `bobp chat-diagram` (see `bob-tools` skill).
+
 ## Usage
 
 ```bash
-make chat MSG="<message>" [PERSONA="<Name>"] [CMD="<command>"] [TO="<recipient>"]
+bobp chat "<message>" [--persona <Name>] [--cmd <command>] [--to <recipient>]
 ```
 
 ### Arguments
 
-| Argument | Variable | Default | Description |
-|----------|----------|---------|-------------|
-| message | `MSG` | required | Message content |
-| persona | `PERSONA` | `$USER` | Who is sending (e.g. `Neo`, `Trin`) |
-| cmd | `CMD` | `chat` | Command prefix (auto-prefixed with `*`) |
-| to | `TO` | `all` | Recipient persona name |
+| Argument | Flag | Default | Description |
+|----------|------|---------|-------------|
+| message | (positional) | required | Message content |
+| persona | `--persona`/`-p` | `$USER` | Who is sending (e.g. `Neo`, `Trin`) |
+| cmd | `--cmd`/`-c` | `chat` | Command prefix (auto-prefixed with `*`) |
+| to | `--to`/`-t` | `all` | Recipient persona name (repeat the flag for multiple recipients) |
 
 ### Output Format
 
@@ -36,17 +38,17 @@ make chat MSG="<message>" [PERSONA="<Name>"] [CMD="<command>"] [TO="<recipient>"
 
 ### Log a user request
 ```bash
-make chat MSG="fix the bug in parser.py" PERSONA="User" CMD="request"
+bobp chat "fix the bug in parser.py" --persona User --cmd request
 ```
 
 ### Post a persona response
 ```bash
-make chat MSG="Fixed bug in parser.py line 42" PERSONA="Neo" CMD="swe fix" TO="Trin"
+bobp chat "Fixed bug in parser.py line 42" --persona Neo --cmd "swe fix" --to Trin
 ```
 
 ### Assign work to another persona
 ```bash
-make chat MSG="@Trin please verify the fix in parser.py" PERSONA="Neo" CMD="handoff" TO="Trin"
+bobp chat "@Trin please verify the fix in parser.py" --persona Neo --cmd handoff --to Trin
 ```
 
 ## Guidelines & Rules
@@ -73,7 +75,7 @@ Read agents/CHAT.md  # last 10-20 messages for context
 One-line summary: Posts structured messages to the shared team chat log at `agents/CHAT.md` (max 512 chars).
 
 TLDR:
-    Use `make chat MSG="..." PERSONA="..." CMD="..." TO="..."` to log activity and coordinate handoffs (max 512 chars).
+    Use `bobp chat "..." --persona ... --cmd ... --to ...` to log activity and coordinate handoffs (max 512 chars).
     All personas must include a 'why?' explanation. Post on entry, work steps, handoff, and exit.
     Newest messages are at the END of `agents/CHAT.md` — always read the bottom for current context.
 

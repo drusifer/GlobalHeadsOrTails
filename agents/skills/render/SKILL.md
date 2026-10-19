@@ -9,8 +9,8 @@ One-line summary: All Render operations go through `make <target>` or `render.ya
 
 TLDR:
     Every `render` CLI invocation must live in a Makefile target or render.yaml — no ad-hoc commands.
-    Use `make deploy` to deploy, `make logs` to tail logs, `make validate-infra` to validate render.yaml.
-    Env vars have no CLI support in v2.20.0 — use `make dump-render-env` and `make push-key` (Python/requests scripts).
+    Use `bobp make deploy` to deploy, `bobp make logs` to tail logs, `bobp make validate-infra` to validate render.yaml.
+    Env vars have no CLI support in v2.20.0 — use `bobp make dump-render-env` and `bobp make push-key` (Python/requests scripts).
     render.yaml is the source of truth for service config; CLI is for operations (deploys, logs, sessions).
 
 # Render CLI — InvestaCo
@@ -19,7 +19,7 @@ TLDR:
 
 > **All Render operations must be backed by static config (`render.yaml`) and/or a repeatable Makefile target.**
 
-Never run a one-off `render` command that isn't captured somewhere reproducible. If you're about to type `render deploys create srv-xxx` at the shell, stop — add it to the Makefile first, then run `make deploy`.
+Never run a one-off `render` command that isn't captured somewhere reproducible. If you're about to type `render deploys create srv-xxx` at the shell, stop — add it to the Makefile first, then run `bobp make deploy`.
 
 **Why:** One-off CLI commands are invisible to the team, non-repeatable across environments, and break the declarative model. If it's worth doing once, it's worth automating.
 
@@ -39,14 +39,14 @@ Upgrade: download from https://github.com/render-oss/cli/releases
 
 | Target | What it does | Render CLI command underneath |
 |--------|-------------|-------------------------------|
-| `make deploy` | Run tests → git push → trigger deploy | `render deploys create <service-id>` |
-| `make logs` | Tail live production logs | `render logs --resources <id> --tail` |
-| `make validate-infra` | Validate render.yaml before applying | `render blueprints validate render.yaml` |
-| `make dump-render-env` | Export current env vars to `.render-env-export.json` | Python/requests (CLI has no env-var support) |
-| `make diff-env` | Diff local `.env` against last dump — shows CHANGED / LOCAL ONLY / RENDER ONLY | Python (no CLI equivalent) |
-| `make push-key` | Push `FIELD_ENCRYPTION_KEY` from `.env` to Render | Python/requests (CLI has no env-var support) |
+| `bobp make deploy` | Run tests → git push → trigger deploy | `render deploys create <service-id>` |
+| `bobp make logs` | Tail live production logs | `render logs --resources <id> --tail` |
+| `bobp make validate-infra` | Validate render.yaml before applying | `render blueprints validate render.yaml` |
+| `bobp make dump-render-env` | Export current env vars to `.render-env-export.json` | Python/requests (CLI has no env-var support) |
+| `bobp make diff-env` | Diff local `.env` against last dump — shows CHANGED / LOCAL ONLY / RENDER ONLY | Python (no CLI equivalent) |
+| `bobp make push-key` | Push `FIELD_ENCRYPTION_KEY` from `.env` to Render | Python/requests (CLI has no env-var support) |
 
-**Always use `make help` to see the current authoritative target list.**
+**Always use `bobp make help` to see the current authoritative target list.**
 
 ---
 
@@ -64,15 +64,15 @@ services:
     startCommand: gunicorn wsgi:app
     envVars:
       - key: FIELD_ENCRYPTION_KEY
-        sync: false          # must be set manually via make push-key
+        sync: false          # must be set manually via bobp make push-key
       - key: FLASK_ENV
         value: production    # hardcoded — do not override in dashboard
       ...
 ```
 
 **Rules:**
-- Any service config change (plan, build command, start command) goes in `render.yaml` first, then `make validate-infra`, then `make deploy`
-- `sync: false` env vars are managed by `make push-key` / `make dump-render-env`
+- Any service config change (plan, build command, start command) goes in `render.yaml` first, then `bobp make validate-infra`, then `bobp make deploy`
+- `sync: false` env vars are managed by `bobp make push-key` / `bobp make dump-render-env`
 - Never change service config in the Render dashboard without updating `render.yaml` to match
 
 ---
@@ -83,7 +83,7 @@ services:
 
 ```bash
 # Via make (preferred):
-make deploy
+bobp make deploy
 
 # Direct (only if make target doesn't cover the case):
 render deploys create <service-id> --output text --confirm
@@ -95,7 +95,7 @@ render deploys cancel <deploy-id>
 
 ```bash
 # Via make (preferred):
-make logs
+bobp make logs
 
 # Direct (for ad-hoc filtering not in a make target):
 render logs --resources <service-id> --tail
@@ -108,7 +108,7 @@ render logs --resources <service-id> --start 2026-06-27T00:00:00Z
 
 ```bash
 # Via make (preferred):
-make validate-infra
+bobp make validate-infra
 
 # Direct:
 render blueprints validate render.yaml
@@ -138,18 +138,18 @@ render logout
 **The Render CLI v2.20.0 has no `env-vars` subcommand.** Use the Makefile targets instead:
 
 ```bash
-make dump-render-env   # snapshot current Render env vars → .render-env-export.json
-make push-key          # push FIELD_ENCRYPTION_KEY from .env to Render
+bobp make dump-render-env   # snapshot current Render env vars → .render-env-export.json
+bobp make push-key          # push FIELD_ENCRYPTION_KEY from .env to Render
 ```
 
 Both targets require `RENDER_API_KEY` and `RENDER_SERVICE_ID` in `.env`.
 
 Bootstrap sequence before any key change:
 ```
-make dump-render-env → make diff-env → review output → make push-key → make deploy
+bobp make dump-render-env → bobp make diff-env → review output → bobp make push-key → bobp make deploy
 ```
 
-`make diff-env` classifies every key as:
+`bobp make diff-env` classifies every key as:
 - `CHANGED` — value differs between local and Render (will be updated by push)
 - `LOCAL ONLY` — in `.env` but not yet in Render (will be added)
 - `LOCAL ONLY (ops)` — ops credentials (`RENDER_API_KEY`, `RENDER_SERVICE_ID`, `FLASK_ENV`) expected to be local-only
@@ -163,12 +163,12 @@ make dump-render-env → make diff-env → review output → make push-key → m
 
 When you need a new Render CLI operation:
 
-1. **Add it to `Makefile.prj`** (real recipe) and `Makefile` `else` block (mkf stub) — see the `make` skill
+1. **Add it as a normal target in this project's own `Makefile`** — no special block, no second file; see the `make` skill
 2. **Use `RENDER_SERVICE_ID`** from `.env` rather than hardcoding service IDs
-3. **Run `make validate-infra`** if the operation involves config changes to `render.yaml`
+3. **Run `bobp make validate-infra`** if the operation involves config changes to `render.yaml`
 4. **Document it here** in the Make Targets table above
 
-Never add a Render operation as a standalone script that isn't reachable via `make`.
+Never add a Render operation as a standalone script that isn't reachable via `bobp make`.
 
 ---
 

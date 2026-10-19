@@ -7,7 +7,7 @@ triggers: ["*qa lint", "*qa quality", "*qa check"]
 One-line summary: Runs Python code quality checks — style, types, dead code, complexity, and duplication.
 
 TLDR:
-    Use `make lint` (if available) or activate `.venv` and run pylint, mypy, vulture, and radon directly.
+    Use `bobp make lint` (if available) or activate `.venv` and run pylint, mypy, vulture, and radon directly.
     Triggered by Trin via `*qa lint`, `*qa quality`, or `*qa check`; run the full suite before any PR.
     Fix priority: errors first, then warnings, then style; refactor functions graded C or worse by radon.
 
@@ -21,7 +21,7 @@ This skill provides code quality analysis tools for Python projects. Use these c
 
 | Check | Command |
 |-------|---------|
-| All quality checks | `make lint` (if available) |
+| All quality checks | `bobp make lint` (if available) |
 | Style (PEP-8) | `source .venv/bin/activate && pylint via/` |
 | Type checking | `source .venv/bin/activate && mypy via/` |
 | Dead code | `source .venv/bin/activate && vulture via/` |

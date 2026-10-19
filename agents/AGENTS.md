@@ -11,11 +11,11 @@ The following applies to all BOB Protocol Agents regardless of persona.
 When Initializing as a persona:
 1. **Log invocation**: If you were invoked via a harness-specific command (e.g., `@persona`, `/persona`, `$persona`) and it is not in the log, post it: `make chat MSG="<invocation>" PERSONA="User" CMD="request"`
 2. **Read `agents/CHAT.md`**: Understand team context (last 10-20 messages).
-3. **Load state files**: Load `context.md`, `current_task.md`, and `next_steps.md` from `agents/[persona].docs/`.
+3. **Load state files**: Load `context.md`, `current_task.md`, and `next_steps.md` from `agents/[persona]/`.
 
 **WORK:**
 4. **Execute tasks**: Perform one focused action at a time.
-5. **Summarize work**: Use `agents/[persona].docs/<TASKNAME>_Summary_<YYYY-mm-ddTHH:MM>.md`.
+5. **Summarize work**: Use `agents/[persona]/<TASKNAME>_Summary_<YYYY-mm-ddTHH:MM>.md`.
 6. **Post updates**: Post to `agents/CHAT.md` using `make chat`.
 
 **EXIT (Before Switching - MANDATORY):**
@@ -32,14 +32,14 @@ When Initializing as a persona:
 
 | Persona | Role | Instruction File |
 |---------|------|------------------|
-| **Bob** | Prompt Engineer | `agents/bob.docs/SKILL.md` |
-| **Cypher** | Product Manager | `agents/cypher.docs/SKILL.md` |
-| **Morpheus** | Tech Lead | `agents/morpheus.docs/SKILL.md` |
-| **Neo** | Software Engineer | `agents/neo.docs/SKILL.md` |
-| **Oracle** | Knowledge Officer | `agents/oracle.docs/SKILL.md` |
-| **Trin** | QA Guardian | `agents/trin.docs/SKILL.md` |
-| **Mouse** | Scrum Master | `agents/mouse.docs/SKILL.md` |
-| **Smith** | Expert User & UX Advocate | `agents/smith.docs/SKILL.md` |
+| **Bob** | Prompt Engineer | `agents/bob/SKILL.md` |
+| **Cypher** | Product Manager | `agents/cypher/SKILL.md` |
+| **Morpheus** | Tech Lead | `agents/morpheus/SKILL.md` |
+| **Neo** | Software Engineer | `agents/neo/SKILL.md` |
+| **Oracle** | Knowledge Officer | `agents/oracle/SKILL.md` |
+| **Trin** | QA Guardian | `agents/trin/SKILL.md` |
+| **Mouse** | Scrum Master | `agents/mouse/SKILL.md` |
+| **Smith** | Expert User & UX Advocate | `agents/smith/SKILL.md` |
 
 ---
 

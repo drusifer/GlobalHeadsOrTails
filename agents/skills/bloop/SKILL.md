@@ -1,187 +1,84 @@
 ---
 name: bloop
-description: Top-level workflow loops (Bob Loops) that chain multiple personas autonomously. Use *fix, *review, *impl, *qa, or *plan sprint instead of manually invoking each persona in sequence.
-triggers: ["*fix", "*review", "*impl", "*qa", "*plan sprint", "*deploy"]
-requires: ["bob-protocol", "chat", "make"]
+description: Work-Loops conductor and catalog. Autonomous multi-persona execution loops for features (*impl), bugfixes (*fix), refactoring (*refactor), spikes (*spike), UAT (*uat), and deployments (*deploy).
+triggers: ["*bloop", "/bloop", "*work-loop"]
+requires: ["bob-protocol", "chat", "make", "prep-clear", "impl", "fix", "refactor", "spike", "uat", "deploy"]
 ---
 
-Top-level loop commands (Bloop) that run multi-persona chains autonomously without the user needing to invoke each step.
+Top-level conductor and catalog for Bob Work-Loops (autonomous multi-persona execution chains).
 
 TLDR:
-    Use Bloop commands when you want a full workflow, not a single-persona response.
-    Each loop runs its persona chain to completion — saving state and posting handoffs at every step.
-    For direct single-persona control, use `*chat @persona *command` instead.
-    Context budget rule: after each phase, if context > 60% recommend `/clear` before continuing.
-    Protocol rule: do NOT re-invoke bob-protocol or sub-skills already loaded in this session.
+    Work Loops are the atomic engineering execution units of Bob Protocol, deferred to by Sprint Planning.
+    Six specialized Work Loops: Feature (*impl), Bugfix (*fix), Tech Debt (*refactor), Spike (*spike), UAT (*uat), and Deploy (*deploy).
+    Each loop runs autonomously to completion — saving state and posting handoffs at every persona transition.
+    Context Budget: If context > 60% between work loops, run *prep-clear before /clear.
+    Anti-Loop Guard: Max 2 failures before Oracle consultation and user escalation.
 
-# Bloop — Bob Loop Multi-Persona Workflow Commands
+# Bloop — Work-Loops Conductor & Catalog
 
 ## Overview
 
-Bloop commands trigger an **autonomous chain** of personas. Each persona completes its role, saves state, hands off to the next, and the chain continues until the loop is done or a gate requires input.
+In the Bob Protocol SDLC hierarchy, **Planning Loops** (`epic` $\rightarrow$ `story` $\rightarrow$ `sprint`) determine *what* to build and *why*, breaking deliverables into an ordered pipeline in `task.md`.
 
-**Rule:** Every persona in a loop MUST save state and post a handoff message before switching — see bob-protocol State Management.
-
----
-
-## Bloop Commands
-
-### `*fix <thing>`
-**Fix loop** — investigate, fix, test, and review a bug or broken behavior.
-
-```
-Chain: Neo → Trin → Morpheus
-```
-
-| Step | Persona | Action |
-|------|---------|--------|
-| 1 | Neo | Investigate and fix: `*swe fix <thing>` |
-| 2 | Trin | Verify fix, run tests: `*qa uat <thing>` |
-| 3 | Morpheus | Code review: `*lead review <thing>` |
-
-- If Trin's tests fail → back to Neo (`*swe fix`)
-- If Morpheus review fails → back to Neo (`*swe fix`)
-- Anti-loop: if Neo fails twice → Oracle consult required before retry
-
-**Example:** `*fix auth token expiry bug`
+**Work Loops (`bloop`)** are the atomic execution engines that determine *how* code is built, tested, and shipped. Each work loop is a self-contained, multi-persona chain grounded in established software engineering literature.
 
 ---
 
-### `*impl <phase>`
-**Implementation loop** — implement, test, and review a feature or sprint phase.
+## The Work-Loops Catalog
 
-```
-Chain: Neo → Trin → Morpheus → [Tank if deploy in scope] → [context check]
-```
-
-| Step | Persona | Action |
-|------|---------|--------|
-| 0 | (bloop) | If `<phase>` is "next phase": read `agents/mouse.docs/current_task.md` and echo "Resolved: next phase = Phase N. Proceeding." before starting chain |
-| 1 | Neo | TDD implementation: `*swe impl <phase>` |
-| 2 | Trin | UAT — run tests, verify acceptance criteria: `*qa uat <phase>` (unit + integration only; E2E requires a separate `@Trin *qa e2e` invocation) |
-| 3 | Morpheus | Code review — quality and architecture: `*lead review <phase>` |
-| 3a | Tank | **DevOps gate** (if phase touches env vars, deployment, CI, or infra): `*devops review <phase>`. Tank approves or flags infra concerns before deploy. Skip if phase is app-only. |
-| 4 | (bloop) | **Context check**: report current context %. If > 60%, post "Context at X% — recommend `/clear` before next phase." and stop. |
-
-- If Trin UAT fails → back to Neo for that phase only
-- If Morpheus review fails → back to Neo for that phase only
-- If Tank review flags infra issues → back to Neo/Morpheus to resolve before Tank re-reviews
-- Do NOT restart the full sprint; fix the failing phase only
-
-**Example:** `*impl phase-2`
+| Work-Loop | Command | Primary Literature | Invariant / Hard Rule | Canonical Skill |
+| :--- | :--- | :--- | :--- | :--- |
+| **Feature** | `*impl <phase>` | Kent Beck (*TDD / XP*) | **Test-First**: Every feature requires an observable failing test before code is written. | [skills/impl](impl/SKILL.md) |
+| **Bugfix** | `*fix <issue>` | David Agans (*Debugging*) | **Reproduce First**: Must reproduce with a test and confirm diagnosis with user before fixing. | [skills/fix](fix/SKILL.md) |
+| **Tech Debt** | `*refactor <target>` | Martin Fowler (*Refactoring*) | **Two Hats**: Zero behavioral change. 100% test pass before and after. No new features. | [skills/refactor](refactor/SKILL.md) |
+| **Spike** | `*spike <topic>` | Cunningham / Singer (*Shape Up*) | **Disposable**: Timeboxed exploration. Commits zero production code; produces `FINDING.md`. | [skills/spike](spike/SKILL.md) |
+| **UAT** | `*uat <scope>` | Crispin & Gregory (*Agile Testing*) | **Real-World Experience**: Evaluates whole user journey against acceptance criteria & UX rubrics. | [skills/uat](uat/SKILL.md) |
+| **Deploy** | `*deploy <env>` | Humble & Farley (*Continuous Delivery*) | **Pipeline as Code**: Driven through Makefile targets in `docs/SDLC.md` + post-deploy smoke test. | [skills/deploy](deploy/SKILL.md) |
 
 ---
 
-### `*qa <thing>`
-**QA loop** — test and review without reimplementation.
+## Work-Loop Handoff Format
 
-```
-Chain: Trin → Morpheus
-```
-
-| Step | Persona | Action |
-|------|---------|--------|
-| 1 | Trin | Test and verify: `*qa test <thing>` |
-| 2 | Morpheus | Review results: `*lead review <thing>` |
-
-**Example:** `*qa the new export command`
-
----
-
-### `*review <thing>`
-**Review loop** — architecture and quality review of existing code or a deliverable.
-
-```
-Chain: Morpheus → Trin (optional)
-```
-
-| Step | Persona | Action |
-|------|---------|--------|
-| 1 | Morpheus | Architecture review: `*lead review <thing>` |
-| 2 | Trin | Quality review (if Morpheus flags issues): `*qa review <thing>` |
-
-**Example:** `*review the new API design`
-
----
-
-### `*plan sprint`
-**Sprint planning loop** — full planning sequence from stories through phase breakdown.
-
-```
-Chain: Cypher → [Smith gate] → Morpheus → [Smith gate] → Mouse → Morpheus review → [Tank if deploy in scope]
-```
-
-| Step | Persona | Action | Gate |
-|------|---------|--------|------|
-| 1 | Cypher | Write stories + acceptance criteria: `*pm plan sprint` | Smith review |
-| 1a | Smith | `*user review <stories>` → `*user approve` or `*user reject` | Must approve |
-| 2 | Morpheus | Architecture decisions: `*lead arch sprint` | Smith review |
-| 2a | Smith | `*user feedback <arch>` → `*user approve` or `*user reject` | Must approve |
-| 3 | Mouse | Break into short phases (1-3 tasks each): `*sm plan sprint` | Morpheus review |
-| 3a | Morpheus | Review sprint plan vs. architecture: `*lead review sprint plan` | |
-| 3b | Tank | **DevOps planning gate** (if sprint includes deployment, env, or infra work): `*devops infra <sprint>` — Tank reviews sprint for infra impact, adds any deployment tasks to the plan, and confirms pipeline readiness. Skip if sprint is app-only. | |
-
-**Gates are hard stops** — Smith must explicitly `*user approve` before the chain continues. Tank's 3b step is required (not optional) whenever Cypher's stories include env var changes, new services, or deployment work.
-
-**Example:** `*plan sprint`
-
----
-
-### `*deploy <env>`
-**Deploy loop** — ship a tested, reviewed build to a named environment.
-
-```
-Chain: Tank → Trin (smoke) → report
-```
-
-| Step | Persona | Action |
-|------|---------|--------|
-| 1 | Tank | Deploy to `<env>`: `*devops deploy <env>` — push to target branch, trigger deploy, monitor build |
-| 2 | Trin | Post-deploy smoke test: `*qa verify deploy` — validate critical paths are live (login, form, admin dashboard) |
-| 3 | (bloop) | Report: pass → "Deploy to `<env>` confirmed live." / fail → Tank rolls back, Trin reports failure |
-
-**Precondition:** `*deploy` should only run after `*impl` has passed all gates (Trin UAT + Morpheus review + Tank devops review).
-
-**Example:** `*deploy prod`
-
----
-
-## When to Use Bloop vs. Direct Invocation
-
-| Situation | Use |
-|-----------|-----|
-| Fix a bug end-to-end | `*fix <bug>` |
-| Implement a feature with tests and review | `*impl <feature>` |
-| Just run tests and review | `*qa <thing>` |
-| Architect review only | `*review <thing>` |
-| Full sprint planning | `*plan sprint` |
-| Ship a build to an environment | `*deploy <env>` |
-| Talk directly to one persona | `*chat @neo *swe fix X` |
-| Single-step with full control | `*chat @trin *qa test all` |
-| DevOps task only | `*chat @tank *devops <command>` |
-
----
-
-## Loop Handoff Format
-
-Every persona in a loop posts a handoff before switching:
+Every persona participating in a work-loop must update their working memory in `state.md` and post an explicit handoff message to `agents/CHAT.md` before switching:
 
 ```bash
-make chat MSG="<summary> @NextPersona *command" PERSONA="<Name>" CMD="<prefix> handoff" TO="<next>"
+bobp chat "<summary> @NextPersona *command" --persona <Name> --cmd "<prefix> handoff" --to <next>
 ```
-
-The next persona reads CHAT.md on entry — if the handoff isn't there, they start blind.
 
 ---
 
-## Loop Optimization & Anti-Loop Rules
+## Universal Work-Loop Invariants & Guard Rules
 
-To minimize token usage and prevent coordination overhead:
-1. **Pre-Handoff Self-Validation**: Neo must run local checks (e.g. static analysis, syntax lints, or quick targeted tests) before handing off code to Trin (`*qa verify` / `*qa uat`). Trivial typos, syntax errors, or lint warnings should be resolved before switching personas.
-2. **Consolidation for Minor Changes**: For trivial features or bug fixes (e.g. document typos, adding a canned query JSON, or configuration tweaks), do not trigger a full multi-persona loop. Combine implementation, verification, and state update into a **single-step execution** by a single persona to avoid state-saving overhead.
-3. **Active Anti-Loop Guard**: If any loop iteration (e.g. Neo fix → Trin test fail → Neo fix) repeats **more than twice** for the same issue without resolution, the loop must be paused. The active agent must post logs, describe the blocker to the user, and request manual intervention rather than attempting a third cycle.
-4. **Fast-Track Sprint Planning**: If a sprint plan consists only of small maintenance items, bypass the full 6-step planning chain. Cypher and Morpheus should compile stories and architecture details into a single document for unified approval by Smith, reducing the transition count.
-5. **No Protocol Re-Load**: Do NOT invoke `bob-protocol` at bloop entry. The protocol is already active when bloop is triggered. Re-loading it wastes ~6k tokens per invocation.
-6. **No Sub-Skill Re-Invocation**: Do not call `Skill(make, ...)` or `Skill(chat, ...)` more than once per session. Each call reloads the full SKILL.md body unnecessarily. After the first load, run `make <target>` and `make chat MSG=...` via the Bash tool directly — always through make, never bypassing it.
-7. **Context Budget Between Phases**: After each bloop phase completes, check the context percentage. If > 60%, explicitly warn the user and recommend `/clear` before the next phase. Ensure all state files are written before clearing.
+1. **Active Anti-Loop Guard (CRITICAL)**:
+   If any loop iteration (e.g. Neo fix $\rightarrow$ Trin test fail $\rightarrow$ Neo fix) repeats **more than twice** without resolution:
+   - **STOP** immediately.
+   - Consult Oracle: `bobp chat "@Oracle *ora ask <error>" --persona <Name> --cmd ask --to Oracle`.
+   - Attempt ONE retry with a new approach.
+   - If that fails, escalate to the user with all logs. **No third attempt without explicit user approval.**
 
+2. **Pre-Handoff Self-Validation**:
+   Developers (Neo) must run targeted local tests and linters (`bobp make test`) before handing off code to QA (Trin). Trivial syntax or import errors should be resolved before persona transitions.
+
+3. **Context Budgeting (`prep-clear`)**:
+   Between consecutive work loops in `task.md`, inspect context token consumption. If context saturation exceeds **60%**, run `*prep-clear` to secure state before issuing `/clear` or `/compact`.
+
+4. **No Protocol / Sub-Skill Reloading**:
+   Do NOT re-invoke `bob-protocol`, `chat`, or `make` via meta-skill tools if already active in the session. Use `bobp` CLI commands directly via shell tools.
+
+5. **Consolidation for Minor Changes**:
+   For trivial configuration tweaks or single-line typo fixes, do not trigger a full multi-persona loop. Execute implementation, verification, and state update in a single focused step.
+
+---
+
+## Conductor Orchestration Rubric (`LOOP_BLOOP`)
+
+Reviewed by Bob or Smith (during `*judge bloop`).  
+Verdict line in `agents/CHAT.md`: `rubric LOOP_BLOOP: HANDOFF=L STATE=L ANTILOOP=L CAPTURE=L CONTEXT=L`
+
+| Code | Criterion | Weak (W) | Acceptable (A) | Strong (S) |
+|---|---|---|---|---|
+| `HANDOFF` | **Handoff Ergonomics** | Silent transitions without handoff message; generic messages lacking command or why-rationale; messages exceeding 512 chars. | Formatted per `bobp chat` standard: `<summary> @NextPersona *command` with `why?` explanation under 512 chars. | Concise, highly informative handoffs specifying exact artifact paths, test counts, and immediate actionable directive. |
+| `STATE` | **State Protocol Compliance** | Persona switched without updating `state.md`; missing Context, Current Task, or Next Steps sections; stale timestamps. | `state.md` updated with completed progress, active blockers, and concrete next actions before handoff. | Exemplary state fidelity: exact task percentages, crystal-clear cold-start resume plan, verified against `_template_state.md`. |
+| `ANTILOOP` | **Anti-Loop Enforcement** | Agents repeatedly retried failing steps (3+ attempts); blind repetitive edits; thrashing between implementer and tester. | Paused immediately upon second failure; consulted Oracle for guidance; escalated to user if third attempt was needed. | Proactive root-cause triage on first failure preventing second; Oracle knowledge leveraged effectively to break impasses. |
+| `CAPTURE` | **Automation & Capture** | Bare `make` or uncaptured raw shell commands executed; console flooded with verbose untracked output. | All build, test, and deploy operations executed via `bobp make <target>`; status automatically reported to CHAT.md. | Target discovery verified via `bobp make help`; quiet flags (`-q`) used during inner loops; build artifacts cleanly maintained. |
+| `CONTEXT` | **Context Budgeting** | Context allowed to reach saturation/compaction without state checkpointing; working memory lost to context truncation. | Context checked between work loops; `*prep-clear` triggered when saturation exceeded 60% before issuing `/clear`. | Seamless multi-loop execution spanning multiple context resets with zero lost knowledge or redundant initialization steps. |

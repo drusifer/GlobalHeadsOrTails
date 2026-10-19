@@ -48,7 +48,7 @@
       "env": {}
     },
     "via": {
-      "command": "/home/drusifer/.local/share/pipx/venvs/via/bin/python",
+      "command": "/home/drusifer/.local/share/pipx/venvs/via-index/bin/python",
       "args": [
         "-m",
         "via",
