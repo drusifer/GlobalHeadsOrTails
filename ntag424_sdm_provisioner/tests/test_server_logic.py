@@ -168,3 +168,5 @@ def test_index_page_includes_joke(test_client):
     assert response.status_code == 200
     assert b'joke-setup' in response.data
     assert b'joke-punchline' in response.data
+
+

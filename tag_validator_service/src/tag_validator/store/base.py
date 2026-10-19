@@ -5,25 +5,35 @@ from typing import Protocol
 from ..models import TagSecret
 
 
-class TagKeyStore(Protocol):
-    """Protocol for managing tag key secrets."""
+class KeyConflictError(Exception):
+    """Raised when an attempt is made to overwrite an immutable key with a different value."""
+    pass
 
-    def get_key(self, uid: str) -> TagSecret | None:
-        """Retrieve a tag secret by UID."""
+
+class TagKeyStore(Protocol):
+    """Protocol for managing tag key secrets with internal WORM semantics."""
+
+    def get_key(self, uid: str, include_deleted: bool = False) -> TagSecret | None:
+        """Retrieve a tag secret by UID. Defaults to active secrets only."""
         ...
 
     def save_key(self, secret: TagSecret) -> bool:
-        """Create or update a tag secret."""
+        """Create or update a tag secret. Enforces WORM immutability on key data."""
         ...
 
     def delete_key(self, uid: str) -> bool:
-        """Delete a tag secret by UID."""
+        """Soft-deletes a tag secret by UID (tombstoning). Does NOT physically delete."""
         ...
 
-    def list_uids(self) -> list[str]:
-        """List all managed tag UIDs."""
+    def undelete_key(self, uid: str) -> bool:
+        """Restores a soft-deleted tag secret back to active status."""
+        ...
+
+    def list_uids(self, include_deleted: bool = False) -> list[str]:
+        """List managed tag UIDs (defaults to active only)."""
         ...
 
     def is_healthy(self) -> bool:
         """Check if backend secret store is reachable/healthy."""
         ...
+

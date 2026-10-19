@@ -121,3 +121,13 @@ This document records key decisions made during the project lifecycle.
 - **Architecture**: Pluggable `TagKeyStore` adapter (`K3sSecretStore` for cluster deployment, `MemorySecretStore` for offline/CI testing). Pure Python standard library WSGI application (`tag_validator.api.app`) with dual JSON POST and query parameter GET endpoints. Constant-time CMAC signature checking using `hmac.compare_digest`.
 - **Packaging**: Self-contained `Makefile`, `Dockerfile` for unprivileged container, and Kubernetes manifests (`k8s/rbac.yaml`, `k8s/deployment.yaml`, `k8s/service.yaml`).
 - **Status**: Accepted, 2026-10-18; 18 unit/integration tests passing.
+
+## 10. Key Service Segmentation, Internal WORM Storage & Domain Decoupling
+- **Context**: Bundling game domain concepts (`coin_name`) with cryptographic key custody compromises zero-trust separation of duties. Overwriting or permanently purging keys creates unrecoverable hardware desynchronization risks for physical tags.
+- **Decision**:
+  1. **Strict Domain Decoupling**: Completely remove `coin_name` and game data from `tag_validator_service`. The service exclusively manages physical tag credentials (`uid`, `k3`, `status`).
+  2. **Internal WORM Storage**: Under the hood, secrets are write-once, read-many and never physically deleted from the underlying cluster or dictionary. Overwrites with differing keys are rejected with `409 Conflict`. Deletion marks the secret as a tombstone (`status: "deleted"`), blocking validation while preserving auditability. An `undelete` endpoint (`POST /api/v1/keys/<uid>/undelete`) restores active status.
+  3. **Consolidated Crypto Authority**: Key generation (CSPRNG via `secrets.token_hex(16)`), SV2 vector derivation, AES-128 CMAC calculation, and odd-byte truncation reside entirely in `tag_validator.crypto`. `POST /api/v1/keys/generate` atomically provisions fresh keys to the WORM vault.
+  4. **Game DB Ownership (`app.db`)**: First-class `coins` table in SQLite `app.db` maps UIDs to coin names, clans, and rarities, while anti-replay logic continues to enforce strictly increasing counters. Game server queries the key service over HTTP (`POST /api/v1/validate`).
+- **Status**: Accepted, 2026-10-18; 20 unit/integration tests passing in `tag_validator_service` and 2 in `test_game_db_coins.py`.
+

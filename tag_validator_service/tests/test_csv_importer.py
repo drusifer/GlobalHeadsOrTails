@@ -59,4 +59,5 @@ def test_api_import_csv():
     sec = store.get_key("04B7664A2F7080")
     assert sec is not None
     assert sec.k3 == "C099B6D1E57E1F4F1A2491A919CFA2B1"
-    assert sec.coin_name == "SWIFT-FALCON-42"
+    assert sec.status == "active"
+

@@ -1,18 +1,27 @@
-# Sprint: Tag Keys K3s Secrets & Stateless CMAC Validator Service — COMPLETE
+# Sprint: Key Service Segmentation & Internal WORM Architecture — COMPLETE
 
-Plan: `agents/cypher.docs/tag_secrets_sprint.md`. Arch: `agents/morpheus.docs/arch_tag_secrets_service.md`.  
-Location: `tag_validator_service/` (top-level microservice).  
+Plan: `agents/cypher.docs/key_segmentation_sprint.md`. Arch: `agents/morpheus.docs/arch_key_segmentation.md`.
 
-- [x] **Phase 1: Core Crypto & CMAC Validation Engine**
-  - [x] Task 1.1: TDD CMAC Engine (`build_system_vector`, session key derivation, odd-byte truncation, constant-time compare).
-  - [x] Task 1.2: Validation engine test suite with NXP test vectors and provisioner compatibility checks.
-- [x] **Phase 2: Pluggable Secret Store & Stateless REST API**
-  - [x] Task 2.1: Pluggable `TagKeyStore` interface + `MemorySecretStore` + `K3sSecretStore`.
-  - [x] Task 2.2: Stateless HTTP API (`POST /api/v1/validate`, `GET /api/v1/validate`, key management endpoints, `/healthz`, `/readyz`).
-- [x] **Phase 3: CSV Importer, Top-Level Packaging & Verification**
-  - [x] Task 3.1: CSV seed utility / API (`POST /api/v1/keys/import-csv` and CLI importer).
-  - [x] Task 3.2: Container packaging (`Dockerfile`, `tag_validator_service/Makefile`, `k8s/` manifests).
-  - [x] Task 3.3: Sprint close (Trin QA, Tank SDLC check, Oracle grooming, Smith acceptance, Retro & Launch).
+- [x] **Phase 1: Domain Decoupling & Crypto Generation Engine**
+  - [x] Task 1.1: Remove `coin_name` from `TagSecret` model, serialization, and k3s annotations.
+  - [x] Task 1.2: Add CSPRNG `generate_sdm_key()` in `tag_validator.crypto.cmac_engine`.
+  - [x] Task 1.3: Expose `POST /api/v1/keys/generate` (atomic generation & WORM vault custody).
+- [x] **Phase 2: Internal WORM Storage (Soft-Delete & Undelete)**
+  - [x] Task 2.1: Update `TagKeyStore` protocol with `undelete_key` and soft-delete semantics.
+  - [x] Task 2.2: Implement soft-delete tombstoning in `MemorySecretStore` and `K3sSecretStore`.
+  - [x] Task 2.3: Enforce WORM key immutability (reject key mutations with 409 Conflict).
+  - [x] Task 2.4: Implement `POST /api/v1/keys/<uid>/undelete` and enforce active-status checks during validation.
+  - [x] Task 2.5: Update CSV importer to ingest strictly `(uid, k3)` pairs.
+- [x] **Phase 3: Game DB Schema & Validation Client Adapter**
+  - [x] Task 3.1: Add `coins` table to `app.db` schema with auto-migration.
+  - [x] Task 3.2: Create HTTP validation client adapter for game server.
+- [x] **Phase 4: Test Suite & Sprint Close**
+  - [x] Task 4.1: Comprehensive unit/integration tests for generation, WORM, soft-delete, undelete, and 409 conflict.
+  - [x] Task 4.2: Trin QA verification, Tank SDLC check, Oracle Decision §10, Smith acceptance, Retro & Launch.
+
+---
+
+# Previous Sprint: Tag Keys K3s Secrets & Stateless CMAC Validator Service — COMPLETE (commit 17a3f73)
 
 ---
 

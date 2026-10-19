@@ -1,7 +1,8 @@
 import logging
 import sqlite3
 from abc import ABC, abstractmethod
-from dataclasses import asdict, dataclass, field
+from contextlib import contextmanager
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import ClassVar, Dict
@@ -54,8 +55,14 @@ class SqliteGameStateManager(IGameStateManager):
         self.db_path = Path(db_path)
         self._init_db()
 
+    @contextmanager
     def _get_conn(self):
-        return sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path)
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def fix_db(self, conn: sqlite3.Connection):
         """Migration: Add coin_name and is_test columns if they don't exist."""
@@ -90,9 +97,56 @@ class SqliteGameStateManager(IGameStateManager):
             # Index for faster lookups
             conn.execute("CREATE INDEX IF NOT EXISTS idx_uid_counter ON scan_logs (uid, counter)")
 
+            # Table for coin identities (decoupled from key management)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS coins (
+                    uid TEXT PRIMARY KEY,
+                    coin_name TEXT NOT NULL,
+                    clan TEXT DEFAULT '',
+                    rarity TEXT DEFAULT 'common',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
             # Add new columns if they don't exist (for backward compatibility)
             self.fix_db(conn)
+
+            # Auto-backfill coins from scan_logs
+            conn.execute("""
+                INSERT OR IGNORE INTO coins (uid, coin_name)
+                SELECT DISTINCT uid, coin_name FROM scan_logs WHERE coin_name != ''
+            """)
             conn.commit()
+
+    def set_coin(self, uid: str, coin_name: str, clan: str = "", rarity: str = "common") -> None:
+        """Stores or updates first-class coin identity in app.db."""
+        uid = uid.upper()
+        with self._get_conn() as conn:
+            conn.execute("""
+                INSERT INTO coins (uid, coin_name, clan, rarity)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(uid) DO UPDATE SET
+                    coin_name=excluded.coin_name,
+                    clan=CASE WHEN excluded.clan != '' THEN excluded.clan ELSE clan END,
+                    rarity=CASE WHEN excluded.rarity != '' THEN excluded.rarity ELSE rarity END
+            """, (uid, coin_name, clan, rarity))
+            conn.commit()
+
+    def get_coin(self, uid: str) -> dict | None:
+        """Retrieves coin identity from app.db."""
+        uid = uid.upper()
+        with self._get_conn() as conn:
+            cur = conn.execute("SELECT uid, coin_name, clan, rarity, created_at FROM coins WHERE uid = ?", (uid,))
+            row = cur.fetchone()
+            if row:
+                return {
+                    "uid": row[0],
+                    "coin_name": row[1],
+                    "clan": row[2],
+                    "rarity": row[3],
+                    "created_at": row[4],
+                }
+            return None
 
     def _query(self, sql: str, params: tuple = ()):
         with self._get_conn() as conn:
@@ -113,13 +167,31 @@ class SqliteGameStateManager(IGameStateManager):
             )
             row = cursor.fetchone()
 
+            coin_name = ""
             if row:
+                outcome = row[0]
+                last_counter = row[1]
+                last_seen = row[2]
+                coin_name = row[3] or ""
+            else:
+                outcome = None
+                last_counter = None
+                last_seen = None
+
+            # If coin_name not in scan_logs, check coins table
+            if not coin_name:
+                c_cur = conn.execute("SELECT coin_name FROM coins WHERE uid = ?", (uid,))
+                c_row = c_cur.fetchone()
+                if c_row:
+                    coin_name = c_row[0]
+
+            if row or coin_name:
                 return TagGameState(
                     uid=uid,
-                    outcome=row[0],
-                    last_counter=row[1],
-                    last_seen=row[2],
-                    coin_name=row[3]
+                    outcome=outcome,
+                    last_counter=last_counter,
+                    last_seen=last_seen,
+                    coin_name=coin_name,
                 )
             else:
                 return TagGameState(uid=uid)

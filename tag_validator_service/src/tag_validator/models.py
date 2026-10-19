@@ -12,16 +12,16 @@ from typing import Any
 class TagSecret:
     """Represents a tag's cryptographic keys stored in k3s secrets.
 
-    Focuses on Key 3 (SDM MAC Key) per specification, with optional metadata.
+    Focuses on Key 3 (SDM MAC Key) per specification, with internal WORM status.
     """
 
     uid: str
     k3: str  # 32-character hex AES-128 key
-    coin_name: str = ""
-    status: str = "active"
+    status: str = "active"  # "active" | "deleted"
     created_at: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
+    deleted_at: str | None = None
 
     def __post_init__(self) -> None:
         self.uid = self.uid.strip().replace(":", "").replace("-", "").upper()
@@ -44,13 +44,15 @@ class TagSecret:
 
     def to_k8s_secret_data(self) -> dict[str, str]:
         """Encodes values for Kubernetes Secret .data dictionary (base64 string values)."""
-        return {
+        data = {
             "uid": base64.b64encode(self.uid.encode("utf-8")).decode("utf-8"),
             "k3": base64.b64encode(self.k3.encode("utf-8")).decode("utf-8"),
-            "coin_name": base64.b64encode(self.coin_name.encode("utf-8")).decode("utf-8"),
             "status": base64.b64encode(self.status.encode("utf-8")).decode("utf-8"),
             "created_at": base64.b64encode(self.created_at.encode("utf-8")).decode("utf-8"),
         }
+        if self.deleted_at:
+            data["deleted_at"] = base64.b64encode(self.deleted_at.encode("utf-8")).decode("utf-8")
+        return data
 
     @classmethod
     def from_k8s_secret_data(cls, secret_data: dict[str, Any]) -> TagSecret:
@@ -69,28 +71,30 @@ class TagSecret:
 
         uid = _decode(secret_data.get("uid", ""))
         k3 = _decode(secret_data.get("k3", "") or secret_data.get("sdm_mac_key", ""))
-        coin_name = _decode(secret_data.get("coin_name", ""))
         status = _decode(secret_data.get("status", "active"))
         created_at = _decode(secret_data.get("created_at", ""))
+        raw_deleted_at = secret_data.get("deleted_at")
+        deleted_at = _decode(raw_deleted_at) if raw_deleted_at else None
 
         return cls(
             uid=uid,
             k3=k3,
-            coin_name=coin_name,
             status=status,
             created_at=created_at or datetime.now(timezone.utc).isoformat(),
+            deleted_at=deleted_at,
         )
 
     def to_dict(self, include_secret: bool = False) -> dict[str, Any]:
         """Dictionary representation for JSON serialization."""
-        data = {
+        data: dict[str, Any] = {
             "uid": self.uid,
             "secret_name": self.secret_name,
-            "coin_name": self.coin_name,
             "status": self.status,
             "created_at": self.created_at,
             "k3_masked": self.masked_k3(),
         }
+        if self.deleted_at:
+            data["deleted_at"] = self.deleted_at
         if include_secret:
             data["k3"] = self.k3
         return data

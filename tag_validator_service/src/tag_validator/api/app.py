@@ -15,9 +15,10 @@ from typing import Any
 from urllib.parse import parse_qs
 
 from ..config import get_config
-from ..crypto.cmac_engine import verify_sdm_cmac
+from ..crypto.cmac_engine import generate_sdm_key, verify_sdm_cmac
 from ..models import TagSecret, ValidationResult
 from ..store import TagKeyStore, create_secret_store
+from ..store.base import KeyConflictError
 
 log = logging.getLogger(__name__)
 
@@ -65,13 +66,18 @@ class TagValidatorApp:
                 if method == "POST":
                     return self._handle_save_key(environ, start_response)
                 elif method == "GET":
-                    return self._handle_list_keys(start_response)
+                    return self._handle_list_keys(environ, start_response)
                 else:
                     return self._json_response(start_response, 405, {"error": "Method Not Allowed"})
             if path.startswith("/api/v1/keys/"):
                 subpath = path[len("/api/v1/keys/"):]
+                if subpath == "generate" and method == "POST":
+                    return self._handle_generate_key(environ, start_response)
                 if subpath == "import-csv" and method == "POST":
                     return self._handle_import_csv(environ, start_response)
+                if subpath.endswith("/undelete") and method == "POST":
+                    target_uid = subpath[:-len("/undelete")]
+                    return self._handle_undelete_key(target_uid, start_response)
                 if method == "GET":
                     return self._handle_get_key(subpath, start_response)
                 elif method == "DELETE":
@@ -162,9 +168,9 @@ class TagValidatorApp:
                 {"valid": False, "error": f"CMAC must be 16 hex characters (8 bytes), got '{cmac_raw}'"},
             )
 
-        # Lookup Tag Secret (Key 3 / SDM MAC Key)
-        secret = self.store.get_key(uid_str)
-        if not secret:
+        # Lookup Tag Secret (Key 3 / SDM MAC Key) - active only
+        secret = self.store.get_key(uid_str, include_deleted=False)
+        if not secret or secret.status != "active":
             return self._json_response(
                 start_response,
                 404,
@@ -173,7 +179,7 @@ class TagValidatorApp:
                     "uid": uid_str,
                     "counter": counter,
                     "cmac_received": cmac_str,
-                    "error": "Tag key secret not found in k3s store",
+                    "error": "Tag key secret not found or is revoked/deleted in store",
                 },
             )
 
@@ -203,6 +209,47 @@ class TagValidatorApp:
         )
         return self._json_response(start_response, 200, result.to_dict())
 
+    def _handle_generate_key(self, environ: dict[str, Any], start_response: Callable) -> list[bytes]:
+        """Atomically generates a fresh AES-128 key and persists it to WORM vault."""
+        body = self._read_json_body(environ)
+        if not body or not body.get("uid"):
+            return self._json_response(start_response, 400, {"error": "Missing required field: uid"})
+
+        uid_raw = str(body["uid"]).strip().replace(":", "").replace("-", "").upper()
+        if len(uid_raw) != 14:
+            return self._json_response(start_response, 400, {"error": f"UID must be 14 hex characters, got '{body['uid']}'"})
+
+        # WORM check: Cannot regenerate or overwrite an existing key
+        existing = self.store.get_key(uid_raw, include_deleted=True)
+        if existing is not None:
+            return self._json_response(
+                start_response,
+                409,
+                {"error": f"Tag key already exists for UID '{uid_raw}'. Keys cannot be regenerated or overwritten."},
+            )
+
+        # Generate CSPRNG AES-128 key
+        k3 = generate_sdm_key()
+        secret = TagSecret(uid=uid_raw, k3=k3, status="active")
+
+        try:
+            success = self.store.save_key(secret)
+            if not success:
+                return self._json_response(start_response, 500, {"error": "Failed to persist secret to store"})
+        except KeyConflictError as e:
+            return self._json_response(start_response, 409, {"error": str(e)})
+
+        return self._json_response(
+            start_response,
+            201,
+            {
+                "status": "created",
+                "uid": uid_raw,
+                "k3": k3,
+                "message": "Key created and persisted to WORM vault. Burn this key to chip Key 3.",
+            },
+        )
+
     def _handle_save_key(self, environ: dict[str, Any], start_response: Callable) -> list[bytes]:
         body = self._read_json_body(environ)
         if not body:
@@ -210,20 +257,22 @@ class TagValidatorApp:
 
         uid = body.get("uid")
         k3 = body.get("k3") or body.get("sdm_mac_key")
-        coin_name = body.get("coin_name", "")
         status = body.get("status", "active")
 
         if not uid or not k3:
             return self._json_response(start_response, 400, {"error": "Missing uid or k3 (sdm_mac_key)"})
 
         try:
-            secret = TagSecret(uid=uid, k3=k3, coin_name=coin_name, status=status)
+            secret = TagSecret(uid=uid, k3=k3, status=status)
         except ValueError as e:
             return self._json_response(start_response, 400, {"error": str(e)})
 
-        success = self.store.save_key(secret)
-        if not success:
-            return self._json_response(start_response, 500, {"error": "Failed to persist secret to store"})
+        try:
+            success = self.store.save_key(secret)
+            if not success:
+                return self._json_response(start_response, 500, {"error": "Failed to persist secret to store"})
+        except KeyConflictError as e:
+            return self._json_response(start_response, 409, {"error": str(e)})
 
         return self._json_response(
             start_response,
@@ -243,8 +292,16 @@ class TagValidatorApp:
             return self._json_response(start_response, 404, {"error": f"Tag key not found for UID '{uid}'"})
         return self._json_response(start_response, 200, {"status": "deleted", "uid": uid.upper()})
 
-    def _handle_list_keys(self, start_response: Callable) -> list[bytes]:
-        uids = self.store.list_uids()
+    def _handle_undelete_key(self, uid: str, start_response: Callable) -> list[bytes]:
+        restored = self.store.undelete_key(uid)
+        if not restored:
+            return self._json_response(start_response, 404, {"error": f"Tag key not found for UID '{uid}'"})
+        return self._json_response(start_response, 200, {"status": "restored", "uid": uid.upper()})
+
+    def _handle_list_keys(self, environ: dict[str, Any], start_response: Callable) -> list[bytes]:
+        qs = parse_qs(environ.get("QUERY_STRING", ""))
+        include_deleted = qs.get("include_deleted", ["false"])[0].lower() in ("true", "1")
+        uids = self.store.list_uids(include_deleted=include_deleted)
         return self._json_response(start_response, 200, {"count": len(uids), "uids": uids})
 
     def _handle_import_csv(self, environ: dict[str, Any], start_response: Callable) -> list[bytes]:
@@ -270,24 +327,24 @@ class TagValidatorApp:
 
                 try:
                     uid = row[0].strip()
-                    # Determine column layout:
                     # Layout A (standard tag_keys.csv): uid, picc_master_key, app_read_key, sdm_mac_key, outcome, coin_name...
-                    # Layout B (uid, k3, coin_name)
+                    # Layout B (uid, k3)
                     if len(row) >= 4 and len(row[3].strip()) == 32:
                         k3 = row[3].strip()
-                        coin_name = row[5].strip() if len(row) > 5 else ""
                     elif len(row) >= 2 and len(row[1].strip()) == 32:
                         k3 = row[1].strip()
-                        coin_name = row[2].strip() if len(row) > 2 else ""
                     else:
                         skipped += 1
                         continue
 
-                    secret = TagSecret(uid=uid, k3=k3, coin_name=coin_name)
+                    secret = TagSecret(uid=uid, k3=k3)
                     if self.store.save_key(secret):
                         imported += 1
                     else:
                         errors.append(f"Row {row_idx}: Storage failure for UID {uid}")
+                except KeyConflictError as e:
+                    errors.append(f"Row {row_idx} (Conflict): {e}")
+                    skipped += 1
                 except Exception as e:
                     errors.append(f"Row {row_idx}: {e}")
                     skipped += 1

@@ -54,19 +54,32 @@ Response (404 Not Found):
 ### 2. Validate CMAC (GET)
 `GET /api/v1/validate?uid=043F13E2151990&ctr=5&cmac=8841D6A4D9B0A352`
 
-### 3. Key Management
-- `POST /api/v1/keys`: Create/update a tag key secret.
+### 3. Key Management & Internal WORM Engine
+- `POST /api/v1/keys/generate`: Atomically generates a fresh CSPRNG AES-128 key and commits it directly to the WORM vault. Plaintext key is disclosed exactly once for burning to physical chip Key 3.
+  ```json
+  // Request
+  { "uid": "043F13E2151990" }
+
+  // Response (201 Created)
+  {
+    "status": "created",
+    "uid": "043F13E2151990",
+    "k3": "99E88808ADC7885BC7065D739A25E1D0",
+    "message": "Key created and persisted to WORM vault. Burn this key to chip Key 3."
+  }
+  ```
+- `POST /api/v1/keys`: Save a pre-existing tag key secret. Enforces WORM: attempting to overwrite a UID with a different key is rejected with `409 Conflict`.
   ```json
   {
     "uid": "043F13E2151990",
-    "k3": "99E88808ADC7885BC7065D739A25E1D0",
-    "coin_name": "SWIFT-FALCON-42"
+    "k3": "99E88808ADC7885BC7065D739A25E1D0"
   }
   ```
-- `GET /api/v1/keys`: List all managed tag UIDs.
-- `GET /api/v1/keys/<uid>`: Retrieve tag metadata (masked key).
-- `DELETE /api/v1/keys/<uid>`: Remove tag key secret.
-- `POST /api/v1/keys/import-csv`: Bulk import tag keys from CSV payload.
+- `GET /api/v1/keys`: List all managed tag UIDs (active only by default; pass `?include_deleted=true` for all).
+- `GET /api/v1/keys/<uid>`: Retrieve tag metadata (masked key `99E8...E1D0`).
+- `DELETE /api/v1/keys/<uid>`: Soft-delete (tombstoning). Retains secret in vault for auditability, but disables validation.
+- `POST /api/v1/keys/<uid>/undelete`: Restores a soft-deleted key back to `active` status.
+- `POST /api/v1/keys/import-csv`: Bulk import tag keys from CSV payload (ingests `UID` and `SDM_MAC_KEY`).
 
 ---
 

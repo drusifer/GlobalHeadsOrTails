@@ -5,6 +5,7 @@ import pytest
 from tag_validator.crypto.cmac_engine import (
     build_system_vector,
     calculate_sdm_cmac,
+    generate_sdm_key,
     truncate_cmac,
     verify_sdm_cmac,
 )
@@ -78,3 +79,15 @@ def test_cmac_calculation_and_verification():
     # Counter mismatch check
     is_valid_wrong_ctr, _ = verify_sdm_cmac(KNOWN_UID, KNOWN_CTR + 1, KNOWN_K3, cmac_val)
     assert is_valid_wrong_ctr is False
+
+
+def test_generate_sdm_key():
+    k1 = generate_sdm_key()
+    k2 = generate_sdm_key()
+    assert len(k1) == 32
+    assert len(k2) == 32
+    assert k1 != k2  # High entropy CSPRNG
+    # Valid hex
+    bytes.fromhex(k1)
+    bytes.fromhex(k2)
+

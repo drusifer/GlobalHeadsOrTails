@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hmac
 import logging
+import secrets
 
 log = logging.getLogger(__name__)
 
@@ -139,3 +140,15 @@ def verify_sdm_cmac(
 
     is_valid = hmac.compare_digest(calculated, clean_received)
     return is_valid, calculated
+
+
+def generate_sdm_key() -> str:
+    """Generates a cryptographically secure 128-bit (16-byte) AES key.
+
+    Uses OS-level CSPRNG (secrets.token_hex) ensuring maximum entropy.
+
+    Returns:
+        32-character uppercase hex string (16 bytes).
+    """
+    return secrets.token_hex(16).upper()
+

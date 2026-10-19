@@ -48,28 +48,33 @@ def import_csv_to_store(
 
             try:
                 uid = row[0].strip()
-                # Determine column structure
+                # Determine column structure:
+                # Layout A: uid, picc_master_key, app_read_key, sdm_mac_key, ...
+                # Layout B: uid, k3
                 if len(row) >= 4 and len(row[3].strip()) == 32:
                     k3 = row[3].strip()
-                    coin_name = row[5].strip() if len(row) > 5 else ""
                 elif len(row) >= 2 and len(row[1].strip()) == 32:
                     k3 = row[1].strip()
-                    coin_name = row[2].strip() if len(row) > 2 else ""
                 else:
                     skipped += 1
                     continue
 
-                secret = TagSecret(uid=uid, k3=k3, coin_name=coin_name)
+                secret = TagSecret(uid=uid, k3=k3)
                 if dry_run:
                     log.info(f"[DRY-RUN] Would save {secret.secret_name} (UID={secret.uid}, K3={secret.masked_k3()})")
                     imported += 1
                 else:
                     assert store is not None
-                    if store.save_key(secret):
-                        log.info(f"Saved {secret.secret_name} -> {namespace}")
-                        imported += 1
-                    else:
-                        errors.append(f"Row {row_idx}: Failed to save {secret.secret_name}")
+                    from ..store.base import KeyConflictError
+                    try:
+                        if store.save_key(secret):
+                            log.info(f"Saved {secret.secret_name} -> {namespace}")
+                            imported += 1
+                        else:
+                            errors.append(f"Row {row_idx}: Failed to save {secret.secret_name}")
+                    except KeyConflictError as e:
+                        errors.append(f"Row {row_idx} (Conflict): {e}")
+                        skipped += 1
             except Exception as e:
                 errors.append(f"Row {row_idx}: {e}")
                 skipped += 1
