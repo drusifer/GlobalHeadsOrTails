@@ -210,25 +210,16 @@ def create_app(
         # Snapshot active challenge before recording to detect completions
         active_before = flip_off_service.get_active_challenge(coin_name) if coin_name else None
 
-        sticker_award = {"drop": None, "evolutions": []}
-        if is_test_mode:
-            game_manager.update_state(
-                uid_str, ctr_int, new_outcome_str, coin_name=coin_name, cmac=cmac, is_test=True,
+        try:
+            sticker_award = game_manager.record_validated_flip(
+                uid_str, ctr_int, new_outcome_str, coin_name, cmac,
+                current_app.sticker_service, flip_off_service,
+                is_test=is_test_mode,
             )
-            if new_outcome_str in ("heads", "tails"):
-                sticker_award = current_app.sticker_service.award_flip(
-                    coin_name, f"test:{uid_str}", ctr_int,
-                )
-        else:
-            try:
-                sticker_award = game_manager.record_validated_flip(
-                    uid_str, ctr_int, new_outcome_str, coin_name, cmac,
-                    current_app.sticker_service, flip_off_service,
-                )
-            except ValueError as exc:
-                if str(exc) == "Replay detected":
-                    return {"error": "Replay detected"}, 409
-                raise
+        except ValueError as exc:
+            if str(exc) == "Replay detected":
+                return {"error": "Replay detected"}, 409
+            raise
         active_challenges = flip_off_service.get_all_active_challenges()
         challenge = flip_off_service.get_latest_challenge(coin_name) if coin_name else None
 

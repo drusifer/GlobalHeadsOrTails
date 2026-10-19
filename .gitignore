@@ -38,3 +38,5 @@ cloudflared.deb
 # Bob Protocol / via — machine-local config and index, not portable
 .mcp.json
 .via/
+
+*.egg-info/

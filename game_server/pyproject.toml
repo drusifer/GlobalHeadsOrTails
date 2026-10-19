@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "game-server"
+version = "0.1.0"
+description = "Global Heads or Tails Flask Game Server"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.0.0",
+    "pycryptodome>=3.12.0",
+    "coolname>=2.2.0",
+    "shared",
+    "tag-validator-service",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"game_server" = [
+    "templates/*.html",
+    "sticker_catalog*.json",
+    "sticker_packs.json",
+    "static/*.js",
+    "static/*.css",
+    "static/stickers/*.webp",
+    "static/stickers/rangers-history/*.webp",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--disable-warnings",
+]

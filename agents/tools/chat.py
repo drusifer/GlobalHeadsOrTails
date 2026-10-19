@@ -42,7 +42,7 @@ def write_message(chat_file, formatted_line, overwrite_last_make_build):
     path = Path(chat_file)
 
     try:
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         print(f"Error: Could not find {chat_file}")
         sys.exit(1)
@@ -50,10 +50,10 @@ def write_message(chat_file, formatted_line, overwrite_last_make_build):
     if overwrite_last_make_build and last_entry_is_make_build(content):
         marker = "\n---\n["
         start = content.rfind(marker)
-        path.write_text(content[:start] + formatted_line)
+        path.write_text(content[:start] + formatted_line, encoding="utf-8")
         return "Replaced last make build message in"
 
-    with path.open("a") as f:
+    with path.open("a", encoding="utf-8") as f:
         f.write(formatted_line)
     return "Appended to"
 

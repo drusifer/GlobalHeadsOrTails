@@ -8,7 +8,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const root = process.cwd();
-const server = path.join(root, 'ntag424_sdm_provisioner/src/ntag424_sdm_provisioner/server');
+const server = path.join(root, 'game_server/src/game_server');
 const source = path.resolve(process.env.RECARD_IMAGEGEN_DIR || '../recard/tools/imagegen');
 const packId = process.env.STICKER_PACK || 'twelve-clans';
 if (!['twelve-clans', 'rangers-history'].includes(packId)) throw new Error('Unknown STICKER_PACK');

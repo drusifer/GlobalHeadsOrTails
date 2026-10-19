@@ -11,9 +11,10 @@
 All development in this repository strictly adheres to Bob Protocol SDLC standards. No work loop or sprint planning proceeds without this document.
 
 ### Architecture Topology
-1. **Core Provisioner Service**: `ntag424_sdm_provisioner/` (Python/Flask backend, NTAG 424 DNA provisioning, TUI, game state).
-2. **Tag Validator Microservice**: `tag_validator_service/` (Standalone stateless microservice for managing tag keys as k3s secrets and performing NTAG 424 DNA SDM CMAC validation).
-3. **Frontend & Mobile UI**: Integrated web app, sticker book, flip-off game.
+1. **Shared Contracts (`shared/`)**: Lightweight domain model definitions (`UID`, `Outcome`, `TagKeys`, `mask_key`) with zero external dependencies, establishing the universal contract across all services.
+2. **Tag Validator Microservice (`tag_validator_service/`)**: Standalone stateless security microservice managing tag keys as k3s WORM secrets and performing NTAG 424 DNA SDM CMAC validation. Bundles the official client SDK (`tag_validator.client`).
+3. **SDM Hardware Provisioner (`sdm_provisioner/`)**: Specialized PC/SC smartcard provisioning toolchain, hardware abstraction layer (`hal`), Textual TUI, and command orchestrators.
+4. **Game Server (`game_server/`)**: Flask gameplay server, coin message service, VIP contact endpoints, Twelve Clans sticker catalog, and real-time polling state manager.
 
 ---
 

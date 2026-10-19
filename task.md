@@ -1,23 +1,26 @@
-# Sprint: Key Service Segmentation & Internal WORM Architecture — COMPLETE
+# Sprint: Code Reorganization & Component Consistency — COMPLETE
 
-Plan: `agents/cypher.docs/key_segmentation_sprint.md`. Arch: `agents/morpheus.docs/arch_key_segmentation.md`.
+Plan: `agents/cypher.docs/code_reorg_sprint.md`. Arch: `agents/morpheus.docs/arch_code_reorg.md`.
 
-- [x] **Phase 1: Domain Decoupling & Crypto Generation Engine**
-  - [x] Task 1.1: Remove `coin_name` from `TagSecret` model, serialization, and k3s annotations.
-  - [x] Task 1.2: Add CSPRNG `generate_sdm_key()` in `tag_validator.crypto.cmac_engine`.
-  - [x] Task 1.3: Expose `POST /api/v1/keys/generate` (atomic generation & WORM vault custody).
-- [x] **Phase 2: Internal WORM Storage (Soft-Delete & Undelete)**
-  - [x] Task 2.1: Update `TagKeyStore` protocol with `undelete_key` and soft-delete semantics.
-  - [x] Task 2.2: Implement soft-delete tombstoning in `MemorySecretStore` and `K3sSecretStore`.
-  - [x] Task 2.3: Enforce WORM key immutability (reject key mutations with 409 Conflict).
-  - [x] Task 2.4: Implement `POST /api/v1/keys/<uid>/undelete` and enforce active-status checks during validation.
-  - [x] Task 2.5: Update CSV importer to ingest strictly `(uid, k3)` pairs.
-- [x] **Phase 3: Game DB Schema & Validation Client Adapter**
-  - [x] Task 3.1: Add `coins` table to `app.db` schema with auto-migration.
-  - [x] Task 3.2: Create HTTP validation client adapter for game server.
-- [x] **Phase 4: Test Suite & Sprint Close**
-  - [x] Task 4.1: Comprehensive unit/integration tests for generation, WORM, soft-delete, undelete, and 409 conflict.
-  - [x] Task 4.2: Trin QA verification, Tank SDLC check, Oracle Decision §10, Smith acceptance, Retro & Launch.
+- [x] **Phase 1: Shared Models & Tag Validator Client SDK**
+  - [x] Task 1.1: Create `shared/` package (`UID`, `Outcome`, `TagKeys`) with tests and `pyproject.toml`.
+  - [x] Task 1.2: Add `TagValidatorClient` to `tag_validator_service/src/tag_validator/client.py` with tests.
+- [x] **Phase 2: Extract `sdm_provisioner/` Component**
+  - [x] Task 2.1: Create `sdm_provisioner/` package layout (`pyproject.toml`, `Makefile`, CLI entrypoints).
+  - [x] Task 2.2: Move hardware commands, hal, tui, and interactive tools into `sdm_provisioner/`.
+  - [x] Task 2.3: Update imports and verify `sdm_provisioner` test suite (104/104 passing).
+- [x] **Phase 3: Extract `game_server/` Component**
+  - [x] Task 3.1: Create `game_server/` package layout (`pyproject.toml`, `Makefile`).
+  - [x] Task 3.2: Move Flask server, game_state_manager, services, static assets, and templates to `game_server/`.
+  - [x] Task 3.3: Wire `game_server` to `ServiceKeyManager` + `tag_validator.client` and verify server tests (170/170 passing).
+- [x] **Phase 4: Root Workspace Harmonization & Sprint Close**
+  - [x] Task 4.1: Update root `Makefile` and `docs/SDLC.md`.
+  - [x] Task 4.2: Clean up legacy directory and verify 100% test pass rate across all packages (305/305 passing).
+  - [x] Task 4.3: Sprint close gates (Trin UAT, Tank SDLC, Oracle grooming, Smith acceptance, Cypher launch).
+
+---
+
+# Previous Sprint: Key Service Segmentation & Internal WORM Architecture — COMPLETE (commit a7a0935)
 
 ---
 

@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
-SERVER = Path(__file__).resolve().parents[1] / "ntag424_sdm_provisioner/src/ntag424_sdm_provisioner/server"
+SERVER = Path(__file__).resolve().parents[1] / "game_server/src/game_server"
 PACK = os.environ.get('STICKER_PACK', 'twelve-clans')
 if PACK not in ('twelve-clans', 'rangers-history'):
     raise ValueError('Unknown STICKER_PACK')

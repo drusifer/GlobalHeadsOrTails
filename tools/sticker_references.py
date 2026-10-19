@@ -28,7 +28,7 @@ def download(url: str) -> bytes:
 def main() -> None:
     """Record each selected player's source and actual downloaded reference status."""
     from PIL import Image
-    catalog = json.loads((ROOT/'ntag424_sdm_provisioner/src/ntag424_sdm_provisioner/server/sticker_catalog_rangers.json').read_text())
+    catalog = json.loads((ROOT/'game_server/src/game_server/sticker_catalog_rangers.json').read_text())
     families = {family['id']:family for family in catalog['families']}
     selection = os.environ.get('ART_IDS', '')
     ids = list(families) if selection == 'all' else selection.split(',')

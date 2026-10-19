@@ -32,7 +32,7 @@ def services():
     fos = FlipOffService(db_path=str(DB_PATH))
     yield gsm, fos
 
-    shutil.rmtree(DB_PATH.parent)
+    shutil.rmtree(DB_PATH.parent, ignore_errors=True)
 
 
 def add_flips(gsm: SqliteGameStateManager, coin: str, outcomes: list[str]) -> None:
@@ -230,9 +230,12 @@ def test_expire_stale_challenges_marks_old_as_expired(services):
     # Backdate created_at to 25 hours ago (beyond 24h expiry window)
     import sqlite3
     cutoff = (datetime.utcnow() - timedelta(hours=25)).isoformat()
-    with sqlite3.connect(DB_PATH) as conn:
+    conn = sqlite3.connect(DB_PATH)
+    try:
         conn.execute("UPDATE flip_off_challenges SET created_at = ? WHERE id = ?", (cutoff, cid))
         conn.commit()
+    finally:
+        conn.close()
 
     expired = fos.expire_stale_challenges(hours=24)
     assert len(expired) == 1

@@ -118,7 +118,7 @@ def run(args):
     if args.lane == 'reverse':
         command.append('ART_REVERSE=1')
     if bounds:
-        catalog = ROOT / 'ntag424_sdm_provisioner/src/ntag424_sdm_provisioner/server/sticker_catalog_rangers.json'
+        catalog = ROOT / 'game_server/src/game_server/sticker_catalog_rangers.json'
         families = json.loads(catalog.read_text())['families'][slice(*bounds)]
         command.append('ART_IDS=' + ','.join(f['id'] for f in families))
     log_path = WORK / f'production-{args.lane}.log'

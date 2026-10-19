@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / 'build/rangers-roster'
-SERVER = ROOT / 'ntag424_sdm_provisioner/src/ntag424_sdm_provisioner/server'
+SERVER = ROOT / 'game_server/src/game_server'
 RARITY = ROOT / 'agents/cypher.docs/rangers_rarity.json'
 ART_SOURCES = ROOT / 'agents/oracle.docs/rangers_art_sources.json'
 SKATER = ('gamesPlayed','goals','assists','points')
