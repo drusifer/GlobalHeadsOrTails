@@ -74,7 +74,7 @@ while ($true) {
                 $PROCESSED_DELEGATIONS[$delegationKey] = $true
                 
                 # Post to CHAT
-                $chatEntry = "`n[$timestamp] [WATCHER] Delegating $persona → $($delegation.delegate_to) for $($delegation.task)"
+                $chatEntry = "`n[$timestamp] [WATCHER] Delegating $persona -> $($delegation.delegate_to) for $($delegation.task)"
                 Add-Content -Path $CHAT_FILE -Value $chatEntry
                 
                 if ($AutoDelegate) {

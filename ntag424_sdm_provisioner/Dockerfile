@@ -14,8 +14,8 @@ WORKDIR /app
 # Copy the current directory contents into the container
 COPY . /app
 
-# Install the package dependencies and Gunicorn
-RUN pip install --no-cache-dir .[server] gunicorn
+# Install the package dependencies and Gunicorn (with gevent extras) and verify dependency tree
+RUN pip install --no-cache-dir ".[server]" "gunicorn[gevent]" && pip check
 
 # Change ownership to the non-root user
 RUN chown -R appuser:appuser /app
@@ -27,4 +27,4 @@ USER appuser
 EXPOSE 8000
 
 # Run Gunicorn pointing to the app module defined in Makefile
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "ntag424_sdm_provisioner.server.app:app"]
+CMD ["gunicorn", "-k", "gevent", "-w", "1", "-b", "0.0.0.0:8000", "ntag424_sdm_provisioner.server.app:app"]

@@ -1,0 +1,318 @@
+{
+  "pack_name": "The Twelve Clans",
+  "narrative": "When the old empire's wishing coin split in two, its twelve sworn clans reclaimed the ancestral seals once surrendered to the imperial mint. Now every clan tells a different story of the breaking: betrayal, liberation, accident or prophecy. They contest the seals through champions, hoping to reunite the coin and decide what the next age will become. Every flip is an omen; every Flip Off settles a small feud in that greater struggle. Three echoes of a champion awaken the next form of their clan's legacy. Nobody knows whether the coin grants wishes or merely reveals what each clan is willing to wager.",
+  "families": [
+    {
+      "id": "hearthshield-compact",
+      "name": "Hearthshield Clan",
+      "rarity": "common",
+      "look": "Human hearth-kin who adopt anyone willing to guard a neighbor's door. They want the seals held in common, not inherited by rulers. Rounded shields, warm ochre cloaks, copper kettle emblem; friendly stout silhouettes. Rival: Crownless Clan, whose bargains once cost them their ancestral hall.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Hearth Recruit",
+          "quote": "Our clan begins wherever someone guards another's door.",
+          "art_prompt": "Human hearth-kin who adopt anyone willing to guard a neighbor's door. They want the seals held in common, not inherited by rulers. Rounded shields, warm ochre cloaks, copper kettle emblem; friendly stout silhouettes. Rival: Crownless Clan, whose bargains once cost them their ancestral hall. Depict Hearth Recruit: oversized round shield, patched cloak, wooden practice spear. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Lantern Captain",
+          "quote": "Let their banners darken the road. We brought our own light.",
+          "art_prompt": "Human hearth-kin who adopt anyone willing to guard a neighbor's door. They want the seals held in common, not inherited by rulers. Rounded shields, warm ochre cloaks, copper kettle emblem; friendly stout silhouettes. Rival: Crownless Clan, whose bargains once cost them their ancestral hall. Depict Lantern Captain: broad steel shield, lantern-topped spear, ember cape. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Citadel Warden",
+          "quote": "Our walls have room for everyone their crowns forgot.",
+          "art_prompt": "Human hearth-kin who adopt anyone willing to guard a neighbor's door. They want the seals held in common, not inherited by rulers. Rounded shields, warm ochre cloaks, copper kettle emblem; friendly stout silhouettes. Rival: Crownless Clan, whose bargains once cost them their ancestral hall. Depict Citadel Warden: tower-shaped shield and radiant lantern armor, still carrying the battered kettle crest. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "mosswhisper-circle",
+      "name": "Mosswhisper Clan",
+      "rarity": "common",
+      "look": "Woodland kin whose ancestral memories live in the roots beneath the ruined mint. They seek to grow a new age from its buried seals. Fern green, cream bark, curling antlers and leaf spirals; branching silhouettes. Rival: Brassburrow Clan, whose excavations disturb the ancestor grove.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Seed Tender",
+          "quote": "They buried their fortune. We planted ours.",
+          "art_prompt": "Woodland kin whose ancestral memories live in the roots beneath the ruined mint. They seek to grow a new age from its buried seals. Fern green, cream bark, curling antlers and leaf spirals; branching silhouettes. Rival: Brassburrow Clan, whose excavations disturb the ancestor grove. Depict Seed Tender: hooded sprite with acorn staff and tiny sprout companion. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Briar Speaker",
+          "quote": "Brassburrow hears buried gears. We hear our ancestors asking them to stop.",
+          "art_prompt": "Woodland kin whose ancestral memories live in the roots beneath the ruined mint. They seek to grow a new age from its buried seals. Fern green, cream bark, curling antlers and leaf spirals; branching silhouettes. Rival: Brassburrow Clan, whose excavations disturb the ancestor grove. Depict Briar Speaker: bark mantle, bramble antlers, flowering staff. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Grove Sovereign",
+          "quote": "When their last vault falls, we will call it a garden.",
+          "art_prompt": "Woodland kin whose ancestral memories live in the roots beneath the ruined mint. They seek to grow a new age from its buried seals. Fern green, cream bark, curling antlers and leaf spirals; branching silhouettes. Rival: Brassburrow Clan, whose excavations disturb the ancestor grove. Depict Grove Sovereign: towering gentle tree spirit, crown of living branches. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "brassburrow-guild",
+      "name": "Brassburrow Clan",
+      "rarity": "common",
+      "look": "Dwarf forge-families who pass tools and unpaid imperial debts from parent to apprentice. They would reopen the mint so no clan works for another's crown. Brass and charcoal, square tools, gear badges; compact block silhouettes. Rival: Mosswhisper Clan, whose sacred roots have claimed their oldest workshop.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Tunnel Tinker",
+          "quote": "A lost empire is mostly overdue maintenance.",
+          "art_prompt": "Dwarf forge-families who pass tools and unpaid imperial debts from parent to apprentice. They would reopen the mint so no clan works for another's crown. Brass and charcoal, square tools, gear badges; compact block silhouettes. Rival: Mosswhisper Clan, whose sacred roots have claimed their oldest workshop. Depict Tunnel Tinker: soot-faced dwarf, small wrench, brass mole lantern. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Vaultwright",
+          "quote": "Mosswhisper calls it sacred ground. Grandmother called it her workshop.",
+          "art_prompt": "Dwarf forge-families who pass tools and unpaid imperial debts from parent to apprentice. They would reopen the mint so no clan works for another's crown. Brass and charcoal, square tools, gear badges; compact block silhouettes. Rival: Mosswhisper Clan, whose sacred roots have claimed their oldest workshop. Depict Vaultwright: piston gauntlets, tool belt, reinforced apron. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Deepforge Foreman",
+          "quote": "We built the future. Kindly stop standing in the gears.",
+          "art_prompt": "Dwarf forge-families who pass tools and unpaid imperial debts from parent to apprentice. They would reopen the mint so no clan works for another's crown. Brass and charcoal, square tools, gear badges; compact block silhouettes. Rival: Mosswhisper Clan, whose sacred roots have claimed their oldest workshop. Depict Deepforge Foreman: squat walking forge suit, glowing hammer and smokestack shoulders. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "redcap-runners",
+      "name": "Redcap Clan",
+      "rarity": "common",
+      "look": "Goblin road-kin whose shared red scarves mark a family larger than any bloodline. They carry the twelve clans' messages and demand an equal voice at the new council. Scarlet scarves, patched tan leather, triangular ears, winged boot crest; nimble diagonals. Rival: Dawn Oath Clan, whose checkpoints threaten their free roads.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Road Scamp",
+          "quote": "First to the crossroads gets to name the price.",
+          "art_prompt": "Goblin road-kin whose shared red scarves mark a family larger than any bloodline. They carry the twelve clans' messages and demand an equal voice at the new council. Scarlet scarves, patched tan leather, triangular ears, winged boot crest; nimble diagonals. Rival: Dawn Oath Clan, whose checkpoints threaten their free roads. Depict Road Scamp: goblin with enormous mail satchel and red cap. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Banner Dasher",
+          "quote": "We carry every clan's word. Believing it costs extra.",
+          "art_prompt": "Goblin road-kin whose shared red scarves mark a family larger than any bloodline. They carry the twelve clans' messages and demand an equal voice at the new council. Scarlet scarves, patched tan leather, triangular ears, winged boot crest; nimble diagonals. Rival: Dawn Oath Clan, whose checkpoints threaten their free roads. Depict Banner Dasher: windblown scarf, courier spear, bundle of stolen proclamations. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Crossroads Marshal",
+          "quote": "Kings own castles. We own the way there.",
+          "art_prompt": "Goblin road-kin whose shared red scarves mark a family larger than any bloodline. They carry the twelve clans' messages and demand an equal voice at the new council. Scarlet scarves, patched tan leather, triangular ears, winged boot crest; nimble diagonals. Rival: Dawn Oath Clan, whose checkpoints threaten their free roads. Depict Crossroads Marshal: long red pennant, spring boots, road-map cape. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "moonwake-fellowship",
+      "name": "Moonwake Clan",
+      "rarity": "common",
+      "look": "Frogfolk boat-families whose clan history is sung rather than written. They want the reunited coin to free every waterway from borders and tolls. Teal and pearl, crescent paddles and lily pads; soft oval silhouettes. Rival: Tideglass Clan, who guard a prophecy Moonwake believes belongs in every song.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Reed Piper",
+          "quote": "The river remembers a verse the kings left out.",
+          "art_prompt": "Frogfolk boat-families whose clan history is sung rather than written. They want the reunited coin to free every waterway from borders and tolls. Teal and pearl, crescent paddles and lily pads; soft oval silhouettes. Rival: Tideglass Clan, who guard a prophecy Moonwake believes belongs in every song. Depict Reed Piper: tiny frog bard, reed flute, lily-pad hat. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Moonboat Skald",
+          "quote": "We sing their borders into water.",
+          "art_prompt": "Frogfolk boat-families whose clan history is sung rather than written. They want the reunited coin to free every waterway from borders and tolls. Teal and pearl, crescent paddles and lily pads; soft oval silhouettes. Rival: Tideglass Clan, who guard a prophecy Moonwake believes belongs in every song. Depict Moonboat Skald: crescent lute, reed cloak, little spectral boat. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Silverwater Maestro",
+          "quote": "Let twelve clans quarrel. The current carries all our echoes.",
+          "art_prompt": "Frogfolk boat-families whose clan history is sung rather than written. They want the reunited coin to free every waterway from borders and tolls. Teal and pearl, crescent paddles and lily pads; soft oval silhouettes. Rival: Tideglass Clan, who guard a prophecy Moonwake believes belongs in every song. Depict Silverwater Maestro: sweeping moonlit robes and luminous ribbon river. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "dawn-oath",
+      "name": "Dawn Oath Clan",
+      "rarity": "uncommon",
+      "look": "An oath-bound clan of paladins who inherit a promise, not a throne: never let the wishing coin crown another tyrant. They would destroy it even if the other eleven clans stood against them. Ivory and sunrise gold, sunburst helms and long lances; upright angular silhouettes. Rival: Redcap Clan, whose messengers keep the dangerous seals moving.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Sun Squire",
+          "quote": "I inherit no crown. Only the oath that broke one.",
+          "art_prompt": "An oath-bound clan of paladins who inherit a promise, not a throne: never let the wishing coin crown another tyrant. They would destroy it even if the other eleven clans stood against them. Ivory and sunrise gold, sunburst helms and long lances; upright angular silhouettes. Rival: Redcap Clan, whose messengers keep the dangerous seals moving. Depict Sun Squire: bright tabard, simple lance, small sunrise buckler. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Daybreak Knight",
+          "quote": "No wish is worth another chain.",
+          "art_prompt": "An oath-bound clan of paladins who inherit a promise, not a throne: never let the wishing coin crown another tyrant. They would destroy it even if the other eleven clans stood against them. Ivory and sunrise gold, sunburst helms and long lances; upright angular silhouettes. Rival: Redcap Clan, whose messengers keep the dangerous seals moving. Depict Daybreak Knight: fan-shaped sun helm, white horsehair plume, gilded lance. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Aurora Justiciar",
+          "quote": "We did not come for the throne. We came to end its hunger.",
+          "art_prompt": "An oath-bound clan of paladins who inherit a promise, not a throne: never let the wishing coin crown another tyrant. They would destroy it even if the other eleven clans stood against them. Ivory and sunrise gold, sunburst helms and long lances; upright angular silhouettes. Rival: Redcap Clan, whose messengers keep the dangerous seals moving. Depict Aurora Justiciar: blazing halo shield, long flowing ivory mantle. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "velvet-knives",
+      "name": "Velvetclaw Clan",
+      "rarity": "uncommon",
+      "look": "Catfolk shadow-families who welcome debtors and outcasts as kin. They steal seals to erase the imperial ledgers that still bind their adopted siblings. Plum and rose, velvet masks, curved daggers; sleek crescent silhouettes. Rival: Ashquill Clan, who refuse to burn a single ancestral record.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Alley Whisper",
+          "quote": "A purse closes. A secret opens.",
+          "art_prompt": "Catfolk shadow-families who welcome debtors and outcasts as kin. They steal seals to erase the imperial ledgers that still bind their adopted siblings. Plum and rose, velvet masks, curved daggers; sleek crescent silhouettes. Rival: Ashquill Clan, who refuse to burn a single ancestral record. Depict Alley Whisper: masked cat thief, lockpick and folded ledger. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Silkblade Agent",
+          "quote": "Tonight we steal what tomorrow calls lawful.",
+          "art_prompt": "Catfolk shadow-families who welcome debtors and outcasts as kin. They steal seals to erase the imperial ledgers that still bind their adopted siblings. Plum and rose, velvet masks, curved daggers; sleek crescent silhouettes. Rival: Ashquill Clan, who refuse to burn a single ancestral record. Depict Silkblade Agent: twin crescent daggers, layered purple sash. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Midnight Regent",
+          "quote": "Ashquill keeps the names. We free the people still chained to them.",
+          "art_prompt": "Catfolk shadow-families who welcome debtors and outcasts as kin. They steal seals to erase the imperial ledgers that still bind their adopted siblings. Plum and rose, velvet masks, curved daggers; sleek crescent silhouettes. Rival: Ashquill Clan, who refuse to burn a single ancestral record. Depict Midnight Regent: dramatic velvet cape, silver mask, orbiting stolen seals. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "ashen-archive",
+      "name": "Ashquill Clan",
+      "rarity": "uncommon",
+      "look": "Undead scholar-kin who remain beside their descendants to preserve every clan's history, including its betrayals. Their ancestral archive holds the last account of the coin's breaking. Ash gray and violet, paper strips and bone quills; tall narrow silhouettes. Rival: Velvetclaw Clan, whose liberating fires threaten memories as well as debts.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Bone Scribe",
+          "quote": "History is easier to keep when you need no sleep.",
+          "art_prompt": "Undead scholar-kin who remain beside their descendants to preserve every clan's history, including its betrayals. Their ancestral archive holds the last account of the coin's breaking. Ash gray and violet, paper strips and bone quills; tall narrow silhouettes. Rival: Velvetclaw Clan, whose liberating fires threaten memories as well as debts. Depict Bone Scribe: small skeleton in scholar robes, giant quill. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Cinder Curator",
+          "quote": "Eleven clans ask who broke the coin. The twelfth tore out the page.",
+          "art_prompt": "Undead scholar-kin who remain beside their descendants to preserve every clan's history, including its betrayals. Their ancestral archive holds the last account of the coin's breaking. Ash gray and violet, paper strips and bone quills; tall narrow silhouettes. Rival: Velvetclaw Clan, whose liberating fires threaten memories as well as debts. Depict Cinder Curator: floating librarian, scroll halo, violet candle. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Sepulcher Sage",
+          "quote": "Erase a debt if you must. Do not erase who paid it.",
+          "art_prompt": "Undead scholar-kin who remain beside their descendants to preserve every clan's history, including its betrayals. Their ancestral archive holds the last account of the coin's breaking. Ash gray and violet, paper strips and bone quills; tall narrow silhouettes. Rival: Velvetclaw Clan, whose liberating fires threaten memories as well as debts. Depict Sepulcher Sage: skeletal archmage inside an open book-shaped mantle. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "stormhorn-clans",
+      "name": "Stormhorn Clan",
+      "rarity": "uncommon",
+      "look": "Mountain minotaur kin who carve their ancestors' names into living horn-runes. They seek the seals to recover sky relics taken when their elders bent the knee to the empire. Cobalt and storm silver, horn runes and zigzag axes; broad triangular silhouettes. Rival: Emberwing Clan, who keep those relics beside the first furnace.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Crag Runner",
+          "quote": "The thunder speaks the names our clan refuses to forget.",
+          "art_prompt": "Mountain minotaur kin who carve their ancestors' names into living horn-runes. They seek the seals to recover sky relics taken when their elders bent the knee to the empire. Cobalt and storm silver, horn runes and zigzag axes; broad triangular silhouettes. Rival: Emberwing Clan, who keep those relics beside the first furnace. Depict Crag Runner: young horned climber, stone axe, blue sash. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Tempest Reaver",
+          "quote": "We climbed above their walls to find a larger fight.",
+          "art_prompt": "Mountain minotaur kin who carve their ancestors' names into living horn-runes. They seek the seals to recover sky relics taken when their elders bent the knee to the empire. Cobalt and storm silver, horn runes and zigzag axes; broad triangular silhouettes. Rival: Emberwing Clan, who keep those relics beside the first furnace. Depict Tempest Reaver: crackling rune horns, forked axe, storm cape. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Skybreaker Chief",
+          "quote": "Return the sky, or learn how mountains answer.",
+          "art_prompt": "Mountain minotaur kin who carve their ancestors' names into living horn-runes. They seek the seals to recover sky relics taken when their elders bent the knee to the empire. Cobalt and storm silver, horn runes and zigzag axes; broad triangular silhouettes. Rival: Emberwing Clan, who keep those relics beside the first furnace. Depict Skybreaker Chief: massive silver horns, lightning axe and rolling cloud shoulders. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "tideglass-choir",
+      "name": "Tideglass Clan",
+      "rarity": "rare",
+      "look": "Merfolk oracle-kin who pass visions between generations in singing shells. They saw a future for each clan, but the reunited coin may leave room for only one. Sea-glass turquoise and coral pink, translucent fins and hourglass shells; flowing fan silhouettes. Rival: Moonwake Clan, whose songs might reveal the future they are trying to prevent.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Foam Listener",
+          "quote": "One ripple told us the coin would fall again.",
+          "art_prompt": "Merfolk oracle-kin who pass visions between generations in singing shells. They saw a future for each clan, but the reunited coin may leave room for only one. Sea-glass turquoise and coral pink, translucent fins and hourglass shells; flowing fan silhouettes. Rival: Moonwake Clan, whose songs might reveal the future they are trying to prevent. Depict Foam Listener: small merfolk oracle holding a whispering shell. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Pearl Diviner",
+          "quote": "Twelve clans entered the vision. One returned without a name.",
+          "art_prompt": "Merfolk oracle-kin who pass visions between generations in singing shells. They saw a future for each clan, but the reunited coin may leave room for only one. Sea-glass turquoise and coral pink, translucent fins and hourglass shells; flowing fan silhouettes. Rival: Moonwake Clan, whose songs might reveal the future they are trying to prevent. Depict Pearl Diviner: coral crown, suspended pearl, sweeping transparent fins. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Abyssal Cantor",
+          "quote": "We could tell you who wins. Then the song would change.",
+          "art_prompt": "Merfolk oracle-kin who pass visions between generations in singing shells. They saw a future for each clan, but the reunited coin may leave room for only one. Sea-glass turquoise and coral pink, translucent fins and hourglass shells; flowing fan silhouettes. Rival: Moonwake Clan, whose songs might reveal the future they are trying to prevent. Depict Abyssal Cantor: luminous deep-sea mantle, floating hourglass shell, starry fins. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "emberwing-covenant",
+      "name": "Emberwing Clan",
+      "rarity": "rare",
+      "look": "Dragonkin hatch-broods united by an ember carried from the mint's first furnace. They believe the wishing coin is an ancestor's unhatched egg and the seals are pieces of its shell. Obsidian and molten orange, wing shapes and cracked egg crest; spiky swept silhouettes. Rival: Stormhorn Clan, whose sky relics they believe must keep the egg warm.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Coal Hatchling",
+          "quote": "It is not treasure if it still needs hatching.",
+          "art_prompt": "Dragonkin hatch-broods united by an ember carried from the mint's first furnace. They believe the wishing coin is an ancestor's unhatched egg and the seals are pieces of its shell. Obsidian and molten orange, wing shapes and cracked egg crest; spiky swept silhouettes. Rival: Stormhorn Clan, whose sky relics they believe must keep the egg warm. Depict Coal Hatchling: tiny horned dragon clutching a warm coin. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Cinderwing Guardian",
+          "quote": "Their mint was our nursery before it was their kingdom.",
+          "art_prompt": "Dragonkin hatch-broods united by an ember carried from the mint's first furnace. They believe the wishing coin is an ancestor's unhatched egg and the seals are pieces of its shell. Obsidian and molten orange, wing shapes and cracked egg crest; spiky swept silhouettes. Rival: Stormhorn Clan, whose sky relics they believe must keep the egg warm. Depict Cinderwing Guardian: upright drake knight, ember wings, furnace spear. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Pyrecrest Ascendant",
+          "quote": "Gather the shell, kin of the ember. Our oldest ancestor is about to wake.",
+          "art_prompt": "Dragonkin hatch-broods united by an ember carried from the mint's first furnace. They believe the wishing coin is an ancestor's unhatched egg and the seals are pieces of its shell. Obsidian and molten orange, wing shapes and cracked egg crest; spiky swept silhouettes. Rival: Stormhorn Clan, whose sky relics they believe must keep the egg warm. Depict Pyrecrest Ascendant: majestic dragon champion, blazing wing crown, molten egg-shaped shield. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    },
+    {
+      "id": "crownless-court",
+      "name": "Crownless Clan",
+      "rarity": "legendary",
+      "look": "Fey coin-kin descended from the first bargain, with no bloodline and no fixed faces. They offer each clan its heart's desire, claiming every wager makes the twelve one family again. Midnight blue and iridescent gold, floating crowns and impossible circles; weightless circular silhouettes. Rival: Hearthshield Clan, who remember the price of their last generous offer; temptation for all eleven other clans.",
+      "forms": [
+        {
+          "level": 1,
+          "name": "Penny Page",
+          "quote": "They called it luck when we were being polite.",
+          "art_prompt": "Fey coin-kin descended from the first bargain, with no bloodline and no fixed faces. They offer each clan its heart's desire, claiming every wager makes the twelve one family again. Midnight blue and iridescent gold, floating crowns and impossible circles; weightless circular silhouettes. Rival: Hearthshield Clan, who remember the price of their last generous offer; temptation for all eleven other clans. Depict Penny Page: mischievous tiny fey with coin face and hovering empty crown. Evolution level 1 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 2,
+          "name": "Gilded Envoy",
+          "quote": "We offer each clan exactly what its cousins fear.",
+          "art_prompt": "Fey coin-kin descended from the first bargain, with no bloodline and no fixed faces. They offer each clan its heart's desire, claiming every wager makes the twelve one family again. Midnight blue and iridescent gold, floating crowns and impossible circles; weightless circular silhouettes. Rival: Hearthshield Clan, who remember the price of their last generous offer; temptation for all eleven other clans. Depict Gilded Envoy: masked fey diplomat, crescent coat, coin constellation. Evolution level 2 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        },
+        {
+          "level": 3,
+          "name": "Sovereign of Chances",
+          "quote": "Choose your side. We have already chosen the moment.",
+          "art_prompt": "Fey coin-kin descended from the first bargain, with no bloodline and no fixed faces. They offer each clan its heart's desire, claiming every wager makes the twelve one family again. Midnight blue and iridescent gold, floating crowns and impossible circles; weightless circular silhouettes. Rival: Hearthshield Clan, who remember the price of their last generous offer; temptation for all eleven other clans. Depict Sovereign of Chances: elegant faceless fey monarch, orbiting split crown and twin coin moons. Evolution level 3 of 3. Original whimsical tabletop RPG collectible sticker illustration, bold ink outline, rich painted colors, single centered full-body champion, square composition, clean warm ivory background, generous margin, no words, letters, numbers, labels or watermark. Maintain the clan palette and emblem. Legible at mobile card size."
+        }
+      ]
+    }
+  ]
+}

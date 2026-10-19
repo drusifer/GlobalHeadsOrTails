@@ -15,6 +15,8 @@ export PYTHONPYCACHEPREFIX := $(CURDIR)/.cache/pycache
 VENV_ACTIVATE := $(VENV)/bin/activate
 DEPS_MARKER := $(VENV)/.deps_updated
 
+VERSION ?= latest
+
 HELM_CHART := /home/drusifer/Projects/pi-patch/cluster/helm/sdm-provisioner
 HELM_DATA_PATH := /opt/sdm-provisioner/data
 
@@ -61,6 +63,15 @@ test_server: deps_test
 	@echo "Running server tests..."
 	$(PYTHON) -m pytest tests/*_server*.py -v
 
+.PHONY: test_collectables
+test_collectables: ## Run server regression and collectables tests without reinstalling dependencies
+	PYTHONPATH=$(CURDIR)/src $(PYTHON) -m pytest tests/test_server*.py $(ARGS) -q
+
+.PHONY: lint_collectables
+lint_collectables: ## Check changed server code for syntax/name errors and validate album JavaScript
+	$(PYTHON) -m ruff check --select E9,F63,F7,F82 src/ntag424_sdm_provisioner/server/
+	node --check src/ntag424_sdm_provisioner/server/static/stickers.js
+
 test: deps_test
 	@echo "Running tests..."
 	$(PYTHON) -m pytest tests/ -v
@@ -101,13 +112,21 @@ logs:
 
 # ── Image export (consumed by pi-patch ansible deploy) ──────────────────────
 
-export-image: pkg
+.PHONY: verify_server_boot
+verify_server_boot: ## Verify dependency graph, gunicorn gevent worker, and Flask WSGI app boot inside the built container
+	@echo "Verifying container dependencies and Gunicorn gevent worker boot..."
+	docker run --rm --network none --read-only --tmpfs /tmp --tmpfs /app/data:rw,uid=1000,gid=1000 \
+		--entrypoint sh ntag424-sdm-provisioner \
+		-c 'pip check && gunicorn --check-config -k gevent -w 1 -b 0.0.0.0:8000 ntag424_sdm_provisioner.server.app:app'
+
+export-image: pkg verify_server_boot verify_collectables_image
 	@echo "Tagging image for k3s import..."
-	docker tag ntag424-sdm-provisioner localhost/ntag424-sdm-provisioner:latest
+	docker tag ntag424-sdm-provisioner localhost/ntag424-sdm-provisioner:$(VERSION)
 	@echo "Exporting image tarball..."
 	@mkdir -p dist
-	docker save localhost/ntag424-sdm-provisioner:latest -o dist/sdm-provisioner.tar
-	@echo "Image exported → dist/sdm-provisioner.tar"
+	@rm -f dist/sdm-provisioner-$(VERSION).tar
+	docker save localhost/ntag424-sdm-provisioner:$(VERSION) -o dist/sdm-provisioner-$(VERSION).tar
+	@echo "Image exported → dist/sdm-provisioner-$(VERSION).tar"
 
 # ── Helm / k3s targets ───────────────────────────────────────────────────────
 
@@ -138,3 +157,30 @@ helm-uninstall:
 helm-logs:
 	@echo "Streaming pod logs..."
 	kubectl logs -n sdm -l app=sdm-provisioner -f
+
+.PHONY: test_sticker_ui
+test_sticker_ui: ## Exercise actual coin sticker UI in mobile Chromium with temporary Flask database
+	PYTHONPATH=$(CURDIR)/src $(PYTHON) scripts/check_sticker_ui.py
+
+.PHONY: test_rangers_art_ui
+test_rangers_art_ui: ## Capture six actual Rangers portraits in all three frames at mobile and desktop sizes
+	PYTHONPATH=$(CURDIR)/src $(PYTHON) scripts/check_rangers_art_ui.py
+
+.PHONY: test_rangers_active_ui
+test_rangers_active_ui: ## Exercise temporary active Rangers defaults, actual weighted drops, test replay and legacy archive
+	PYTHONPATH=$(CURDIR)/src $(PYTHON) scripts/check_rangers_art_ui.py --active-rangers
+
+.PHONY: verify_rangers_package
+verify_rangers_package: ## Build a local wheel only after full artwork exists, then verify exact release assets
+	$(PYTHON) scripts/check_rangers_package.py --source-only
+	$(PYTHON) -m build --wheel --no-isolation --outdir build/rangers-wheel
+	$(PYTHON) scripts/check_rangers_package.py
+
+.PHONY: lint_rangers_validation
+lint_rangers_validation: ## Check Rangers package and browser validation scripts without requiring full artwork
+	$(PYTHON) -m py_compile scripts/check_rangers_package.py scripts/check_rangers_art_ui.py scripts/check_sticker_ui.py scripts/sticker_pack_fixtures.py
+	$(PYTHON) -m ruff check --select E9,F63,F7,F82 scripts/check_rangers_package.py scripts/check_rangers_art_ui.py scripts/check_sticker_ui.py scripts/sticker_pack_fixtures.py tests/test_server_sticker_packs.py
+
+.PHONY: verify_collectables_image
+verify_collectables_image: ## Verify installed sticker catalog and all 36 images in the rebuilt container
+	docker run --rm --network none --read-only --tmpfs /tmp --entrypoint python ntag424-sdm-provisioner -c 'from importlib.resources import files; from ntag424_sdm_provisioner.server.sticker_service import StickerService; root = files("ntag424_sdm_provisioner.server"); service = StickerService("/tmp/sticker-check.db"); catalog = service.catalog; assert len(catalog["families"]) == 12; assets = [root.joinpath("static", "stickers", str(f["id"])+"-"+str(form["level"])+".webp") for f in catalog["families"] for form in f["forms"]]; assert len(assets) == 36 and all(p.is_file() and p.read_bytes()[:4] == b"RIFF" for p in assets); assert root.joinpath("static", "stickers.js").is_file(); print("PASS: installed catalog, sticker service and 36 artwork files")'

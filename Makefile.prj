@@ -1,0 +1,63 @@
+# Art tasks reuse ../recard RTG's generic image pipeline without editing it.
+.PHONY: sticker-production-start sticker-production-status sticker-production-stop
+sticker-production-start: ## Start detached art lane (ART_LANE=forward|reverse|middle-a|middle-b)
+	python3 tools/sticker_production.py start --lane $(or $(ART_LANE),forward)
+sticker-production-status: ## Show detached artwork worker identities and completion
+	python3 tools/sticker_production.py status
+sticker-production-stop: ## Stop only the verified detached artwork lane
+	python3 tools/sticker_production.py stop --lane $(or $(ART_LANE),forward)
+sticker-production-clear-quota: ## Archive a documented quota marker only after its reset time
+	python3 tools/sticker_production.py clear-quota
+.PHONY: rangers-roster-audit
+rangers-roster-audit: ## Snapshot and reconcile complete official NHL Rangers player stats
+	python3 tools/rangers_roster_audit.py
+.PHONY: sticker-art-gallery
+sticker-art-gallery: ## Browse clan artwork (HOST=0.0.0.0 PORT=8765)
+	python3 tools/sticker_gallery.py --host $(or $(HOST),0.0.0.0) --port $(or $(PORT),8765)
+.PHONY: sticker-catalog sticker-art-manifest sticker-art-generate sticker-art-pack sticker-art-verify sticker-art-review sticker-art-unlock
+sticker-catalog: ## Build runtime faction catalog from Smith's reviewed design
+	node tools/sticker_art.mjs catalog
+sticker-art-manifest: ## Build selected pack manifest (STICKER_PACK=rangers-history optional)
+	node tools/sticker_art.mjs manifest
+sticker-art-generate: ## Generate artwork (ART_BACKEND=codex|nanobanana|agy; agy uses signed-in Antigravity CLI)
+	node tools/sticker_art.mjs generate
+sticker-art-pack: ## Pack generated masters with recard's image packer
+	node tools/sticker_art.mjs pack
+sticker-art-verify: ## Verify every image and form reference in selected pack
+	node tools/sticker_art.mjs verify
+sticker-art-review: ## Create an inspection contact sheet from actual packed artwork
+	node tools/sticker_art.mjs review
+sticker-art-unlock: ## Clear specified stale artwork locks after checking no backend owns them
+	node tools/sticker_art.mjs unlock
+
+.PHONY: sticker-art-syntax
+sticker-art-syntax: ## Check art adapter JavaScript syntax
+	node --check tools/sticker_art.mjs
+
+.PHONY: sticker-art-references
+sticker-art-references: ## Cache official NHL reference portraits for explicit Rangers ART_IDS
+	python3 tools/sticker_references.py
+
+.PHONY: sticker-art-regenerate
+sticker-art-regenerate: ## Archive rejected ART_IDS and regenerate using cached portrait references
+	node tools/sticker_art.mjs regenerate
+
+.PHONY: rangers-reference-index
+rangers-reference-index: ## Export complete portrait-source audit without shipping reference photos
+	python3 tools/sticker_references.py --export
+
+.PHONY: sticker-art-activate
+sticker-art-activate: ## Activate selected pack only after every portrait and form reference validates
+	node tools/sticker_art.mjs activate
+
+.PHONY: test-sticker-gallery
+test-sticker-gallery: ## Check Rangers gallery search/pagination and actual-art access in mobile Chromium
+	STICKER_PACK=rangers-history ntag424_sdm_provisioner/.venv/bin/python tools/check_sticker_gallery.py
+
+.PHONY: rangers-roster-seasons
+rangers-roster-seasons: ## Audit first/last NYR seasons against the frozen roster
+	python3 tools/rangers_roster_audit.py --seasons
+
+.PHONY: rangers-catalog
+rangers-catalog: ## Build full Rangers catalog from frozen NHL snapshot
+	python3 tools/rangers_catalog.py

@@ -5,6 +5,7 @@ import shutil
 from ntag424_sdm_provisioner.server.app import create_app
 from ntag424_sdm_provisioner.server.game_state_manager import SqliteGameStateManager
 from ntag424_sdm_provisioner.csv_key_manager import CsvKeyManager, Outcome, TagKeys, UID
+from ntag424_sdm_provisioner.server.jokes import JOKES, get_random_joke
 
 
 @pytest.fixture
@@ -143,3 +144,27 @@ def test_api_recent_flips_returns_correct_totals(test_client):
     json_data_test = response_test.get_json()
     assert json_data_test['totals']['heads'] == 5
     assert json_data_test['totals']['tails'] == 3
+
+
+# --- Dad Jokes tests ---
+
+def test_jokes_catalog_has_minimum_entries():
+    assert len(JOKES) >= 20
+
+
+def test_get_random_joke_returns_tuple_of_strings():
+    joke = get_random_joke()
+    assert isinstance(joke, tuple)
+    assert len(joke) == 2
+    assert all(isinstance(part, str) and part for part in joke)
+
+
+def test_index_page_includes_joke(test_client):
+    """Verify the index page always includes a joke, even on error paths."""
+    client, _ = test_client
+
+    # Missing params path
+    response = client.get('/')
+    assert response.status_code == 200
+    assert b'joke-setup' in response.data
+    assert b'joke-punchline' in response.data

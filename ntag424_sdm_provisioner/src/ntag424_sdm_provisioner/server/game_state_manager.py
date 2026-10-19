@@ -11,6 +11,7 @@ from ntag424_sdm_provisioner.crypto.crypto_primitives import (
     nist_frequency_monobit_test,
 )
 from ntag424_sdm_provisioner.csv_key_manager import UID
+from ntag424_sdm_provisioner.server.sticker_odds import coin_sticker_odds
 
 
 log = logging.getLogger(__name__)
@@ -145,6 +146,40 @@ class SqliteGameStateManager(IGameStateManager):
         log_prefix = "[TEST] " if is_test else ""
         log.info(f"{log_prefix}[GAME STATE SQLITE] Logged scan for {uid}: coin='{coin_name}', outcome={outcome.lower()}, ctr={counter}")
 
+    def record_validated_flip(
+        self, uid: str, counter: int, outcome: str, coin_name: str, cmac: str,
+        sticker_service, flip_off_service=None, is_test: bool = False,
+    ) -> dict:
+        """Commit scan, score and award together; test retries return their prior award."""
+        uid = uid.upper()
+        conn = self._get_conn()
+        try:
+            with conn:
+                conn.execute("BEGIN IMMEDIATE")
+                award_uid = f"test:{uid}" if is_test else uid
+                if is_test:
+                    prior = conn.execute("SELECT 1 FROM sticker_awards WHERE uid=? AND counter=?", (award_uid,counter)).fetchone()
+                    if prior:
+                        return sticker_service.award_flip(coin_name, award_uid, counter, conn=conn)
+                row = conn.execute(
+                    "SELECT COALESCE(MAX(counter), 0) FROM scan_logs WHERE uid = ?", (uid,),
+                ).fetchone()
+                if not is_test and counter <= row[0]:
+                    raise ValueError("Replay detected")
+                conn.execute(
+                    "INSERT INTO scan_logs (uid,counter,outcome,coin_name,cmac,is_test) VALUES (?,?,?,?,?,?)",
+                    (uid, counter, outcome.lower(), coin_name, cmac, is_test),
+                )
+                if coin_name and outcome.lower() in ("heads", "tails"):
+                    odds = coin_sticker_odds(conn, coin_name, include_test=is_test)
+                    award = sticker_service.award_flip(coin_name, award_uid, counter, conn=conn, odds=odds)
+                    if flip_off_service is not None and not is_test:
+                        flip_off_service.record_flip(coin_name, conn=conn)
+                    return award
+                return {"drop": None, "evolutions": []}
+        finally:
+            conn.close()
+
     def get_totals(self, include_test: bool = False) -> Dict[str, int]:
         """Get total heads and tails across all unique coins."""
         
@@ -179,6 +214,11 @@ class SqliteGameStateManager(IGameStateManager):
                 coins[coin_name][outcome.lower()] = count
 
             return coins
+
+    def has_flip_since(self, ts: str) -> bool:
+        """Returns True if any flip was recorded after the given ISO timestamp."""
+        rows = self._query("SELECT 1 FROM scan_logs WHERE timestamp > ? LIMIT 1", (ts,))
+        return len(rows) > 0
 
     def get_recent_flips(self, limit: int = 88) -> list[dict]:
         # Fetch the most recent scans, ensuring we get the coin_name
@@ -283,6 +323,9 @@ class SqliteGameStateManager(IGameStateManager):
         results = self._query(query, params)
         coin_names = [row[0] for row in results]
 
+        ts_query = f"SELECT coin_name, MAX(timestamp) FROM scan_logs WHERE {' AND '.join(conditions)} GROUP BY coin_name"
+        ts_map = {row[0]: row[1] for row in self._query(ts_query, params)}
+
         leaderboard = []
         for coin_name in coin_names:
             # 2. Get stats for each UID
@@ -290,6 +333,7 @@ class SqliteGameStateManager(IGameStateManager):
             if stats and stats.get("total_bits", 0) > 0:
                 leaderboard.append({
                     "coin_name": coin_name,
+                    "last_flip_timestamp": ts_map.get(coin_name, ""),
                     **stats
                 })
 
