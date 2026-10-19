@@ -64,19 +64,6 @@ class SqliteGameStateManager(IGameStateManager):
         finally:
             conn.close()
 
-    def fix_db(self, conn: sqlite3.Connection):
-        """Migration: Add coin_name and is_test columns if they don't exist."""
-        cursor = conn.cursor()
-        cursor.execute("PRAGMA table_info(scan_logs)")
-        columns = {row[1] for row in cursor.fetchall()}
-
-        if 'coin_name' not in columns:
-            cursor.execute("ALTER TABLE scan_logs ADD COLUMN coin_name TEXT DEFAULT ''")
-            log.info("[MIGRATION] Added coin_name column to scan_logs")
-
-        if 'is_test' not in columns:
-            cursor.execute("ALTER TABLE scan_logs ADD COLUMN is_test BOOLEAN NOT NULL DEFAULT FALSE")
-            log.info("[MIGRATION] Added is_test column to scan_logs")
 
     def _init_db(self):
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -102,6 +89,7 @@ class SqliteGameStateManager(IGameStateManager):
                 CREATE TABLE IF NOT EXISTS coins (
                     uid TEXT PRIMARY KEY,
                     coin_name TEXT NOT NULL,
+                    outcome TEXT DEFAULT '',
                     clan TEXT DEFAULT '',
                     rarity TEXT DEFAULT 'common',
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -113,40 +101,85 @@ class SqliteGameStateManager(IGameStateManager):
 
             # Auto-backfill coins from scan_logs
             conn.execute("""
-                INSERT OR IGNORE INTO coins (uid, coin_name)
-                SELECT DISTINCT uid, coin_name FROM scan_logs WHERE coin_name != ''
+                INSERT OR IGNORE INTO coins (uid, coin_name, outcome)
+                SELECT DISTINCT uid, coin_name, outcome FROM scan_logs WHERE coin_name != ''
             """)
             conn.commit()
 
-    def set_coin(self, uid: str, coin_name: str, clan: str = "", rarity: str = "common") -> None:
+    def fix_db(self, conn: sqlite3.Connection):
+        """Migration: Add missing columns if they don't exist."""
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(scan_logs)")
+        columns = {row[1] for row in cursor.fetchall()}
+
+        if 'coin_name' not in columns:
+            cursor.execute("ALTER TABLE scan_logs ADD COLUMN coin_name TEXT DEFAULT ''")
+            log.info("[MIGRATION] Added coin_name column to scan_logs")
+
+        if 'is_test' not in columns:
+            cursor.execute("ALTER TABLE scan_logs ADD COLUMN is_test BOOLEAN NOT NULL DEFAULT FALSE")
+            log.info("[MIGRATION] Added is_test column to scan_logs")
+
+        cursor.execute("PRAGMA table_info(coins)")
+        coin_columns = {row[1] for row in cursor.fetchall()}
+        if 'outcome' not in coin_columns:
+            cursor.execute("ALTER TABLE coins ADD COLUMN outcome TEXT DEFAULT ''")
+            log.info("[MIGRATION] Added outcome column to coins")
+
+    def set_coin(
+        self,
+        uid: str,
+        coin_name: str,
+        outcome: str = "",
+        clan: str = "",
+        rarity: str = "common",
+    ) -> None:
         """Stores or updates first-class coin identity in app.db."""
         uid = uid.upper()
         with self._get_conn() as conn:
             conn.execute("""
-                INSERT INTO coins (uid, coin_name, clan, rarity)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO coins (uid, coin_name, outcome, clan, rarity)
+                VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT(uid) DO UPDATE SET
                     coin_name=excluded.coin_name,
+                    outcome=CASE WHEN excluded.outcome != '' THEN excluded.outcome ELSE outcome END,
                     clan=CASE WHEN excluded.clan != '' THEN excluded.clan ELSE clan END,
                     rarity=CASE WHEN excluded.rarity != '' THEN excluded.rarity ELSE rarity END
-            """, (uid, coin_name, clan, rarity))
+            """, (uid, coin_name, outcome, clan, rarity))
             conn.commit()
 
     def get_coin(self, uid: str) -> dict | None:
         """Retrieves coin identity from app.db."""
         uid = uid.upper()
         with self._get_conn() as conn:
-            cur = conn.execute("SELECT uid, coin_name, clan, rarity, created_at FROM coins WHERE uid = ?", (uid,))
+            cur = conn.execute("SELECT uid, coin_name, outcome, clan, rarity, created_at FROM coins WHERE uid = ?", (uid,))
             row = cur.fetchone()
             if row:
                 return {
                     "uid": row[0],
                     "coin_name": row[1],
-                    "clan": row[2],
-                    "rarity": row[3],
-                    "created_at": row[4],
+                    "outcome": row[2],
+                    "clan": row[3],
+                    "rarity": row[4],
+                    "created_at": row[5],
                 }
             return None
+
+    def list_all_coins(self) -> list[dict]:
+        """Lists all registered coins with metadata from app.db."""
+        with self._get_conn() as conn:
+            cur = conn.execute("SELECT uid, coin_name, outcome, clan, rarity, created_at FROM coins ORDER BY coin_name ASC")
+            return [
+                {
+                    "uid": row[0],
+                    "coin_name": row[1],
+                    "outcome": row[2],
+                    "clan": row[3],
+                    "rarity": row[4],
+                    "created_at": row[5],
+                }
+                for row in cur.fetchall()
+            ]
 
     def _query(self, sql: str, params: tuple = ()):
         with self._get_conn() as conn:

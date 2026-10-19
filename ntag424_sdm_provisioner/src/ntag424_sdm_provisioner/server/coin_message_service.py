@@ -1,5 +1,6 @@
 import logging
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -12,8 +13,14 @@ class CoinMessageService:
         self.db_path = Path(db_path)
         self._init_db()
 
-    def _get_conn(self) -> sqlite3.Connection:
-        return sqlite3.connect(self.db_path)
+    @contextmanager
+    def _get_conn(self):
+        conn = sqlite3.connect(self.db_path)
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def _init_db(self) -> None:
         with self._get_conn() as conn:

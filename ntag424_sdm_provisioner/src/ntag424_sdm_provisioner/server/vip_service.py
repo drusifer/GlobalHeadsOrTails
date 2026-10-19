@@ -1,6 +1,7 @@
 """VIP Bat Signal service for gs.works/contact SDM tap authentication and ntfy.sh alerts."""
 from __future__ import annotations
 
+from contextlib import contextmanager
 from datetime import datetime, timezone
 import logging
 import os
@@ -28,10 +29,15 @@ class VipService:
         self.ntfy_topic = (ntfy_topic or os.getenv("NTFY_TOPIC") or DEFAULT_NTFY_TOPIC).strip()
         self._init_db()
 
-    def _get_conn(self) -> sqlite3.Connection:
+    @contextmanager
+    def _get_conn(self):
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def _init_db(self) -> None:
         with self._get_conn() as conn:

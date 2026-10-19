@@ -5,6 +5,7 @@ from flask import Flask, current_app, render_template, request
 
 # Import from sibling modules in the same package
 from ntag424_sdm_provisioner.csv_key_manager import UID, CsvKeyManager
+from ntag424_sdm_provisioner.service_key_manager import ServiceKeyManager
 from ntag424_sdm_provisioner.log_utils import mask_key
 from ntag424_sdm_provisioner.server.coin_message_service import CoinMessageService
 from ntag424_sdm_provisioner.server.vip_service import VipService
@@ -24,9 +25,22 @@ def _check_expired(flip_off_service) -> None:
     flip_off_service.expire_stale_challenges()
 
 
-def init_managers(app, key_csv_path, db_path, vip_key_csv_path="data/vip_tag_keys.csv"):
+def init_managers(
+    app,
+    key_csv_path,
+    db_path,
+    vip_key_csv_path="data/vip_tag_keys.csv",
+    service_url: str | None = None,
+):
     """Initializes and attaches the key and game managers to the app instance."""
-    app.key_manager = CsvKeyManager(csv_path=key_csv_path)
+    svc_url = service_url or getenv("KEY_SERVICE_URL") or getenv("TAG_VALIDATOR_URL")
+    if svc_url:
+        log.info("[SERVER INIT] Using ServiceKeyManager connected to %s", svc_url)
+        app.key_manager = ServiceKeyManager(service_url=svc_url, db_path=db_path)
+    else:
+        log.info("[SERVER INIT] Using CsvKeyManager with %s", key_csv_path)
+        app.key_manager = CsvKeyManager(csv_path=key_csv_path)
+
     vip_csv = getenv("VIP_KEY_CSV_PATH", vip_key_csv_path)
     app.vip_key_manager = CsvKeyManager(
         csv_path=vip_csv,
@@ -48,13 +62,20 @@ def create_app(
     key_csv_path="data/tag_keys.csv",
     db_path="data/app.db",
     vip_key_csv_path="data/vip_tag_keys.csv",
+    service_url: str | None = None,
 ):
     """Application factory for the Flask app."""
     app = Flask(__name__)
 
     with app.app_context():
         Path("data").mkdir(exist_ok=True)
-        init_managers(current_app, key_csv_path, db_path, vip_key_csv_path=vip_key_csv_path)
+        init_managers(
+            current_app,
+            key_csv_path,
+            db_path,
+            vip_key_csv_path=vip_key_csv_path,
+            service_url=service_url,
+        )
     register_sticker_routes(app)
 
     @app.route("/")
