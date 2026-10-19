@@ -225,6 +225,19 @@ sticker-catalog sticker-art-manifest sticker-art-generate sticker-art-pack stick
 via_index: ## Build the via index required by the via MCP server
 	@./agents/tools/mkf.py $(V) $@
 
+.PHONY: tag-validator-test tag-validator-run tag-validator-docker tag-validator-seed
+tag-validator-test: ## Run unit and integration tests for tag_validator_service
+	@pytest tag_validator_service/tests -v
+
+tag-validator-run: ## Run tag_validator_service locally
+	@$(MAKE) -C tag_validator_service run
+
+tag-validator-docker: ## Build container image for tag_validator_service
+	@$(MAKE) -C tag_validator_service docker-build
+
+tag-validator-seed: ## Seed tag keys from CSV into k3s secrets (usage: make tag-validator-seed CSV=path/to/tag_keys.csv)
+	@$(MAKE) -C tag_validator_service seed-secrets CSV="$(CSV)"
+
 # Interception logic: 
 # If we are the entry point (direct make call), intercept everything.
 # If we are included, we only provide targets, unless specified.

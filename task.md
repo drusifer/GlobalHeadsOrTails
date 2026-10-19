@@ -1,3 +1,21 @@
+# Sprint: Tag Keys K3s Secrets & Stateless CMAC Validator Service — COMPLETE
+
+Plan: `agents/cypher.docs/tag_secrets_sprint.md`. Arch: `agents/morpheus.docs/arch_tag_secrets_service.md`.  
+Location: `tag_validator_service/` (top-level microservice).  
+
+- [x] **Phase 1: Core Crypto & CMAC Validation Engine**
+  - [x] Task 1.1: TDD CMAC Engine (`build_system_vector`, session key derivation, odd-byte truncation, constant-time compare).
+  - [x] Task 1.2: Validation engine test suite with NXP test vectors and provisioner compatibility checks.
+- [x] **Phase 2: Pluggable Secret Store & Stateless REST API**
+  - [x] Task 2.1: Pluggable `TagKeyStore` interface + `MemorySecretStore` + `K3sSecretStore`.
+  - [x] Task 2.2: Stateless HTTP API (`POST /api/v1/validate`, `GET /api/v1/validate`, key management endpoints, `/healthz`, `/readyz`).
+- [x] **Phase 3: CSV Importer, Top-Level Packaging & Verification**
+  - [x] Task 3.1: CSV seed utility / API (`POST /api/v1/keys/import-csv` and CLI importer).
+  - [x] Task 3.2: Container packaging (`Dockerfile`, `tag_validator_service/Makefile`, `k8s/` manifests).
+  - [x] Task 3.3: Sprint close (Trin QA, Tank SDLC check, Oracle grooming, Smith acceptance, Retro & Launch).
+
+---
+
 # Rangers historical sticker pack — BLOCKED, NOT RELEASED
 
 **BLOCKED — not released.** Image generation returned `usage_limit_reached` (HTTP429). At the stop checkpoint, 478 of 1,162 masters existed and 684 player IDs remained missing. All four managed lanes stopped cleanly. Reset: **2026-10-08 22:44:02 America/New_York** (2026-10-09 02:44:02 UTC; epoch1791513842). Exact missing IDs and evidence: `agents/neo.docs/rangers_art_blocker.json`; ignored quota report: `build/rangers-art/quota-report.json`. Packing the 478 existing masters does not satisfy full-art completeness. Twelve Clans remains active.

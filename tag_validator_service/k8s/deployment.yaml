@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tag-validator-service
+  namespace: tag-secrets
+  labels:
+    app.kubernetes.io/name: tag-validator-service
+    app.kubernetes.io/component: validator
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tag-validator-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tag-validator-service
+    spec:
+      serviceAccountName: tag-validator-sa
+      containers:
+        - name: validator
+          image: localhost/tag-validator-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: PORT
+              value: "8080"
+            - name: SECRET_STORE_BACKEND
+              value: "k3s"
+            - name: TAG_SECRETS_NAMESPACE
+              value: "tag-secrets"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
