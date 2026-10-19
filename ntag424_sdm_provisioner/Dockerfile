@@ -14,8 +14,8 @@ WORKDIR /app
 # Copy the current directory contents into the container
 COPY . /app
 
-# Install the package dependencies and Gunicorn
-RUN pip install --no-cache-dir .[server] gunicorn gevent
+# Install the package dependencies and Gunicorn (with gevent extras) and verify dependency tree
+RUN pip install --no-cache-dir ".[server]" "gunicorn[gevent]" && pip check
 
 # Change ownership to the non-root user
 RUN chown -R appuser:appuser /app

@@ -112,7 +112,14 @@ logs:
 
 # ── Image export (consumed by pi-patch ansible deploy) ──────────────────────
 
-export-image: pkg
+.PHONY: verify_server_boot
+verify_server_boot: ## Verify dependency graph, gunicorn gevent worker, and Flask WSGI app boot inside the built container
+	@echo "Verifying container dependencies and Gunicorn gevent worker boot..."
+	docker run --rm --network none --read-only --tmpfs /tmp --tmpfs /app/data:rw,uid=1000,gid=1000 \
+		--entrypoint sh ntag424-sdm-provisioner \
+		-c 'pip check && gunicorn --check-config -k gevent -w 1 -b 0.0.0.0:8000 ntag424_sdm_provisioner.server.app:app'
+
+export-image: pkg verify_server_boot verify_collectables_image
 	@echo "Tagging image for k3s import..."
 	docker tag ntag424-sdm-provisioner localhost/ntag424-sdm-provisioner:$(VERSION)
 	@echo "Exporting image tarball..."
