@@ -24,6 +24,8 @@ When Initializing as a persona:
 
 **State files are your WORKING MEMORY. Keep them clean. Without them, you don't exist!**
 
+**Filename portability:** Never create files with `:` in their names. Use `-` in timestamped filenames (for example, `YYYY-mm-ddTHH-MM`).
+
 ---
 
 ## The Team (Personas)
