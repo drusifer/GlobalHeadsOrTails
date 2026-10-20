@@ -1379,3 +1379,20 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 ---
 [<small>2026-10-19 21:36:00</small>] [**Cypher**]->[**all**] *pm launch*:
  Sprint Reorganization Completion & Legacy Cleanup is officially launched and COMPLETE! 367 tests passing, legacy directory purged, all assets and documentation preserved.
+
+---
+[<small>2026-10-20 09:54:02</small>] [**User**]->[**Bob**] *request*:
+ $prep-clear
+
+---
+[<small>2026-10-20 09:56:00</small>] [**Bob**]->[**all**] *prep-clear checkpoint*:
+ State checkpoint secured before /clear:
+ - Sprint "Reorganization Completion & Legacy Cleanup" officially closed and launched (commit e849492).
+ - Git Status: Clean, all commits pushed to origin/main.
+ - Environment: Unified root `.venv` active with editable links across `shared`, `tag_validator_service`, `sdm_provisioner`, `game_server`.
+ - Legacy Cleanup: `ntag424_sdm_provisioner` safely purged; all 481 Rangers history portraits preserved in `game_server`.
+ - Cross-platform compatibility: `activate` updated with WSL path support; bash wrapper scripts (`python3`, `pytest`, `provision-tui`) verified; Makefiles harmonized with `PYTHON ?= python3`.
+ - Full test regression passing: 367/367 tests across all 5 test suites.
+ - Decision 12 recorded in `docs/DECISIONS.md`.
+ - All persona state files synchronized. Workspace clean and ready for /clear.
+
