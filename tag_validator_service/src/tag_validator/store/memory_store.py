@@ -34,7 +34,7 @@ class MemorySecretStore:
             existing = self._store.get(secret.uid)
             if existing is not None:
                 # WORM check: immutable key material
-                if existing.k3 != secret.k3:
+                if existing.k3 != secret.k3 or existing.k0 != secret.k0 or existing.k1 != secret.k1:
                     raise KeyConflictError(
                         f"Tag key for UID '{secret.uid}' is immutable and cannot be overwritten with a different key."
                     )

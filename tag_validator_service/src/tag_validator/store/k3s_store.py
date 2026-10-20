@@ -135,7 +135,7 @@ class K3sSecretStore:
                 if existing.data:
                     parsed_existing = TagSecret.from_k8s_secret_data(existing.data)
                     # WORM check: immutable key material
-                    if parsed_existing.k3 != secret.k3:
+                    if parsed_existing.k3 != secret.k3 or parsed_existing.k0 != secret.k0 or parsed_existing.k1 != secret.k1:
                         raise KeyConflictError(
                             f"Tag key for UID '{secret.uid}' is immutable and cannot be overwritten with a different key."
                         )

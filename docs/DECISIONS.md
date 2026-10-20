@@ -151,3 +151,14 @@ This document records key decisions made during the project lifecycle.
   5. **Legacy Purge**: Completely removed `ntag424_sdm_provisioner/`.
 - **Status**: Accepted, 2026-10-19; 367/367 workspace tests passing.
 
+## 13. SDM Provisioner Key Manager Service Integration & Full 3-Key Custody
+- **Context**: While `game_server` was integrated with `tag_validator_service` via `ServiceKeyManager`, hardware provisioning operations in `sdm_provisioner` remained coupled to local plaintext CSV files (`tag_keys.csv`). Furthermore, `tag_validator_service` originally only vaulted Key 3 (SDM MAC Key), leaving Key 0 (PICC Master Key) and Key 1 (App Read Key) unmanaged.
+- **Decision**:
+  1. **Full Custom Keys (K0, K1, K3)**: Extended `TagSecret` schema in `tag_validator_service` to store all three tag keys (`k0` PICC Master, `k1` App Read, `k3` SDM MAC) as 32-character hex AES-128 keys with backward-compatible defaults and WORM immutability.
+  2. **Atomic 3-Key Generation & Raw Retrieval**: `POST /api/v1/keys/generate` atomically provisions all three keys via CSPRNG and returns them. `GET /api/v1/keys/<uid>?raw=true` securely provides raw keys for authorized hardware provisioners to perform `AuthenticateEV2` during chip flashing, while defaulting to masked keys for general inspection. `GET /api/v1/keys?raw=true` provides batch retrieval.
+  3. **Dedicated Provisioner `ServiceKeyManager`**: Built `sdm_provisioner.service_key_manager.ServiceKeyManager` implementing the provisioner `KeyManager` interface. Enforces strict connection mode with fail-fast operator guidance (`make run-tag-validator`) if the key service is unreachable.
+  4. **Domain Decoupling via SQLite (`app.db`)**: Cryptographic keys remain exclusively vaulted in `tag_validator_service`. Coin game identities (`coin_name`, `outcome`, `clan`, `rarity`) are persisted in SQLite `data/app.db` (`coins` table), aligning directly with `game_server` and Decision 10.
+  5. **TUI & Tooling Wiring**: `NtagProvisionerApp`, `ProvisioningService`, and `ToolRunner` default to `ServiceKeyManager`, completely eliminating reliance on local plaintext CSV files during interactive and automated provisioning.
+- **Status**: Accepted, 2026-10-20; 384/384 workspace tests passing (27 in `tag_validator_service`, 171 in `sdm_provisioner`, 170 in `game_server`, 5 in `shared`, 11 in `tools`).
+
+

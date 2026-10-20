@@ -36,18 +36,36 @@ def test_generate_and_get_key():
         mock_req.return_value = (201, {
             "status": "created",
             "uid": "04AE664A2F7080",
+            "k0": "00001111222233334444555566667777",
+            "k1": "88889999AAAABBBBCCCCDDDDEEEEFFFF",
             "k3": "0123456789ABCDEF0123456789ABCDEF",
         })
         created = client.generate_key("04AE664A2F7080")
+        assert created["k0"] == "00001111222233334444555566667777"
+        assert created["k1"] == "88889999AAAABBBBCCCCDDDDEEEEFFFF"
         assert created["k3"] == "0123456789ABCDEF0123456789ABCDEF"
 
         mock_req.return_value = (200, {
             "uid": "04AE664A2F7080",
             "status": "active",
+            "k0_masked": "0000...7777",
+            "k1_masked": "8888...FFFF",
             "k3_masked": "0123...CDEF",
         })
         got = client.get_key("04AE664A2F7080")
         assert got["k3_masked"] == "0123...CDEF"
+
+        mock_req.return_value = (200, {
+            "uid": "04AE664A2F7080",
+            "status": "active",
+            "k0": "00001111222233334444555566667777",
+            "k1": "88889999AAAABBBBCCCCDDDDEEEEFFFF",
+            "k3": "0123456789ABCDEF0123456789ABCDEF",
+        })
+        got_raw = client.get_key("04AE664A2F7080", raw=True)
+        assert got_raw["k0"] == "00001111222233334444555566667777"
+        assert got_raw["k1"] == "88889999AAAABBBBCCCCDDDDEEEEFFFF"
+        assert got_raw["k3"] == "0123456789ABCDEF0123456789ABCDEF"
 
 
 def test_delete_and_undelete():

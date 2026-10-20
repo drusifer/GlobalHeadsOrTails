@@ -186,6 +186,8 @@ def test_atomic_key_generation_and_worm(test_client: WsgiTestClient):
     assert status == 201
     assert body["status"] == "created"
     assert body["uid"] == gen_uid
+    assert len(body["k0"]) == 32
+    assert len(body["k1"]) == 32
     assert len(body["k3"]) == 32
     generated_k3 = body["k3"]
 
@@ -210,6 +212,32 @@ def test_atomic_key_generation_and_worm(test_client: WsgiTestClient):
     )
     assert status == 200
     assert body["valid"] is True
+
+
+def test_get_key_raw_and_masked(test_client: WsgiTestClient):
+    gen_uid = "04887766554433"
+    status, body = test_client.post("/api/v1/keys/generate", {"uid": gen_uid})
+    assert status == 201
+    k0 = body["k0"]
+    k1 = body["k1"]
+    k3 = body["k3"]
+
+    # Masked GET (default)
+    status, masked_body = test_client.get(f"/api/v1/keys/{gen_uid}")
+    assert status == 200
+    assert "k0" not in masked_body
+    assert "k1" not in masked_body
+    assert "k3" not in masked_body
+    assert masked_body["k0_masked"] == f"{k0[:4]}...{k0[-4:]}"
+    assert masked_body["k1_masked"] == f"{k1[:4]}...{k1[-4:]}"
+    assert masked_body["k3_masked"] == f"{k3[:4]}...{k3[-4:]}"
+
+    # Raw GET (?raw=true)
+    status, raw_body = test_client.get(f"/api/v1/keys/{gen_uid}", query_string="raw=true")
+    assert status == 200
+    assert raw_body["k0"] == k0
+    assert raw_body["k1"] == k1
+    assert raw_body["k3"] == k3
 
 
 def test_key_management_soft_delete_and_undelete(test_client: WsgiTestClient):

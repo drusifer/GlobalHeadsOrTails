@@ -314,7 +314,7 @@ class ProvisioningService:
                 self._log(f"  PICC Master Key: {current_keys.picc_master_key}")
                 self._log(f"  App Read Key: {current_keys.app_read_key}")
                 self._log(f"  SDM MAC Key (Key 3): {current_keys.sdm_mac_key}")
-                self._log(f"  Database path: {self.key_mgr.csv_path}")
+                self._log(f"  Database path: {getattr(self.key_mgr, 'csv_path', self.key_mgr)}")
             except Exception as e:
                 raise ValueError("Tag not in database! Run provision_keys() or key recovery first.") from e
 

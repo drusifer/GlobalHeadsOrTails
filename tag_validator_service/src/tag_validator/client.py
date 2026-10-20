@@ -96,31 +96,42 @@ class TagValidatorClient:
         }
 
     def generate_key(self, uid: str) -> dict[str, Any]:
-        """Atomically generate a fresh CSPRNG AES-128 key and commit to WORM vault."""
+        """Atomically generate fresh CSPRNG AES-128 keys (k0, k1, k3) and commit to WORM vault."""
         clean_uid = uid.strip().replace(":", "").replace("-", "").upper()
         status_code, body = self._http_request("POST", "/api/v1/keys/generate", {"uid": clean_uid})
         if status_code == 201:
             return body
         raise RuntimeError(f"Failed to generate key (HTTP {status_code}): {body.get('error', 'Unknown error')}")
 
-    def get_key(self, uid: str) -> dict[str, Any] | None:
-        """Retrieve key status and masked K3 from service."""
+    def get_key(self, uid: str, raw: bool = False) -> dict[str, Any] | None:
+        """Retrieve key status and metadata from service. If raw=True, returns raw k0, k1, k3."""
         clean_uid = uid.strip().replace(":", "").replace("-", "").upper()
-        status_code, body = self._http_request("GET", f"/api/v1/keys/{clean_uid}")
+        qs = "?raw=true" if raw else ""
+        status_code, body = self._http_request("GET", f"/api/v1/keys/{clean_uid}{qs}")
         if status_code == 200:
             return body
         if status_code == 404:
             return None
         raise RuntimeError(f"Failed to retrieve key (HTTP {status_code}): {body.get('error', 'Unknown error')}")
 
-    def save_key(self, uid: str, k3: str, status: str = "active") -> bool:
-        """Save an existing AES-128 key into the service."""
+    def save_key(
+        self,
+        uid: str,
+        k3: str,
+        k0: str = "00000000000000000000000000000000",
+        k1: str = "00000000000000000000000000000000",
+        status: str = "active",
+    ) -> bool:
+        """Save existing AES-128 keys into the service."""
         clean_uid = uid.strip().replace(":", "").replace("-", "").upper()
-        status_code, _ = self._http_request("POST", "/api/v1/keys", {
+        payload = {
             "uid": clean_uid,
             "k3": k3.strip().upper(),
+            "k0": k0.strip().upper(),
+            "k1": k1.strip().upper(),
             "status": status,
-        })
+        }
+        status_code, _ = self._http_request("POST", "/api/v1/keys", payload)
         return status_code in (200, 201)
 
     def delete_key(self, uid: str) -> bool:
@@ -135,11 +146,22 @@ class TagValidatorClient:
         status_code, _ = self._http_request("POST", f"/api/v1/keys/{clean_uid}/undelete", {})
         return status_code == 200
 
-    def list_keys(self, include_deleted: bool = False) -> list[str]:
-        """List tag UIDs known to the service."""
-        qs = "?include_deleted=true" if include_deleted else ""
+    def list_keys(self, include_deleted: bool = False, raw: bool = False) -> list[Any]:
+        """List tag keys known to the service.
+
+        If raw=True, returns list of dicts with full raw key data.
+        Otherwise, returns list of UID strings.
+        """
+        qs_parts = []
+        if include_deleted:
+            qs_parts.append("include_deleted=true")
+        if raw:
+            qs_parts.append("raw=true")
+        qs = f"?{'&'.join(qs_parts)}" if qs_parts else ""
         status_code, body = self._http_request("GET", f"/api/v1/keys{qs}")
         if status_code == 200:
+            if raw:
+                return body.get("keys", [])
             return body.get("uids", [])
         return []
 

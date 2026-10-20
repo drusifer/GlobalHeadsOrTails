@@ -90,11 +90,16 @@ Located in `agents/templates/`:
 
 ---
 
+## Key Manager Integration & Provisioner
+- [SDM Provisioner Key Manager Integration Sprint Plan](cypher.docs/key_manager_integration_sprint.md)
+- [Key Manager Integration Architecture Specification](morpheus.docs/arch_key_manager_integration.md)
+- [SDM Provisioner ServiceKeyManager](../sdm_provisioner/src/sdm_provisioner/service_key_manager.py)
+
 ## Project Knowledge Base (`docs/`)
 
 | File | Purpose |
 |------|---------|
-| `docs/DECISIONS.md` | Architecture decisions log (12 entries; latest workspace component reorg & cleanup) |
+| `docs/DECISIONS.md` | Architecture decisions log (13 entries; latest SDM Provisioner Key Manager Service Integration) |
 | `sdm_provisioner/ARCH.md` | System architecture — provisioner TUI service layer |
 | `docs/LESSONS.md` | Lessons learned |
 | `docs/PRD.md` | Product Requirements Document (§16 collectables and weighted awards current) |

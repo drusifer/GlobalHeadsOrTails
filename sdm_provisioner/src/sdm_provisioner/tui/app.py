@@ -1,4 +1,6 @@
 import logging
+import os
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import ClassVar
@@ -7,6 +9,7 @@ from textual.app import App
 from textual.binding import BindingType
 
 from sdm_provisioner.csv_key_manager import CsvKeyManager
+from sdm_provisioner.service_key_manager import ServiceKeyManager
 from sdm_provisioner.tui.screens.coin_naming import CoinNamingScreen
 from sdm_provisioner.tui.screens.configure_keys import ConfigureKeysScreen
 from sdm_provisioner.tui.screens.format_picc import FormatPICCScreen
@@ -19,8 +22,8 @@ from sdm_provisioner.tui.screens.setup_url import SetupUrlScreen
 class NtagProvisionerApp(App):
     """A Textual app for NTAG424 DNA Provisioning.
 
-    Uses a single CsvKeyManager instance shared across all screens
-    for consistent key lookups and storage.
+    Uses a ServiceKeyManager instance connected to tag_validator_service
+    and SQLite data/app.db.
     """
 
     CSS = """
@@ -92,14 +95,19 @@ class NtagProvisionerApp(App):
         ("escape", "go_back", "Back"),
     ]
 
-    def __init__(self, log_file: str | None = None, **kwargs):
+    def __init__(
+        self,
+        log_file: str | None = None,
+        key_manager: ServiceKeyManager | CsvKeyManager | None = None,
+        strict: bool | None = None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         # Detect project root to ensure consistent file paths regardless of CWD
-        # Walk up to find the project root (contains tag_keys.csv or sdm_provisioner/)
         project_root = Path.cwd()
         while project_root.parent != project_root:
-            if (project_root / "tag_keys.csv").exists() or (project_root / "sdm_provisioner").exists():
+            if (project_root / "sdm_provisioner").exists() or (project_root / "shared").exists():
                 break
             project_root = project_root.parent
 
@@ -124,15 +132,20 @@ class NtagProvisionerApp(App):
             force=True,
         )
 
-        # Single KeyManager instance shared across all screens
-        # Use absolute paths based on project root
-        self.key_manager = CsvKeyManager(
-            csv_path=str(project_root / "tag_keys.csv"),
-            backup_path=str(project_root / "tag_keys_backup.csv"),
-            timestamped_backup_dir=str(project_root / "tag_keys_backups"),
-        )
+        # ServiceKeyManager instance connected to tag_validator_service and SQLite data/app.db
+        if key_manager is not None:
+            self.key_manager = key_manager
+        else:
+            is_pytest = "pytest" in sys.modules or "PYTEST_CURRENT_TEST" in os.environ
+            should_strict = strict if strict is not None else (not is_pytest)
+            db_path = str(project_root / "data" / "app.db")
+            self.key_manager = ServiceKeyManager(
+                db_path=db_path,
+                strict=should_strict,
+            )
+
         log = logging.getLogger(__name__)
-        log.info(f"KeyManager initialized with {len(self.key_manager.list_tags())} registered tags")
+        log.info(f"ServiceKeyManager initialized with {len(self.key_manager.list_tags())} registered tags")
 
     def on_mount(self) -> None:
         # Pass key_manager to screens that need it

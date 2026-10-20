@@ -2,11 +2,13 @@
 
 from shared import UID, Outcome, TagKeys, mask_key
 from sdm_provisioner.csv_key_manager import CsvKeyManager
+from sdm_provisioner.service_key_manager import ServiceKeyManager
 from sdm_provisioner.hal import CardManager, NTag424CardConnection
 
 __all__ = [
     "CardManager",
     "CsvKeyManager",
+    "ServiceKeyManager",
     "NTag424CardConnection",
     "Outcome",
     "TagKeys",

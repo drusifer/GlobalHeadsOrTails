@@ -1,4 +1,29 @@
-# Sprint: Reorganization Completion & Legacy Cleanup — COMPLETE
+# Sprint: SDM Provisioner Key Manager Service Integration — COMPLETE
+
+Plan: `agents/cypher.docs/key_manager_integration_sprint.md`. Arch: `agents/morpheus.docs/arch_key_manager_integration.md`.
+
+- [x] **Phase 1: Key Service 3-Key Schema & Client (`*swe impl`)**
+  - [x] Task 1.1: Extend `TagSecret` model in `tag_validator_service` to store `k0`, `k1`, `k3` with backward-compatible defaults.
+  - [x] Task 1.2: Update `tag_validator_service` API endpoints (`/api/v1/keys/generate`, `/api/v1/keys`, `GET /api/v1/keys/{uid}?raw=true`).
+  - [x] Task 1.3: Update `TagValidatorClient` in `tag_validator_service/src/tag_validator/client.py` to handle 3-key generation and retrieval.
+  - [x] Task 1.4: Run `tag_validator_service` test suite and verify all unit tests pass.
+- [x] **Phase 2: ServiceKeyManager Implementation (`*swe impl`)**
+  - [x] Task 2.1: Implement `ServiceKeyManager` in `sdm_provisioner/src/sdm_provisioner/service_key_manager.py` with strict health check and SQLite `data/app.db`.
+  - [x] Task 2.2: Implement two-phase commit `provision_tag` context manager yielding raw key bytes for APDUs and committing status.
+  - [x] Task 2.3: Implement `update_url`, `validate_sdm_url`, `list_tags`, `list_coins`, `assign_coin_name`, `delete_key`, `undelete_key`.
+  - [x] Task 2.4: Create comprehensive unit test suite in `sdm_provisioner/tests/test_sdm_service_key_manager.py` and verify all tests pass.
+- [x] **Phase 3: TUI & Tooling Wiring (`*swe impl`)**
+  - [x] Task 3.1: Wire `NtagProvisionerApp` in `sdm_provisioner/src/sdm_provisioner/tui/app.py` to `ServiceKeyManager` with fail-fast startup dialog if service is unreachable.
+  - [x] Task 3.2: Wire `ProvisioningService` and `ToolRunner` to use `ServiceKeyManager`.
+  - [x] Task 3.3: Verify all TUI screens and provisioning tool flows against `ServiceKeyManager`.
+- [x] **Phase 4: Regression Testing & Sprint Close (`*qa uat` / `*devops sdlc-check`)**
+  - [x] Task 4.1: Run full workspace test regression suite across all 4 packages + tools (`make test-all`).
+  - [x] Task 4.2: Record Decision 13 in `docs/DECISIONS.md`.
+  - [x] Task 4.3: Execute Stage 3 close gates (Tank SDLC check, Oracle groom, Smith UAT, Retro, Cypher launch).
+
+---
+
+# Previous Sprint: Reorganization Completion & Legacy Cleanup — COMPLETE
 
 Plan: `agents/cypher.docs/reorg_cleanup_sprint.md`. Arch: `agents/morpheus.docs/arch_reorg_cleanup.md`.
 

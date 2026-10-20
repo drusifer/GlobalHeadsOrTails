@@ -79,7 +79,7 @@ class TagValidatorApp:
                     target_uid = subpath[:-len("/undelete")]
                     return self._handle_undelete_key(target_uid, start_response)
                 if method == "GET":
-                    return self._handle_get_key(subpath, start_response)
+                    return self._handle_get_key(subpath, environ, start_response)
                 elif method == "DELETE":
                     return self._handle_delete_key(subpath, start_response)
                 else:
@@ -210,7 +210,7 @@ class TagValidatorApp:
         return self._json_response(start_response, 200, result.to_dict())
 
     def _handle_generate_key(self, environ: dict[str, Any], start_response: Callable) -> list[bytes]:
-        """Atomically generates a fresh AES-128 key and persists it to WORM vault."""
+        """Atomically generates fresh AES-128 keys (k0, k1, k3) and persists them to WORM vault."""
         body = self._read_json_body(environ)
         if not body or not body.get("uid"):
             return self._json_response(start_response, 400, {"error": "Missing required field: uid"})
@@ -228,9 +228,11 @@ class TagValidatorApp:
                 {"error": f"Tag key already exists for UID '{uid_raw}'. Keys cannot be regenerated or overwritten."},
             )
 
-        # Generate CSPRNG AES-128 key
+        # Generate CSPRNG AES-128 keys for K0 (PICC Master), K1 (App Read), and K3 (SDM MAC)
+        k0 = generate_sdm_key()
+        k1 = generate_sdm_key()
         k3 = generate_sdm_key()
-        secret = TagSecret(uid=uid_raw, k3=k3, status="active")
+        secret = TagSecret(uid=uid_raw, k0=k0, k1=k1, k3=k3, status="active")
 
         try:
             success = self.store.save_key(secret)
@@ -245,8 +247,10 @@ class TagValidatorApp:
             {
                 "status": "created",
                 "uid": uid_raw,
+                "k0": k0,
+                "k1": k1,
                 "k3": k3,
-                "message": "Key created and persisted to WORM vault. Burn this key to chip Key 3.",
+                "message": "Keys created and persisted to WORM vault. Burn these keys to chip Keys 0, 1, and 3.",
             },
         )
 
@@ -257,13 +261,15 @@ class TagValidatorApp:
 
         uid = body.get("uid")
         k3 = body.get("k3") or body.get("sdm_mac_key")
+        k0 = body.get("k0") or body.get("picc_master_key") or "00000000000000000000000000000000"
+        k1 = body.get("k1") or body.get("app_read_key") or "00000000000000000000000000000000"
         status = body.get("status", "active")
 
         if not uid or not k3:
             return self._json_response(start_response, 400, {"error": "Missing uid or k3 (sdm_mac_key)"})
 
         try:
-            secret = TagSecret(uid=uid, k3=k3, status=status)
+            secret = TagSecret(uid=uid, k0=k0, k1=k1, k3=k3, status=status)
         except ValueError as e:
             return self._json_response(start_response, 400, {"error": str(e)})
 
@@ -280,11 +286,13 @@ class TagValidatorApp:
             {"status": "created", "secret": secret.to_dict(include_secret=False)},
         )
 
-    def _handle_get_key(self, uid: str, start_response: Callable) -> list[bytes]:
+    def _handle_get_key(self, uid: str, environ: dict[str, Any], start_response: Callable) -> list[bytes]:
         secret = self.store.get_key(uid)
         if not secret:
             return self._json_response(start_response, 404, {"error": f"Tag key not found for UID '{uid}'"})
-        return self._json_response(start_response, 200, secret.to_dict(include_secret=False))
+        qs = parse_qs(environ.get("QUERY_STRING", ""))
+        include_secret = qs.get("raw", ["false"])[0].lower() in ("true", "1")
+        return self._json_response(start_response, 200, secret.to_dict(include_secret=include_secret))
 
     def _handle_delete_key(self, uid: str, start_response: Callable) -> list[bytes]:
         deleted = self.store.delete_key(uid)
@@ -301,8 +309,20 @@ class TagValidatorApp:
     def _handle_list_keys(self, environ: dict[str, Any], start_response: Callable) -> list[bytes]:
         qs = parse_qs(environ.get("QUERY_STRING", ""))
         include_deleted = qs.get("include_deleted", ["false"])[0].lower() in ("true", "1")
+        raw = qs.get("raw", ["false"])[0].lower() in ("true", "1")
+        details = qs.get("details", ["false"])[0].lower() in ("true", "1") or raw
         uids = self.store.list_uids(include_deleted=include_deleted)
-        return self._json_response(start_response, 200, {"count": len(uids), "uids": uids})
+
+        res: dict[str, Any] = {"count": len(uids), "uids": uids}
+        if details:
+            keys_list = []
+            for u in uids:
+                s = self.store.get_key(u, include_deleted=include_deleted)
+                if s:
+                    keys_list.append(s.to_dict(include_secret=raw))
+            res["keys"] = keys_list
+
+        return self._json_response(start_response, 200, res)
 
     def _handle_import_csv(self, environ: dict[str, Any], start_response: Callable) -> list[bytes]:
         raw_text = self._read_text_body(environ)
@@ -330,14 +350,18 @@ class TagValidatorApp:
                     # Layout A (standard tag_keys.csv): uid, picc_master_key, app_read_key, sdm_mac_key, outcome, coin_name...
                     # Layout B (uid, k3)
                     if len(row) >= 4 and len(row[3].strip()) == 32:
+                        k0 = row[1].strip() if len(row[1].strip()) == 32 else "00000000000000000000000000000000"
+                        k1 = row[2].strip() if len(row[2].strip()) == 32 else "00000000000000000000000000000000"
                         k3 = row[3].strip()
                     elif len(row) >= 2 and len(row[1].strip()) == 32:
+                        k0 = "00000000000000000000000000000000"
+                        k1 = "00000000000000000000000000000000"
                         k3 = row[1].strip()
                     else:
                         skipped += 1
                         continue
 
-                    secret = TagSecret(uid=uid, k3=k3)
+                    secret = TagSecret(uid=uid, k0=k0, k1=k1, k3=k3)
                     if self.store.save_key(secret):
                         imported += 1
                     else:
