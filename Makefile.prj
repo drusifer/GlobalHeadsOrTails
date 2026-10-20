@@ -61,3 +61,6 @@ run-tui: ## Run Textual SDM Provisioner TUI
 
 run-tag-validator: ## Run Tag Validator Service locally
 	$(MAKE) -C tag_validator_service run
+
+clean: ## Clean cache and build artifacts across all packages
+	python -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]; [p.unlink(missing_ok=True) for p in pathlib.Path('.').rglob('*.py[co]')]; [shutil.rmtree(p, ignore_errors=True) for p in ('.pytest_cache', 'build', 'dist') if pathlib.Path(p).exists()]"

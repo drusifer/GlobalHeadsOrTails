@@ -17,5 +17,4 @@ cli: ## Launch CLI tool
 	python -m sdm_provisioner.main
 
 clean: ## Clean cache and build artifacts
-	find . -type d -name "__pycache__" -exec rm -rf {} +
-	rm -rf .pytest_cache build dist *.egg-info
+	python -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]; [p.unlink(missing_ok=True) for p in pathlib.Path('.').rglob('*.py[co]')]; [shutil.rmtree(p, ignore_errors=True) for p in ('.pytest_cache', 'build', 'dist') if pathlib.Path(p).exists()]"

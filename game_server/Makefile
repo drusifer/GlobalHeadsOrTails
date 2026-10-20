@@ -23,5 +23,4 @@ run-server:
 	$(PYTHON) -m game_server.app
 
 clean:
-	rm -rf build dist *.egg-info .pytest_cache
-	find . -type d -name __pycache__ -exec rm -rf {} +
+	$(PYTHON) -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]; [p.unlink(missing_ok=True) for p in pathlib.Path('.').rglob('*.py[co]')]; [shutil.rmtree(p, ignore_errors=True) for p in ('.pytest_cache', 'build', 'dist') if pathlib.Path(p).exists()]"
