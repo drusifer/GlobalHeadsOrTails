@@ -70,36 +70,6 @@ Plan: `agents/cypher.docs/reorg_cleanup_sprint.md`. Arch: `agents/morpheus.docs/
 
 ---
 
-# Previous Sprint: Generic YAML-Driven Art Generator Refactor — COMPLETE
-
-Plan: `agents/cypher.docs/art_generator_sprint.md`. Arch: `agents/morpheus.docs/arch_art_generator.md`.
-
-- [x] **Phase 1: YAML Manifest Parsing & Prompt Templating Engine**
-  - [x] Task 1.1: Implement YAML schema parser (`ManifestParser`, `ArtworkSetMeta`, `ArtItem`) with strict validation.
-  - [x] Task 1.2: Implement `PromptTemplateEngine` with safe metadata and set token interpolation.
-- [x] **Phase 2: Pluggable Generator Backend & WebP Image Processor**
-  - [x] Task 2.1: Implement `ArtBackend` interface with `MockBackend` (for deterministic offline testing) and `CLICommandBackend`.
-  - [x] Task 2.2: Implement `ImageProcessor` (auto-crop, Lanczos scaling, WebP Q92 encoding).
-- [x] **Phase 3: Set-Specific Storage & Clean Review Contact Sheet**
-  - [x] Task 3.1: Enforce set-specific subdirectories (`<output_dir>/<id>.webp`) and resumable status tracker.
-  - [x] Task 3.2: Implement `ContactSheetBuilder` generating clean, responsive HTML review sheet (`contact_sheet.html`) with zero card flair.
-- [x] **Phase 4: CLI Orchestration, Unit Tests & Makefile Targets**
-  - [x] Task 4.1: Build executable CLI `tools/art_generator.py` with `--manifest`, `--status`, `--generate`, `--force`, `--item`, `--review`, `--export-prompts`.
-  - [x] Task 4.2: Create comprehensive pytest suite `tools/tests/test_art_generator.py` (10/10 tests passing).
-  - [x] Task 4.3: Add Makefile targets (`test-art-generator`, `art-status`, `art-generate`, `art-review`) and run full regression suite (315/315 passing).
-  - [x] Task 4.4: Sprint close gates (Trin UAT, Tank SDLC, Oracle grooming, Smith acceptance, Cypher launch).
-- [x] **Phase 5: Sticker Catalog Pack Structure & Data Decoupling**
-  - [x] Task 5.1: Relocate manifests to `game_server/src/game_server/sticker_catalog/<set-id>/`.
-  - [x] Task 5.2: Separate raw card records into `cards.json` and single item template in `manifest.yaml`.
-  - [x] Task 5.3: Update `tools/art_generator.py` to auto-load `data_file` and apply `item_template` (11/11 tests passing).
-- [x] **Phase 6: Legacy Sticker Art Cleanup & Doc Grooming**
-  - [x] Task 6.1: Purge legacy scripts (`sticker_art.mjs`, `sticker_production.py`, `sticker_references.py`, `crop_stickers.py`, etc.).
-  - [x] Task 6.2: Purge old review grids (`build/sticker-art/`, `build/rangers-art/`).
-  - [x] Task 6.3: Clean `Makefile.prj` legacy targets and update `RANGERS_STICKER_TARGETS.md`.
-  - [x] Task 6.4: Oracle documentation grooming and decision log update (Decision 11).
-
----
-
 # Previous Sprint: Code Reorganization & Component Consistency — COMPLETE
 
 Plan: `agents/cypher.docs/code_reorg_sprint.md`. Arch: `agents/morpheus.docs/arch_code_reorg.md`.

@@ -1,6 +1,5 @@
 # Next steps
 
-For Nano Banana, export `GEMINI_API_KEY`; use `make ART_BACKEND=nanobanana sticker-art-generate STICKER_PACK=rangers-history` or detached `make ART_BACKEND=nanobanana sticker-production-start ART_LANE=forward`. It uses independent Google API quota/billing; current standard Nano Banana 2.1 1K output is$0.0336, free tier unavailable. User has requested the option, not actual API spend; no calls or tests have been made.
 
 The Rangers sprint remains blocked by the existing Codex quota until Oct8 22:44ET. On resume, honor provider-specific quota report and reset guards; preserve valid 478 portraits. Full art/pack/wheel/final Smith/Trin/Morpheus/retro/Cypher launch gates remain open.
 

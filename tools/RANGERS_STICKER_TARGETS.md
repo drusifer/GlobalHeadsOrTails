@@ -192,26 +192,27 @@ The remaining target players are categorized below into actionable generation co
 
 ## 4. How to Resume Generation Later
 
+Run from the repository root (artai is installed automatically by `make install-art`):
+
 ### A. Check Roster Status
 ```bash
-python tools/art_generator.py --manifest game_server/src/game_server/sticker_catalog/rangers-history/manifest.yaml --status
+make art-status MANIFEST=game_server/src/game_server/sticker_catalog/rangers-history/manifest.yaml
 ```
 
-### B. Inspect Resolved Prompts
-To inspect the resolved prompt for every player:
+### B. Generate Missing Artwork & Pack
+Choose a real provider (`codex`, `agy`, `gemini`); finished masters are skipped and a quota stop can be resumed by re-running:
 ```bash
-python tools/art_generator.py --manifest game_server/src/game_server/sticker_catalog/rangers-history/manifest.yaml --export-prompts
+make art-generate BACKEND=codex MANIFEST=game_server/src/game_server/sticker_catalog/rangers-history/manifest.yaml
 ```
 
-### C. Generate Missing Artwork & Auto-Crop
-Run generation with the mock backend or AI CLI backend (automatically applies 512×512 WebP auto-cropping and centering):
+### C. Generate Review Contact Sheet
 ```bash
-python tools/art_generator.py --manifest game_server/src/game_server/sticker_catalog/rangers-history/manifest.yaml --generate --backend mock
+make art-review MANIFEST=game_server/src/game_server/sticker_catalog/rangers-history/manifest.yaml
 ```
 
-### D. Generate Review Contact Sheet
+### D. Verify the Set Is Complete
 ```bash
-python tools/art_generator.py --manifest game_server/src/game_server/sticker_catalog/rangers-history/manifest.yaml --review
+make art-verify MANIFEST=game_server/src/game_server/sticker_catalog/rangers-history/manifest.yaml
 ```
 
 ### E. Live Gallery Preview

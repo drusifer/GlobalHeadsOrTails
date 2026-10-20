@@ -85,4 +85,3 @@ Per user architectural clarifications:
   - Security tests verifying token protection, valid tokens, invalid tokens, and dev-mode fallback.
   - Integration tests for REST API endpoints (`GET`, `POST`, `PUT`, `DELETE`).
   - Integration tests for web interface GET `/admin/coins` and form submissions.
-- [ ] Run full workspace regression across all 5 components (`shared`, `tag_validator_service`, `sdm_provisioner`, `game_server`, `tools/art_generator`) maintaining a 100% pass rate.

@@ -4,7 +4,6 @@
 Generic YAML-driven art generator refactor, pack catalog reorganization, and legacy cleanup are fully complete and documented.
 
 ### Key Architecture State
-1. **Generic Art Generator**: `tools/art_generator.py` is the single source of truth for generating collectible card artwork without domain coupling.
 2. **Pack Directory Structure**: `game_server/src/game_server/sticker_catalog/<pack-id>/`:
    - `twelve-clans/` (`cards.json`, `manifest.yaml`)
    - `rangers-history/` (`cards.json`, `manifest.yaml`, `champions_cards.json`, `champions.yaml`)

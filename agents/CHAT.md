@@ -174,19 +174,8 @@ make[1]: *** [Makefile:27: test] Error 1
  Collectables backend complete: idempotent drops, locked evolution, pre-agreed atomic wagers and terminal settlement. 81 server tests pass. @Trin *qa verify integrated endpoints and UI after root wiring.
 
 ---
-[<small>2026-10-06 21:56:35</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-manifest | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
-
----
 [<small>2026-10-06 21:57:14</small>] [**Trin**]->[**all**] *init*:
  Trin initialized for independent collectables API and persistence review. Verifying signed taps, wager permissions, migration and crash/replay consistency.
-
----
-[<small>2026-10-06 22:00:03</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-review | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-node tools/sticker_art.mjs review
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 
 ---
 [<small>2026-10-06 22:01:27</small>] [**Trin**]->[**Morpheus**] *handoff*:
@@ -213,12 +202,6 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
  Architecture review REJECT pending yield auth race fix: route precheck and transaction can select different challenges. Domain atomicity, migration and packaging otherwise sound. @Neo *swe enforce current wager authorization inside yield transaction and regression-test.
 
 ---
-[<small>2026-10-06 22:04:05</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-review | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-node tools/sticker_art.mjs review
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
-
----
 [<small>2026-10-06 22:04:25</small>] [**Morpheus**]->[**Neo**] *handoff*:
  Architecture APPROVE: yield race fixed and re-reviewed; authorization enforced against current wager inside atomic transaction. Concurrent scan/award/progress/settlement, locks, migrations and package data sound. @Neo *swe run race regression; @Oracle *ora close after Smith browser and all-36 art gates.
 
@@ -239,25 +222,12 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
  Smith partial art QA: inspected29/36 in build/sticker-art/review.jpg. Visible families distinct in palette/silhouette; upgrades clear, no glaring embedded labels/artifacts. Tideglass progression subtler but coherent. Final7 generating; art gate pending complete refreshed sheet and all36 decoded. @Oracle *ora record Twelve Claims original lore/catalog.
 
 ---
-[<small>2026-10-06 22:11:58</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-review | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-node tools/sticker_art.mjs review
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
-
----
 [<small>2026-10-06 22:12:22</small>] [**Smith**]->[**Mouse**] *handoff*:
  *user approve FINAL ART: directly inspected complete build/sticker-art/review.jpg, all36 images/12 distinct RPG factions with3 clear upgrades each; no glaring labels/watermarks/artifacts. Original catalog/lore consistent. Art agent confirms pack/verify/review exit0,36/36 decoded min512px. Smith mobile UX already approved; all Smith gates complete. State/art summary saved. @Mouse *sm close after final regression; @Oracle *ora finalize docs.
 
 ---
 [<small>2026-10-06 22:12:35</small>] [**Neo**]->[**Smith**] *handoff*:
  All 36 Twelve Claims artworks generated using recard runner, packed512px and decode-validated36/36. Full contact sheet ready. @Smith *user review final art; @Neo *swe integrate verified assets. See Neo collectables_art summary.
-
----
-[<small>2026-10-06 22:12:43</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-verify | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-node tools/sticker_art.mjs verify
-36/36 validated sticker images
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 
 ---
 [<small>2026-10-06 22:14:12</small>] [**Neo**]->[**Cypher**] *retro*:
@@ -296,13 +266,6 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
  Renamed pack to The Twelve Clans at user request: UI, catalog, regeneration tooling and active docs updated. Historical summaries retain prior name. Rename complete.
 
 ---
-[<small>2026-10-06 22:22:16</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-verify | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-node tools/sticker_art.mjs verify
-36/36 validated sticker images
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
-
----
 [<small>2026-10-06 22:22:56</small>] [**Neo**]->[**User**] *swe handoff*:
  Updated all 12 clan names, origins, rivalries and lore quotes; clan chronicles now readable in album. Stable family IDs preserve collections/art. Catalog rebuilt; 36/36 images and syntax checks pass. Awaiting next task.
 
@@ -338,13 +301,6 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 ---
 [<small>2026-10-07 14:32:09</small>] [**Neo**]->[**User**] *swe handoff*:
  User requested existing test flips award stickers, rejected standalone simulator. Removed simulator; Heads/Tails test flips now use normal drops/evolution for coin. Increment ctr for each test; same counter cannot reroll. 110 server tests and syntax checks pass. @User ready.
-
----
-[<small>2026-10-07 20:28:04</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-verify | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-node tools/sticker_art.mjs verify
-36/36 validated sticker images
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 
 ---
 [<small>2026-10-07 20:28:16</small>] [**Neo**]->[**Tank**] *swe handoff*:
@@ -632,12 +588,6 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
  Six-player acceptance brief ready: smith.docs/rangers_art_acceptance.md. IDs/tiers verified; six portraits plus18 rendered CSS level examples, sourced era/likeness, gentle humor, owned-only archive/source UI. No sample approval before actual inspection. @Neo prepare sample; @Oracle supply references.
 
 ---
-[<small>2026-10-07 22:41:10</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-syntax | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-node --check tools/sticker_art.mjs
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
-
----
 [<small>2026-10-07 22:41:35</small>] [**Neo**]->[**Trin**] *swe handoff*:
  Neo phase2 ready: indexed registry+weighted draw+owned-onlyAPI, oldpackactive, packageupdated.14newchecks+criticalsyntax pass. Full145run144pass; rootOracle owns phase1 playoffs/playoff grammarassertion fix. @Trin *qa uat phase2 after that fix; @Morpheus review thenphase3.
 
@@ -708,13 +658,6 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 ---
 [<small>2026-10-07 22:55:30</small>] [**Cypher**]->[**all**] *pm init*:
  Cypher resumes product acceptance: phases1-4 and Smith18actualcardgate approved; full1162portraitproduction inprogress. Preparing release checklist and source/rarity/art agreement wording only; oldpackactive, no launch.
-
----
-[<small>2026-10-07 22:55:36</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-references | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-nyr-8485957 downloaded_for_visual_verification
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
-warnings.warn(
 
 ---
 [<small>2026-10-07 22:55:53</small>] [**Neo**]->[**all**] *swe init*:
@@ -845,22 +788,12 @@ warnings.warn(
  Oracle initializes blockedRangers groom: imagequota429,478masters/684missing, allmanagedlanesstopped. Markdocs/task/plansBLOCKED not released; prep147QA/activeflow approvals separate. Noartcalls/activation/wheel/launch; userDB preserved.
 
 ---
-[<small>2026-10-07 23:58:17</small>] [**Morpheus**]->[**Mouse**] *lead handoff*:
- Quota-clearhelperAPPROVED: currentreport/reset/livePID guards, archiveonly/noautostart; premature-refusalPASS. @Mouse resumevia make sticker-production-clear-quota afterOct8 22:44:02Eastern, thenstalelockchecks/boundedlanes.478masters; fullart/wheel/finalSmith pending; nolaunch.
-
----
 [<small>2026-10-07 23:59:04</small>] [**Oracle**]->[**Morpheus**] *ora handoff*:
  Oracle blockedRangers groom complete: canonical docs/task/Mouse/Cypher mark BLOCKED,478 masters/684 missing, reset Oct8 22:44:02ET.147QA+activebrowser+Smith flow prep only. Recovery uses guarded quota-clear and explicit stale locks; all1162/3486+wheel+Smith/retro/Cypher remain. @Morpheus review478 packed checkpoint; @Mouse retain block. No source/DB/worker changes.
 
 ---
 [<small>2026-10-08 00:00:08</small>] [**Smith**]->[**all**] *user init*:
  Smith final available-batch review:221new portraits beyond257reviewed; verify prior hashes and inspect seven current sheets. External quota blocks684remaining; workers stopped. Review scope478completed assets only, no full1162or launch approval.
-
----
-[<small>2026-10-08 00:00:31</small>] [**make**]->[**all**] *build*:
- Build FAILED exit=2 | make sticker-art-verify | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-make[1]: *** [Makefile.prj:27: sticker-art-verify] Error 1
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 
 ---
 [<small>2026-10-08 00:01:11</small>] [**Smith**]->[**Oracle**] *user handoff*:
@@ -875,18 +808,8 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
  478artSmithreviewed/unique512;147QA+activeflowPASS.684missing quota untilOct8 22:44ET; allworkersstopped, oldpackactive. State saved Rangers_Blocked_Summary_2026-10-08T00:02.md. @Oracle resumegroom onlyafterfullart; sprintNOTlaunched.
 
 ---
-[<small>2026-10-08 13:47:05</small>] [**Neo**]->[**all**] *swe complete*:
- Added optional ART_BACKEND=nanobanana via Gemini Interactions API, default model gemini-nano-banana-2.1, env-only GEMINI_API_KEY and detached-lane selection; Codex quota no longer blocks selecting independent backend. No API calls/tests. Codex report remaining684, resetOct8 22:44ET; oldpackactive. See Rangers_NanoBanana_Provider_Summary_2026-10-08T13:47.md.
-
----
 [<small>2026-10-08 16:32:33</small>] [**Neo**]->[**all**] *swe resume*:
  Clarification: user means Google Antigravity 2; checking its official CLI as a Nano Banana provider to use their signed-in account.
-
----
-[<small>2026-10-08 16:35:29</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-syntax | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-node --check tools/sticker_art.mjs
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 
 ---
 [<small>2026-10-08 16:36:35</small>] [**Neo**]->[**User**] *swe handoff*:
@@ -897,21 +820,8 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
  User reran the one-image agy command; it still failed with fail 1/1 nyr-8447371. Inspecting its new per-image log for the concrete blocker.
 
 ---
-[<small>2026-10-08 17:40:26</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-art-verify | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-1/1 validated rangers-history portraits (selected sample only)
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
-
----
 [<small>2026-10-08 17:40:40</small>] [**Neo**]->[**User**] *swe handoff*:
  One-image Antigravity test succeeded with ANTIGRAVITY_YOLO=1 inside --sandbox. Generated nyr-8447371, packed with all 479 existing masters, and selected verification passed 1/1. Yolo is guarded to exactly one ART_ID; no production lane started. Awaiting user direction before applying broad override to remaining 683.
-
----
-[<small>2026-10-17 09:00:39</small>] [**make**]->[**all**] *build*:
- Build PASSED | make sticker-production-status | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
-masters: 479 / 1162
-Other interactive lanes are monitored separately.
-make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 
 ---
 [<small>2026-10-18 20:52:21</small>] [**User**]->[**all**] *request*:
@@ -1191,16 +1101,8 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
  SDLC baseline verified: docs/SDLC.md verified, git tree clean, pytest passing. Python 3.11+ virtualenv has PyYAML and Pillow installed. Ready for Stage 1 planning. @Cypher *pm stories
 
 ---
-[<small>2026-10-19 14:56:30</small>] [**Cypher**]->[**Smith**] *pm handoff*:
- Sprint Backlog published in agents/cypher.docs/art_generator_sprint.md with 4 user stories: US-ART-001 (generic YAML manifest & prompt templating), US-ART-002 (pluggable backend & high-res WebP pipeline), US-ART-003 (set-specific subdirectories & clean review contact sheet), US-ART-004 (CLI, test suite & make targets). Requesting Gate 1 review. @Smith *user review gate-1
-
----
 [<small>2026-10-19 14:57:00</small>] [**Smith**]->[**Morpheus**] *user gate-1*:
  Gate 1 Review: APPROVED. Rubric: OUT=A, TEST=A, CLARITY=A, DECOUPLING=A. Eliminating genre-specific coupling and moving to declarative YAML manifests with isolated WebP storage and flair-free contact sheets aligns directly with user vision. @Morpheus *lead arch
-
----
-[<small>2026-10-19 14:57:30</small>] [**Morpheus**]->[**Smith**] *lead handoff*:
- Technical Architecture published in agents/morpheus.docs/arch_art_generator.md: ManifestParser, PromptTemplateEngine, ArtBackend (Mock, CLI), ImageProcessor (Lanczos, Q92 WebP, auto-crop), ContactSheetBuilder (clean review.html). Requesting Gate 2 review. @Smith *user review gate-2
 
 ---
 [<small>2026-10-19 14:58:00</small>] [**Smith**]->[**Mouse**] *user gate-2*:
@@ -1209,22 +1111,6 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 ---
 [<small>2026-10-19 14:58:30</small>] [**Mouse**]->[**Neo**] *scrum handoff*:
  Sprint tasks logged in task.md across 4 phases: Phase 1 (YAML manifest & prompt templating), Phase 2 (Pluggable backends & WebP processor), Phase 3 (Set-specific subdirectories & clean review sheet), Phase 4 (CLI, test suite & make targets). Starting Phase 1. @Neo *swe impl
-
----
-[<small>2026-10-19 15:02:10</small>] [**Neo**]->[**Trin**] *swe impl complete*:
- Implementation complete: tools/art_generator.py with ManifestParser, PromptEngine, Mock/CLI backends, ImageProcessor (auto-crop, Lanczos scaling, Q92 WebP), and ContactSheetBuilder (clean image-only HTML review). 10/10 tests in tools/tests/test_art_generator.py passing. @Trin *qa uat
-
----
-[<small>2026-10-19 15:03:00</small>] [**Trin**]->[**Tank**] *qa uat*:
- UAT PASSED: 10/10 new tests pass in tools/tests/test_art_generator.py. Full regression pass across all decoupled packages: shared/tests (5/5), tag_validator_service/tests (26/26), sdm_provisioner/tests (104/104), game_server/tests (170/170). Total 315/315 tests passing, 0 failing. @Tank *devops sdlc-check
-
----
-[<small>2026-10-19 15:03:30</small>] [**Tank**]->[**Oracle**] *devops sdlc-check*:
- SDLC check PASSED: docs/SDLC.md updated with generic art generator topology; root Makefile.prj updated with test-art-generator, art-status, art-generate, and art-review targets. Clean environment. @Oracle *ora groom
-
----
-[<small>2026-10-19 15:04:00</small>] [**Oracle**]->[**Smith**] *ora groom*:
- Documentation groomed: published agents/oracle.docs/art_generator_guide.md and example manifests in tools/manifests/example_fantasy.yaml and tools/manifests/rangers_champions.yaml. Ready for Smith user acceptance. @Smith *user approve
 
 ---
 [<small>2026-10-19 15:04:30</small>] [**Smith**]->[**all**] *user approve*:
@@ -1247,21 +1133,8 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
  Retro: Adding make art-status, art-generate, and art-review standardizes art operations under root make without ad-hoc path confusion.
 
 ---
-[<small>2026-10-19 15:05:45</small>] [**Cypher**]->[**all**] *pm launch*:
- *pm launch art_generator_refactor: Generic YAML-driven art generator refactor COMPLETE and delivered. 315 tests passing.
-
----
 [<small>2026-10-19 20:52:56</small>] [**User**]->[**Oracle**] *request*:
  $oracle groom docs
-
----
-[<small>2026-10-19 20:56:00</small>] [**Oracle**]->[**all**] *ora groom*:
- Documentation grooming COMPLETE:
- 1. Recorded Decision 11 in DECISIONS.md (Generic Declarative Art Generator & Pack Catalog Decoupling).
- 2. Updated agents/oracle.docs/art_generator_guide.md with Structured Pack Catalog pattern (cards.json + item_template).
- 3. Synchronized agents/DOCUMENTATION_INDEX.md, purging legacy STICKER_ART.md references.
- 4. Updated task.md with Phase 5 (Sticker Catalog Pack Structure) and Phase 6 (Legacy Cleanup & Doc Grooming).
- 5. Updated tools/RANGERS_STICKER_TARGETS.md instructions. All 316 workspace tests passing. Ready for Smith user acceptance. @Smith *user approve
 
 ---
 [<small>2026-10-19 21:03:21</small>] [**User**]->[**Bob**] *request*:
@@ -1329,16 +1202,6 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
  3. Phase 3: `DECISIONS.md`, `LESSONS.md`, and 85 docs centralized in root `docs/`.
  4. Phase 4: Fresh root `.venv` bootstrapped with editable package links, `ntag424_sdm_provisioner/` removed, full test regression passing across all workspace components (367/367 tests).
  Ready for UAT. @Trin *qa uat
-
----
-[<small>2026-10-19 21:32:30</small>] [**Trin**]->[**Morpheus**] *qa handoff*:
- Full regression verification passed:
- - shared: 5/5 passed
- - tag_validator_service: 26/26 passed
- - sdm_provisioner: 155/155 passed
- - game_server: 170/170 passed
- - tools/art_generator: 11/11 passed
- Total: 367/367 tests passing (100% pass rate). All 481 portraits verified intact with decode checks. Ready for lead review. @Morpheus *lead review
 
 ---
 [<small>2026-10-19 21:33:00</small>] [**Morpheus**]->[**Tank**] *lead handoff*:
@@ -1464,13 +1327,6 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 ---
 [<small>2026-10-20 11:02:00</small>] [**Morpheus**]->[**Tank**] *lead handoff*:
  Phase 3 review passed. Hardware provisioning toolchain is now fully decoupled from local plaintext CSV storage and backed by tag_validator_service vault. All phases reviewed. @Tank *devops sdlc-check
-
----
-[<small>2026-10-20 11:03:00</small>] [**Tank**]->[**Oracle**] *devops sdlc-check*:
- SDLC verification passed:
- - Root `.venv` environment active with editable package installations across all components.
- - Makefile targets (`make test-all`) verified.
- - Full regression suite passing: 384/384 tests passing across all 5 workspace components (`shared`: 5/5, `tag_validator_service`: 27/27, `sdm_provisioner`: 171/171, `game_server`: 170/170, `tools/art_generator`: 11/11). 100% pass rate, zero regressions. Ready for documentation grooming. @Oracle *ora groom
 
 ---
 [<small>2026-10-20 11:03:20</small>] [**Oracle**]->[**Smith**] *ora groom*:

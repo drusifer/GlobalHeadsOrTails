@@ -2,14 +2,11 @@
 
 **Last Updated:** 2026-10-19
 
-## Generic Declarative Art Generator & Pack Catalogs
+## Sticker Art (artai) & Pack Catalogs
 
-- [Generic Art Generator Guide](oracle.docs/art_generator_guide.md)
-- [Art Generator Architecture Specification](morpheus.docs/arch_art_generator.md)
-- [Art Generator Refactor Sprint Plan](cypher.docs/art_generator_sprint.md)
+- [Art production with artai](../docs/COLLECTABLES.md#art-production) — `make install-art`, `art-status`, `art-generate`, `art-pack`, `art-review`, `art-verify`
 - [Rangers Target Roster & Artwork Guide](../tools/RANGERS_STICKER_TARGETS.md)
 - [Sticker Pack Catalogs & Manifests](../game_server/src/game_server/sticker_catalog/)
-- [Generic Art Generator Engine](../tools/art_generator.py)
 
 ## Collectables & Game Server
 

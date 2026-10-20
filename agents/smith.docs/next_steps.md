@@ -1,5 +1,4 @@
 # Next Steps
-AfterquotaresetOct8 22:44:02ET, Mouse/Neo guardedresume; noimagegencallsbeforethen. Smithreviewnew/changedIDsagainst478manifest. Fullcoverage/package/finalappgates,retro/launchremain; Oracleblockedhandoffposted.
 Continueincrementalnew/changedartIDreview; awaitfull1162verifierandfinalrelease evidence. Flowapprovedtemporaryfixtureonly. Optionalcopypolish“1copies”.
 Futurebatch: diffpackedIDsandWebPSHA256 against rangers_reviewed_art.json; reviewallnew/changedassets, thenmergereviewmanifest. Keepfull1162/finalUXgateopen.
 Continue laterpackedcontactsheetreviews and targetedfullres anomalychecks. Waitfull1162decode/coverage/sourceevidence plusfinalactualappbefore releaseUXapproval; oldpack remainsactiveuntilguardpasses.

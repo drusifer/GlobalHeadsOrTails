@@ -131,15 +131,14 @@ This document records key decisions made during the project lifecycle.
   4. **Game DB Ownership (`app.db`)**: First-class `coins` table in SQLite `app.db` maps UIDs to coin names, clans, and rarities, while anti-replay logic continues to enforce strictly increasing counters. Game server queries the key service over HTTP (`POST /api/v1/validate`).
 - **Status**: Accepted, 2026-10-18; 20 unit/integration tests passing in `tag_validator_service` and 2 in `test_game_db_coins.py`.
 
-## 11. Generic Declarative Art Generator & Pack Catalog Decoupling
-- **Context**: The legacy sticker generator relied on coupled Node.js and Python scripts (`sticker_art.mjs`, `sticker_production.py`, `generate_rangers_stickers.py`) with hardcoded hockey/fantasy logic, ad-hoc cropping, and review grids mixing game flair (ribbons, jersey numbers, evolution borders). In addition, full manifests duplicated prompt templates across hundreds of cards.
+## 11. Sticker Art via artai & Pack Catalog Decoupling
+- **Context**: Sticker art needs resumable, quota-aware generation with real providers, packing and a completeness check, shared with other projects (recard). Card metadata also duplicated prompt templates across hundreds of cards.
 - **Decision**:
-  1. **Generic Engine (`tools/art_generator.py`)**: Deliver a domain-agnostic, declarative YAML-driven art generator with pluggable backends (`MockBackend`, `CLICommandBackend`), automatic Pillow Lanczos auto-crop and centering, high-res WebP (Q92) encoding, and clean image-only HTML contact sheets.
+  1. **artai**: All art generation, packing, review and verification run through the shared `artai` CLI (sibling repo), pip-installed editable into `.venv-art/` by `make install-art`. No art-generation code lives in this repo.
   2. **Pack Subdirectories (`game_server/src/game_server/sticker_catalog/<pack-id>/`)**: Each collectible pack lives in its own subdirectory (`twelve-clans/`, `rangers-history/`, `fantasy-heroes/`).
-  3. **Data vs. Prompt Decoupling**: Card metadata is stored as pure structured JSON records in `cards.json` with all domain fields filled out. The pack's `manifest.yaml` provides pack-level metadata (theme, style, format, resolution) and a single `item_template` string with `{token}` interpolation, pointing to `data_file: cards.json`.
-  4. **Flair Separation**: Image generation and review sheets remain strictly flair-free. Visual frames, jersey numbers, and evolution borders are dynamically rendered at runtime in CSS/DOM.
-  5. **Legacy Cleanup**: Completely remove legacy ad-hoc scripts, photo downloaders, and large review grids (`build/sticker-art/`, `build/rangers-art/`).
-- **Status**: Accepted, 2026-10-19; 11/11 tests passing in `tools/tests/test_art_generator.py`, 316/316 workspace tests passing.
+  3. **Data vs. Prompt Decoupling**: Card metadata is stored as structured JSON records in `cards.json`; the pack's `manifest.yaml` holds pack-level metadata (theme, style, format, resolution) and one `item_template` with `{token}` interpolation, pointing to `data_file: cards.json`.
+  4. **Flair Separation**: Generated images and review sheets stay flair-free; frames, jersey numbers and evolution borders are rendered at runtime in CSS/DOM.
+- **Status**: Accepted, 2026-10-20 (artai migration).
 
 ## 12. Workspace Component Architecture Completion & Legacy Purge
 - **Context**: The monolithic `ntag424_sdm_provisioner/` directory remained in the workspace alongside the newly extracted peer packages (`shared/`, `tag_validator_service/`, `sdm_provisioner/`, `game_server/`), creating confusion, duplicate tests, stale documentation paths, and risk of asset loss (473 AI-generated Rangers history WebP portraits were stranded in the old directory).

@@ -42,25 +42,40 @@ rangers-roster-seasons: ## Audit first/last NYR seasons against the frozen roste
 rangers-catalog: ## Build full Rangers catalog from frozen NHL snapshot
 	$(PYTHON) tools/rangers_catalog.py
 
-.PHONY: test-all test-shared test-tag-validator test-sdm-provisioner test-game-server test-art-generator install-all run-game-server run-tui run-tag-validator pkg-tag-validator verify-tag-validator-container export-tag-validator-image art-status art-generate art-review
+.PHONY: test-all test-shared test-tag-validator test-sdm-provisioner test-game-server install-all run-game-server run-tui run-tag-validator pkg-tag-validator verify-tag-validator-container export-tag-validator-image install-art art-status art-generate art-pack art-review art-verify
 test-all: ## Run full test suites across all packages and tools
 	$(PYTHON) -m pytest shared/tests -v
 	$(PYTHON) -m pytest tag_validator_service/tests -v
 	$(PYTHON) -m pytest sdm_provisioner/tests -v
 	$(PYTHON) -m pytest game_server/tests -v
-	$(PYTHON) -m pytest tools/tests/test_art_generator.py -v
 
-test-art-generator: ## Run test suite for generic art generator
-	$(PYTHON) -m pytest tools/tests/test_art_generator.py -v
+# Sticker art is made with artai, pip-installed (editable) from a sibling checkout
+# (ARTAI_SRC, default ../artai) into its own .venv-art so the workspace .venv and
+# every other target are unaffected. MANIFEST defaults to the Twelve Clans set.
+ARTAI_SRC ?= ../artai
+ARTAI     := .venv-art/bin/artai
+ART_MANIFEST = $(or $(MANIFEST),game_server/src/game_server/sticker_catalog/twelve-clans/manifest.yaml)
 
-art-status: ## Show artwork status for a manifest (MANIFEST=path/to/manifest.yaml)
-	$(PYTHON) tools/art_generator.py --manifest $(or $(MANIFEST),game_server/src/game_server/sticker_catalog/twelve-clans/manifest.yaml) --status
+install-art: ## pip-install artai (../artai or ARTAI_SRC=) into .venv-art
+	@test -d "$(ARTAI_SRC)" || { echo "artai not found at $(ARTAI_SRC) - clone it there or run: make install-art ARTAI_SRC=<path>"; exit 1; }
+	test -x .venv-art/bin/python || python3 -m venv .venv-art
+	.venv-art/bin/pip install -q -e "$(ARTAI_SRC)"
 
-art-generate: ## Generate artwork from YAML manifest (MANIFEST=path/to/manifest.yaml BACKEND=mock|cli)
-	$(PYTHON) tools/art_generator.py --manifest $(or $(MANIFEST),game_server/src/game_server/sticker_catalog/twelve-clans/manifest.yaml) --generate --backend $(or $(BACKEND),mock)
+art-status: install-art ## Show artwork status for a manifest (MANIFEST=path/to/manifest.yaml)
+	$(ARTAI) status $(ART_MANIFEST)
 
-art-review: ## Build clean HTML review contact sheet from YAML manifest (MANIFEST=path/to/manifest.yaml)
-	$(PYTHON) tools/art_generator.py --manifest $(or $(MANIFEST),game_server/src/game_server/sticker_catalog/twelve-clans/manifest.yaml) --review
+art-generate: install-art ## Generate then pack artwork (MANIFEST=... BACKEND=codex|agy|gemini|command|mock, required)
+	$(ARTAI) generate $(ART_MANIFEST) $(if $(BACKEND),--backend $(BACKEND)) $(ARGS)
+	$(if $(filter mock,$(BACKEND)),@echo "BACKEND=mock: placeholder masters are not packed into the shipped output_dir",$(ARTAI) pack $(ART_MANIFEST))
+
+art-pack: install-art ## Pack existing masters into the manifest's output_dir (MANIFEST=...)
+	$(ARTAI) pack $(ART_MANIFEST)
+
+art-review: install-art ## Build the HTML review contact sheet (MANIFEST=...)
+	$(ARTAI) review $(ART_MANIFEST)
+
+art-verify: install-art ## Check every sticker exists, fits and is real art (MANIFEST=...)
+	$(ARTAI) verify $(ART_MANIFEST)
 
 test-shared: ## Run tests for shared contracts package
 	$(PYTHON) -m pytest shared/tests -v

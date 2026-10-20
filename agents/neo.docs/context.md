@@ -11,11 +11,9 @@ As of 2026-10-08 00:02 America/New_York, phases1–4 are implemented/reviewed; p
 
 ## External blocker
 
-ActualimagegentoolHTTP429usage_limit_reached. Resetepoch1791513842 =2026-10-08 22:44:02 America/New_York (2026-10-09 02:44:02UTC). Evidencebuild/rangers-art/raw/nyr-8458192.log. No moreimagecalls beforeexpiry. Exactcompleted/missingIDs inagents/neo.docs/rangers_art_blocker.json andignored build/rangers-art/quota-report.json.
 
 ## Resume and finish
 
-Afterexpiry inspectstatus/evidence, verifyoldmanagedlanesidle and clearonlyconfirmedstale image locks viaexplicitmake sticker-art-unlock. make sticker-production-clear-quota checksreporttimestamp/resettime/idlelanes andarchivesmarkeronly. Resumeapprovedlanes throughmake sticker-production-start ART_LANE=forward|reverse|middle-a|middle-b (8+4+2+2max16; stage starts with>=1.5GiBavailable). Preservevalidmasters; generator skips them. Noovernightworkscheduled.
 
 Finish684portraits, packall, full1162/3486verify and36legacycheck, Smithall-artreview, Trin/Morpheusphase5gates, thenexplicitactivation. Runactualwheelverify_rangers_package, final147+browser/syntaxchecks andSmithreleasegate. Oraclefinalgroom/Mousephaseclose/all-personaretro/Cypherlaunch remainrequired. Currenttask mustnot be called complete.
 

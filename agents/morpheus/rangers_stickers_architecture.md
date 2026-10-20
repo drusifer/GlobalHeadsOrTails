@@ -24,7 +24,6 @@ Freeze a player-ID rarity override manifest with reasons and official supporting
 
 ## Existing art generator, one portrait and three treatments
 
-Parameterize the current `tools/sticker_art.mjs` adapter with explicit pack/catalog/output options while preserving existing defaults and Twelve Clans paths. Continue importing the actual adjacent recard manifest, runner, validator and packer. Retain normal sandbox behavior, resumable generation, per-ID locks, per-image logs, selective IDs and reverse lanes. New Ranger assets live under a pack subdirectory and reference an explicit catalog asset URL, avoiding guessed legacy file paths.
 
 Generate one original caricature master and one packaged WebP per player, referenced by all three form records. Use deterministic CSS card frames/borders/level markings to create three visibly distinct rendered card treatments; do not duplicate portrait bitmaps. This is the root-communicated scope assumption, still subject to user steering before production. Deliver1,162 decoded unique512px-minimum packaged WebPs and3,486 valid form metadata references. Separate CSS card treatments from portrait generation so frame updates are cheap and reproducible. Levels must differ by frame structure, shape/markings and visible level text, not color alone. Every rendering surface uses the same form.image URL helper with the legacy filename fallback, including album, award notices, wager stakes and gallery.
 

@@ -52,24 +52,20 @@ Rarity is an editorial fan-favorite ranking supported by official team history, 
 
 Stats are Rangers-only NHL totals with regular season/playoffs and skater/goalie roles kept separate. Historical unknown metrics display as unavailable. Player facts derive from sourced statistics; humorous cartoon flavor is original writing and never attributed as a player quote. Snapshot, tenure and official sources are available in player details. Appearance references are separately audited:717 downloadable candidates and 445 rejected generic silhouettes. Downloading a candidate does not verify a likeness. Cards disclose unverified cartoon interpretations, explicitly identifying archival interpretations where no usable reference exists.
 
-Source/rarity records: `../../agents/oracle.docs/rangers_roster_sources.md`, `../../agents/oracle.docs/rangers_art_sources.json` and `../../agents/cypher.docs/rangers_rarity.json`. Reproduce metadata with root targets `rangers-roster-audit`, `rangers-roster-seasons`, `rangers-reference-index` and `rangers-catalog`. Frozen report hashes and request URLs are retained in the compiled catalog.
+Source/rarity records: `../../agents/oracle.docs/rangers_roster_sources.md`, `../../agents/oracle.docs/rangers_art_sources.json` and `../../agents/cypher.docs/rangers_rarity.json`. Reproduce metadata with root targets `rangers-roster-audit`, `rangers-roster-seasons` and `rangers-catalog`. Frozen report hashes and request URLs are retained in the compiled catalog.
 
 ## Art production
 
-Runtime metadata: `src/ntag424_sdm_provisioner/server/sticker_catalog.json`. Smith's creative specification: `../../agents/smith.docs/collectables_catalog.md`.
+Runtime metadata: each pack's `cards.json`. Smith's creative specification: `../../agents/smith.docs/collectables_catalog.md`.
 
-From the repository root, use `make sticker-art-manifest`, `make sticker-art-generate`, `make sticker-art-pack`, and `make sticker-art-review`. The local adapter reuses the generic generator/packer in `../recard/tools/imagegen` with an approval-respecting backend. The sibling repository is needed to regenerate images, not to run the shipped app. Raw masters and generation logs stay under ignored `build/sticker-art`; packed WebPs ship in `server/static/stickers`. Generation is resumable and stops on quota exhaustion. See `../../tools/STICKER_ART.md` for tooling details.
+Sticker art is made with **artai** (sibling repo `../artai`, override with `ARTAI_SRC=`), which `make install-art` pip-installs (editable) into its own `.venv-art/` so the workspace environment is untouched. Each pack's manifest lives in `game_server/src/game_server/sticker_catalog/<pack>/` (`manifest.yaml` + `cards.json`); set `MANIFEST=` to choose one (default Twelve Clans).
 
+```sh
+make art-status   [MANIFEST=...]             # items, masters, packed, missing
+make art-generate BACKEND=codex [MANIFEST=...]  # paint missing masters (resumable; quota stops with exit 2), then pack
+make art-pack     [MANIFEST=...]             # re-pack masters into the manifest's output_dir
+make art-review   [MANIFEST=...]             # HTML contact sheet
+make art-verify   [MANIFEST=...]             # every sticker present, 512x512, unique, not placeholder art
+```
 
-## Quota block and controlled resumption — 2026-10-07
-
-**BLOCKED — not released.** Image generation returned `usage_limit_reached` (HTTP429). At the stop checkpoint, 478 of 1,162 masters existed and 684 player IDs remained missing. All four managed lanes stopped cleanly. Reset: **2026-10-08 22:44:02 America/New_York** (2026-10-09 02:44:02 UTC; epoch1791513842). Exact missing IDs and evidence: `agents/neo.docs/rangers_art_blocker.json`; ignored quota report: `build/rangers-art/quota-report.json`. Packing the 478 existing masters does not satisfy full-art completeness. Twelve Clans remains active.
-
-The 147 server checks, isolated active-Rangers browser flow and Smith flow approval validate preparation only. They do not authorize a partial release, partial-package acceptance or launch.
-
-1. Before reset, make no image-generation calls. Preserve valid masters, logs, reference audit and user database. Root may pack and inspect existing artwork only.
-2. After reset, run `make sticker-production-status`, inspect the documented quota report/reset and verify managed lanes are idle. Clear only confirmed stale per-ID locks through `make sticker-art-unlock` with explicit IDs; never kill unrelated workers or broadly delete locks.
-3. Run `make sticker-production-clear-quota` to archive the documented marker through its reset-time guard. Resume the existing managed production lanes with `make sticker-production-start ART_LANE=<lane>`; retain and skip valid masters rather than regenerating them.
-4. Finish all 1,162 unique portraits, pack and validate all 3,486 references and 36 legacy images. Trin/Morpheus review the complete report and Smith reviews completed-roster artwork.
-5. Only then run the full `make -C ntag424_sdm_provisioner verify_rangers_package` gate, activate through the guarded production target, and repeat final server/browser/installed-package checks. No partial wheel counts as acceptance.
-6. Oracle updates active-feature docs; Smith gives final running-app approval, Mouse closes phases and persona retrospectives, and Cypher checks acceptance and records launch. No commit, container build, push or deployment is authorized by this documentation update.
+Masters live in ignored `build/artai/<set name>/masters/`; packed WebPs ship from each manifest's `output_dir`. `BACKEND` is required (`codex`, `agy`, `gemini`, `command`, `mock`). Options, providers and exit codes: artai's `docs/USAGE.md`.
