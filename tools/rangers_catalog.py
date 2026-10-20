@@ -13,8 +13,8 @@ ART_SOURCES = ROOT / 'agents/oracle.docs/rangers_art_sources.json'
 SKATER = ('gamesPlayed','goals','assists','points')
 GOALIE = ('gamesPlayed','wins','losses','ties','otLosses','shutouts','goalsAgainstAverage','savePct','saves','shotsAgainst')
 TREATMENTS = ('Rinkside','Spotlight','Garden Glow')
-FLAVOR = ('Protecting the puck and the last New York bagel.', 'Even the pigeon in the cheap seats wants an autograph.',
-          'Skates sharpened. Pretzel secured.', 'The stick handles pucks; the eyebrows handle drama.',
+FLAVOR = ('Ready for the opening faceoff under the Garden lights.', 'Even the pigeon in the cheap seats wants an autograph.',
+          'Skates sharpened, tape fresh, ready for the Garden ice.', 'The stick handles pucks; the eyebrows handle drama.',
           'A Broadway entrance, followed by a very hockey exit.', 'The equipment bag has its own subway pass.')
 
 
@@ -72,12 +72,12 @@ def build_catalog(reports: dict, tenures: dict, manifest: dict, audit: dict) -> 
         if len(player['positions']) > 1 and 'G' in player['positions']:
             fact += ' Official records include separate skater and goalie appearances.'
         family_id = f'nyr-{identity}'
-        gear = 'goaltender pads and catcher' if player['positions'] == ['G'] else 'skater gloves and hockey stick'
-        prompt = (f"Original affectionate cartoon caricature of New York Rangers player {player['name']}, NHL player ID {identity}. "
-                  f"Rangers playing era {player['tenure']}; use era-appropriate blue, red and white hockey equipment, {gear}. "
-                  'Recognizable face and hairstyle, gently exaggerated expressive head, confident friendly smile, oversized skates and a tiny New York bagel balanced on the equipment. '
-                  'Celebratory light hockey humor, no mean caricature or unsupported personal claims. Bold clean ink outlines, rich painted colors, centered full body, square composition, warm ivory background, generous margin. '
-                  'No text, letters, labels, numbers, watermarks or photographs. Fresh illustrated art, legible at mobile sticker size. '
+        gear = 'goaltender pads, blocker and catcher' if player['positions'] == ['G'] else 'skater gloves and hockey stick'
+        prompt = (f"Authentic athletic cartoon caricature illustration of New York Rangers player {player['name']}, NHL player ID {identity}. "
+                  f"Rangers playing era {player['tenure']}; wearing official era-appropriate blue, red and white New York Rangers uniform and {gear}. "
+                  'Recognizable face and hairstyle, confident athletic expression, classic hockey stance posing proudly in full uniform on ice. '
+                  'Bold clean ink outlines, rich painted colors, centered full body, square composition, warm ivory background, generous margin. '
+                  'No text, letters, labels, numbers, watermarks, photographs, food or whimsical props. Fresh illustrated art, legible at mobile sticker size. '
                   'Use a reliable player portrait reference when available; do not depict a different player.')
         families.append({'id':family_id,'pack_id':'rangers-history','name':player['name'],'rarity':rarity,'player':player,
                          'fact':fact,'flavor':FLAVOR[identity % len(FLAVOR)],'look':f"Rangers {gear}; {player['tenure']}",

@@ -15,6 +15,7 @@ All development in this repository strictly adheres to Bob Protocol SDLC standar
 2. **Tag Validator Microservice (`tag_validator_service/`)**: Standalone stateless security microservice managing tag keys as k3s WORM secrets and performing NTAG 424 DNA SDM CMAC validation. Bundles the official client SDK (`tag_validator.client`).
 3. **SDM Hardware Provisioner (`sdm_provisioner/`)**: Specialized PC/SC smartcard provisioning toolchain, hardware abstraction layer (`hal`), Textual TUI, and command orchestrators.
 4. **Game Server (`game_server/`)**: Flask gameplay server, coin message service, VIP contact endpoints, Twelve Clans sticker catalog, and real-time polling state manager.
+5. **Generic Art Generator (`tools/art_generator.py`)**: Domain-agnostic declarative YAML pipeline generating high-resolution WebP images into set-specific subdirectories with clean visual review contact sheets and zero card flair.
 
 ---
 

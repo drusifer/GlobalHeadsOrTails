@@ -14,6 +14,7 @@ dependencies = [
     "coolname>=2.2.0",
     "shared",
     "tag-validator-service",
+    "pillow>=10.0.0",
 ]
 
 [project.optional-dependencies]

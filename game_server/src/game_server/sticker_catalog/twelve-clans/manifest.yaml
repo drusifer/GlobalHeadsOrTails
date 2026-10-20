@@ -1,0 +1,20 @@
+artwork_set:
+  name: twelve_clans
+  description: The Twelve Clans Collectible Stickers (36 forms across 12 clans)
+  output_dir: game_server/src/game_server/static/stickers
+  review_dir: build/artwork/twelve_clans/review
+  theme: Mythic fantasy tabletop RPG miniature aesthetic with twelve sworn factions
+  style: Original tabletop RPG collectible sticker illustration, bold ink outline,
+    rich painted colors, single centered full-body champion, square composition, clean
+    warm ivory background, generous margin, no words, letters, numbers, labels or
+    watermark. Maintain clan palette and emblem. Legible at mobile card size.
+  format: webp
+  resolution:
+  - 512
+  - 512
+  quality: 92
+  autocrop: true
+  pad: 10
+item_template:
+  prompt_template: '{clan_look} Depict {name}: Evolution level {level} of 3. {style}'
+data_file: cards.json

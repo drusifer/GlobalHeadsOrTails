@@ -1181,3 +1181,84 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 ---
 [<small>2026-10-18 22:43:20</small>] [**Cypher**]->[**all**] *pm launch*:
  *pm launch code_reorg: Code reorganization and component consistency sprint COMPLETE and delivered. 4 decoupled packages (shared, tag_validator_service, sdm_provisioner, game_server), 305 tests passing.
+
+---
+[<small>2026-10-19 14:55:39</small>] [**User**]->[**all**] *request*:
+ $sprint tech debt refactor art generator. It should be generic with no specific knowlage for hocky or fantacy genra - It shoudl take a yaml with the list of art to generate. each entry has the prompt to use along with metadata that can be used in the prompt as a template. Aditional metdata describes the theme and style to use for the generated images.. The yaml is created seperately so this tool only needs to know how to take the prompt and create the images. It should be in webp, high res, and stored in a subdirectory specific to that artwork set. A contact sheet of just the images for review. don't wory about the flair since that will be usage specifci an dnot generated
+
+---
+[<small>2026-10-19 14:56:00</small>] [**Tank**]->[**Cypher**] *devops sdlc-check*:
+ SDLC baseline verified: docs/SDLC.md verified, git tree clean, pytest passing. Python 3.11+ virtualenv has PyYAML and Pillow installed. Ready for Stage 1 planning. @Cypher *pm stories
+
+---
+[<small>2026-10-19 14:56:30</small>] [**Cypher**]->[**Smith**] *pm handoff*:
+ Sprint Backlog published in agents/cypher.docs/art_generator_sprint.md with 4 user stories: US-ART-001 (generic YAML manifest & prompt templating), US-ART-002 (pluggable backend & high-res WebP pipeline), US-ART-003 (set-specific subdirectories & clean review contact sheet), US-ART-004 (CLI, test suite & make targets). Requesting Gate 1 review. @Smith *user review gate-1
+
+---
+[<small>2026-10-19 14:57:00</small>] [**Smith**]->[**Morpheus**] *user gate-1*:
+ Gate 1 Review: APPROVED. Rubric: OUT=A, TEST=A, CLARITY=A, DECOUPLING=A. Eliminating genre-specific coupling and moving to declarative YAML manifests with isolated WebP storage and flair-free contact sheets aligns directly with user vision. @Morpheus *lead arch
+
+---
+[<small>2026-10-19 14:57:30</small>] [**Morpheus**]->[**Smith**] *lead handoff*:
+ Technical Architecture published in agents/morpheus.docs/arch_art_generator.md: ManifestParser, PromptTemplateEngine, ArtBackend (Mock, CLI), ImageProcessor (Lanczos, Q92 WebP, auto-crop), ContactSheetBuilder (clean review.html). Requesting Gate 2 review. @Smith *user review gate-2
+
+---
+[<small>2026-10-19 14:58:00</small>] [**Smith**]->[**Mouse**] *user gate-2*:
+ Gate 2 Review: APPROVED. Technical architecture decouples asset generation from runtime sticker flair, guarantees deterministic testability with MockBackend, and enforces high-res WebP output. Handing off to Mouse for task plan. @Mouse *scrum plan
+
+---
+[<small>2026-10-19 14:58:30</small>] [**Mouse**]->[**Neo**] *scrum handoff*:
+ Sprint tasks logged in task.md across 4 phases: Phase 1 (YAML manifest & prompt templating), Phase 2 (Pluggable backends & WebP processor), Phase 3 (Set-specific subdirectories & clean review sheet), Phase 4 (CLI, test suite & make targets). Starting Phase 1. @Neo *swe impl
+
+---
+[<small>2026-10-19 15:02:10</small>] [**Neo**]->[**Trin**] *swe impl complete*:
+ Implementation complete: tools/art_generator.py with ManifestParser, PromptEngine, Mock/CLI backends, ImageProcessor (auto-crop, Lanczos scaling, Q92 WebP), and ContactSheetBuilder (clean image-only HTML review). 10/10 tests in tools/tests/test_art_generator.py passing. @Trin *qa uat
+
+---
+[<small>2026-10-19 15:03:00</small>] [**Trin**]->[**Tank**] *qa uat*:
+ UAT PASSED: 10/10 new tests pass in tools/tests/test_art_generator.py. Full regression pass across all decoupled packages: shared/tests (5/5), tag_validator_service/tests (26/26), sdm_provisioner/tests (104/104), game_server/tests (170/170). Total 315/315 tests passing, 0 failing. @Tank *devops sdlc-check
+
+---
+[<small>2026-10-19 15:03:30</small>] [**Tank**]->[**Oracle**] *devops sdlc-check*:
+ SDLC check PASSED: docs/SDLC.md updated with generic art generator topology; root Makefile.prj updated with test-art-generator, art-status, art-generate, and art-review targets. Clean environment. @Oracle *ora groom
+
+---
+[<small>2026-10-19 15:04:00</small>] [**Oracle**]->[**Smith**] *ora groom*:
+ Documentation groomed: published agents/oracle.docs/art_generator_guide.md and example manifests in tools/manifests/example_fantasy.yaml and tools/manifests/rangers_champions.yaml. Ready for Smith user acceptance. @Smith *user approve
+
+---
+[<small>2026-10-19 15:04:30</small>] [**Smith**]->[**all**] *user approve*:
+ Sprint Acceptance Review: APPROVED. The generic YAML-driven art generator completely removes hockey/fantasy technical debt, outputs crisp WebP assets into dedicated set folders, and provides clean visual review contact sheets without card flair. @all *sprint retro
+
+---
+[<small>2026-10-19 15:04:45</small>] [**Neo**]->[**Cypher**] *swe retro*:
+ Retro: Replacing hardcoded Node.js scraping scripts with a declarative YAML schema and safe string interpolation allows adding any new art set without touching code.
+
+---
+[<small>2026-10-19 15:05:00</small>] [**Morpheus**]->[**Cypher**] *lead retro*:
+ Retro: Decoupling raw image generation and review sheets from runtime game flair (ribbons, jersey numbers, evolution tiers) makes both systems independently evolvable and testable.
+
+---
+[<small>2026-10-19 15:05:15</small>] [**Trin**]->[**Cypher**] *qa retro*:
+ Retro: Deterministic MockBackend enables instant, offline unit test runs in 0.3s without external API calls or quota consumption.
+
+---
+[<small>2026-10-19 15:05:30</small>] [**Tank**]->[**Cypher**] *devops retro*:
+ Retro: Adding make art-status, art-generate, and art-review standardizes art operations under root make without ad-hoc path confusion.
+
+---
+[<small>2026-10-19 15:05:45</small>] [**Cypher**]->[**all**] *pm launch*:
+ *pm launch art_generator_refactor: Generic YAML-driven art generator refactor COMPLETE and delivered. 315 tests passing.
+
+---
+[<small>2026-10-19 20:52:56</small>] [**User**]->[**Oracle**] *request*:
+ $oracle groom docs
+
+---
+[<small>2026-10-19 20:56:00</small>] [**Oracle**]->[**all**] *ora groom*:
+ Documentation grooming COMPLETE:
+ 1. Recorded Decision 11 in DECISIONS.md (Generic Declarative Art Generator & Pack Catalog Decoupling).
+ 2. Updated agents/oracle.docs/art_generator_guide.md with Structured Pack Catalog pattern (cards.json + item_template).
+ 3. Synchronized agents/DOCUMENTATION_INDEX.md, purging legacy STICKER_ART.md references.
+ 4. Updated task.md with Phase 5 (Sticker Catalog Pack Structure) and Phase 6 (Legacy Cleanup & Doc Grooming).
+ 5. Updated tools/RANGERS_STICKER_TARGETS.md instructions. All 316 workspace tests passing. Ready for Smith user acceptance. @Smith *user approve

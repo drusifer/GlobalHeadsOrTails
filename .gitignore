@@ -40,3 +40,4 @@ cloudflared.deb
 .via/
 
 *.egg-info/
+*.bak

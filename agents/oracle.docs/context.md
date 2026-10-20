@@ -1,3 +1,15 @@
-**BLOCKED — not released.** Image generation returned `usage_limit_reached` (HTTP429). At the stop checkpoint, 478 of 1,162 masters existed and 684 player IDs remained missing. All four managed lanes stopped cleanly. Reset: **2026-10-08 22:44:02 America/New_York** (2026-10-09 02:44:02 UTC; epoch1791513842). Exact missing IDs and evidence: `agents/neo.docs/rangers_art_blocker.json`; ignored quota report: `build/rangers-art/quota-report.json`. Packing the 478 existing masters does not satisfy full-art completeness. Twelve Clans remains active.
+# Oracle Working Context
 
-Canonical documentation is synchronized; prior production-session observations below are historical.
+## Current Status: ACTIVE
+Generic YAML-driven art generator refactor, pack catalog reorganization, and legacy cleanup are fully complete and documented.
+
+### Key Architecture State
+1. **Generic Art Generator**: `tools/art_generator.py` is the single source of truth for generating collectible card artwork without domain coupling.
+2. **Pack Directory Structure**: `game_server/src/game_server/sticker_catalog/<pack-id>/`:
+   - `twelve-clans/` (`cards.json`, `manifest.yaml`)
+   - `rangers-history/` (`cards.json`, `manifest.yaml`, `champions_cards.json`, `champions.yaml`)
+   - `fantasy-heroes/` (`cards.json`, `manifest.yaml`)
+3. **Data vs. Prompt Decoupling**: Card records live in `cards.json` with all domain fields filled out; `manifest.yaml` provides set metadata, quality, resolution, and **1 per-item prompt template**.
+4. **Clean Review**: Image inspection contact sheets (`contact_sheet.html`) render only raw artwork and prompts in clean HTML with zero card flair.
+5. **Decisions Log**: Decision 11 recorded in `ntag424_sdm_provisioner/DECISIONS.md`.
+6. **All Tests Passing**: 316/316 tests pass across all workspace components.

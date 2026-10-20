@@ -1,0 +1,20 @@
+artwork_set:
+  name: fantasy_heroes
+  description: Tabletop RPG Clan Champions (12 Primary Clan Heroes)
+  output_dir: build/artwork/fantasy_heroes
+  review_dir: build/artwork/fantasy_heroes/review
+  theme: Mythic fantasy tabletop miniature aesthetic with twelve ancestral clans
+  style: Original tabletop RPG collectible sticker illustration, bold ink outline,
+    rich painted colors, single centered full-body champion, square composition, clean
+    warm ivory background, generous margin. Legible at mobile size.
+  format: webp
+  resolution:
+  - 512
+  - 512
+  quality: 92
+  autocrop: true
+  pad: 12
+item_template:
+  prompt_template: '{character_name} of the {clan}: {clan_look}. Posing proudly with
+    clan emblem. {style}'
+data_file: cards.json

@@ -1,17 +1,358 @@
+/* ==========================================================================
+   Sticker Cards Design System - Dynamic Evolution & DOM Card Styling
+   ========================================================================== */
+
 .collection-section { padding:12px; }
 .collection-section h2 { margin:0 0 8px; font-size:1.3rem; }
 .collection-section p { line-height:1.5; }
 .collection-section summary { cursor:pointer; min-height:44px; padding:12px 0; font-weight:bold; }
-.sticker-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; }
-.sticker-card { border:1px solid #e0e0e0; border-radius:8px; padding:12px; overflow-wrap:anywhere; }
-.sticker-card img { display:block; width:100%; aspect-ratio:1; object-fit:contain; border-radius:8px; }
+.sticker-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:12px; }
+
+/* Uniform Sticker Card Container */
+.sticker-card {
+  position: relative;
+  border-radius: 14px;
+  padding: 16px;
+  overflow-wrap: anywhere;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.sticker-card:hover {
+  transform: translateY(-2px);
+}
+.sticker-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Level 1: Rinkside (Base Tier)
+   -------------------------------------------------------------------------- */
+.sticker-card.sticker-level-1 {
+  background: #fffdf9;
+  border: 1.5px solid #cbd5e1;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+.sticker-card.sticker-level-1 .sticker-portrait {
+  position: relative;
+  border: 2px solid #94a3b8;
+  border-radius: 8px;
+  padding: 4px;
+  background: #faf8f4;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.03);
+}
+
+/* --------------------------------------------------------------------------
+   Level 2: Spotlight (Evolved Tier - Arena Spotlight)
+   -------------------------------------------------------------------------- */
+.sticker-card.sticker-level-2 {
+  background: linear-gradient(165deg, #f8fafd 0%, #edf5fc 100%);
+  border: 2px solid #3b82f6;
+  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.16);
+}
+.sticker-card.sticker-level-2 .sticker-portrait {
+  position: relative;
+  border: 3px double #2563eb;
+  border-radius: 14px 4px 14px 4px;
+  padding: 5px;
+  background: radial-gradient(circle at 50% 35%, #ffffff 0%, #dbeafe 100%);
+  box-shadow: 0 0 16px rgba(37, 99, 235, 0.22);
+}
+.sticker-card.sticker-level-2 .sticker-portrait::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 20%, rgba(255,255,255,0.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Level 3: Garden Glow (Max Evolution - MSG Gold Halo)
+   -------------------------------------------------------------------------- */
+.sticker-card.sticker-level-3 {
+  background: linear-gradient(165deg, #fffef7 0%, #fef8e7 100%);
+  border: 2px solid #eab308;
+  box-shadow: 0 8px 26px rgba(234, 179, 8, 0.28), 0 0 12px rgba(253, 224, 71, 0.2);
+}
+.sticker-card.sticker-level-3 .sticker-portrait {
+  position: relative;
+  border: 3px solid #ca8a04;
+  outline: 2px dashed #facc15;
+  outline-offset: 3px;
+  border-radius: 20px 20px 6px 6px;
+  padding: 6px;
+  margin: 4px;
+  background: radial-gradient(circle at 50% 30%, #fffef8 0%, #fef3c7 100%);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.35);
+}
+.sticker-card.sticker-level-3 .sticker-portrait::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0) 30%, rgba(254, 240, 138, 0.3) 50%, rgba(255,255,255,0) 70%);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Evolution Badges & Headers
+   -------------------------------------------------------------------------- */
+.evolution-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  align-self: flex-start;
+}
+.evolution-badge.level-1 {
+  background: #e2e8f0;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+.evolution-badge.level-2 {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  border: 1px solid #1e40af;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+.evolution-badge.level-3 {
+  background: linear-gradient(135deg, #ca8a04, #eab308, #a16207);
+  color: #ffffff;
+  border: 1px solid #854d0e;
+  box-shadow: 0 2px 8px rgba(202, 138, 4, 0.45);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+
+/* --------------------------------------------------------------------------
+   Stylized Quote & Fact Plaques
+   -------------------------------------------------------------------------- */
+.sticker-quote-box {
+  margin: 12px 0 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.sticker-quote-box.level-1 {
+  background: #f8fafc;
+  border-left: 3px solid #64748b;
+  color: #334155;
+}
+.sticker-quote-box.level-2 {
+  background: #eff6ff;
+  border-left: 3px solid #2563eb;
+  color: #1e3a8a;
+  box-shadow: inset 0 1px 3px rgba(37, 99, 235, 0.06);
+}
+.sticker-quote-box.level-3 {
+  background: #fffbeb;
+  border-left: 3px solid #ca8a04;
+  color: #713f12;
+  box-shadow: inset 0 1px 3px rgba(202, 138, 4, 0.08);
+}
+.quote-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.quote-tag.level-1 { color: #64748b; }
+.quote-tag.level-2 { color: #2563eb; }
+.quote-tag.level-3 { color: #b45309; }
+
+/* --------------------------------------------------------------------------
+   Card Image Flair: Stitched Jersey Number & Position Patch
+   -------------------------------------------------------------------------- */
+.card-image-flair {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.jersey-patch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-family: 'Impact', 'Arial Black', system-ui, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  background: #0038a8;
+  color: #ffffff;
+  border: 2px solid #ce1126;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #ce1126;
+  box-sizing: border-box;
+}
+
+.jersey-patch.level-1 {
+  background: #0038a8;
+  border-color: #ce1126;
+}
+
+.jersey-patch.level-2 {
+  background: linear-gradient(135deg, #0038a8, #1d4ed8);
+  border-color: #60a5fa;
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.jersey-patch.level-3 {
+  background: linear-gradient(135deg, #002266, #0038a8);
+  border: 2.5px solid #facc15;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+  color: #fffef0;
+}
+
+.pos-patch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  box-sizing: border-box;
+}
+
+.pos-patch.level-2 {
+  background: rgba(30, 58, 138, 0.9);
+  border-color: #3b82f6;
+}
+
+.pos-patch.level-3 {
+  background: rgba(113, 63, 18, 0.92);
+  border-color: #facc15;
+  color: #fef08a;
+}
+
+/* --------------------------------------------------------------------------
+   Trading Card Stats Ribbon
+   -------------------------------------------------------------------------- */
+.stats-ribbon {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 10px 0 6px;
+  padding: 6px 4px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.sticker-level-2 .stats-ribbon {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.sticker-level-3 .stats-ribbon {
+  background: #fefce8;
+  border-color: #fef08a;
+  box-shadow: 0 1px 4px rgba(202, 138, 4, 0.1);
+}
+
+.stat-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.stat-col .stat-num {
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+.stat-col .stat-lbl {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.stat-col.stat-highlight .stat-num {
+  color: #0038a8;
+}
+
+.sticker-level-3 .stat-col.stat-highlight .stat-num {
+  color: #b45309;
+}
+
+.stats-ribbon.playoff-stats {
+  grid-template-columns: 1fr;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+  padding: 8px;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.card-player-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #0f172a;
+}
+
+.card-player-pos-tenure {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: 2px 0 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Existing App & Controls Support
+   -------------------------------------------------------------------------- */
 .sticker-filters { display:flex; flex-wrap:wrap; gap:12px; margin:12px 0; }
 .sticker-filters label { flex:1 1 220px; min-width:0; font-size:.9rem; }
 .sticker-filters input,.sticker-filters select { display:block; width:100%; box-sizing:border-box; min-height:44px; margin-top:6px; padding:8px; border:1px solid #ccc; border-radius:4px; font:inherit; color:inherit; background:#fff; }
-.sticker-portrait { border:1px solid transparent; padding:3px; }
-.sticker-level-1 .sticker-portrait { border:1px solid #adb5bd; border-radius:4px; }
-.sticker-level-2 .sticker-portrait { border:4px double #6c757d; border-radius:12px 2px; }
-.sticker-level-3 .sticker-portrait { border:3px solid #6c757d; outline:2px dashed #adb5bd; outline-offset:3px; border-radius:18px 18px 2px 2px; margin:4px; }
+
 .sticker-player-tenure,.sticker-stats-label { font-size:.75rem; line-height:1.4; margin:8px 0 4px; }
 .sticker-stat-line { display:flex; flex-wrap:wrap; gap:3px 8px; font-size:.75rem; line-height:1.5; }
 .sticker-stat-line span { white-space:nowrap; }
@@ -19,11 +360,13 @@
 .collection-section .sticker-player-details summary { font-size:.8rem; font-weight:normal; }
 .sticker-player-details ul { padding-left:18px; }
 .sticker-mini { width:48px; height:48px; object-fit:contain; vertical-align:middle; margin-right:8px; }
-.sticker-card h4 { margin:8px 0 4px; font-size:.95rem; }
-.sticker-card blockquote { margin:8px 0; font-size:.8rem; line-height:1.4; color:#6c757d; }
+
+.sticker-card h3,.sticker-card h4 { margin:8px 0 4px; font-size:1.05rem; line-height:1.3; }
+.sticker-card blockquote { margin:8px 0; font-size:.85rem; line-height:1.45; color:#555; }
 .sticker-meta { font-size:.8rem; line-height:1.6; }
 .sticker-rarity { font-weight:bold; text-transform:capitalize; }
 .sticker-rarity.legendary { color:#805800; }.sticker-rarity.rare { color:#77408d; }.sticker-rarity.uncommon { color:#216c44; }
+
 .sticker-reveal { border-left:4px solid #a77717; padding:10px; background:#fff0c5; margin:12px 0; }
 .sticker-choice { display:flex; gap:10px; align-items:center; border:1px solid #d7c8a9; border-radius:8px; padding:10px; min-height:56px; margin:6px 0; cursor:pointer; }
 .sticker-choice:has(input:checked) { border:2px solid #007bff; background:#f0f7ff; }

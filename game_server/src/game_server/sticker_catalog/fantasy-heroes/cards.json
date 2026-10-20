@@ -1,0 +1,110 @@
+[
+  {
+    "id": "hearthshield-compact-hero",
+    "name": "Hearth Recruit",
+    "character_name": "Hearth Recruit",
+    "clan": "Hearthshield Clan",
+    "rarity": "common",
+    "quote": "Our clan begins wherever someone guards another's door.",
+    "clan_look": "Human hearth-kin who adopt anyone willing to guard a neighbor's door. They want the seals held in common, not inherited by rulers. Rounded shields, warm ochre cloaks, copper kettle emblem; friendly stout silhouettes. Rival: Crownless Clan, whose bargains once cost them their ancestral hall."
+  },
+  {
+    "id": "mosswhisper-circle-hero",
+    "name": "Seed Tender",
+    "character_name": "Seed Tender",
+    "clan": "Mosswhisper Clan",
+    "rarity": "common",
+    "quote": "They buried their fortune. We planted ours.",
+    "clan_look": "Woodland kin whose ancestral memories live in the roots beneath the ruined mint. They seek to grow a new age from its buried seals. Fern green, cream bark, curling antlers and leaf spirals; branching silhouettes. Rival: Brassburrow Clan, whose excavations disturb the ancestor grove."
+  },
+  {
+    "id": "brassburrow-guild-hero",
+    "name": "Tunnel Tinker",
+    "character_name": "Tunnel Tinker",
+    "clan": "Brassburrow Clan",
+    "rarity": "common",
+    "quote": "A lost empire is mostly overdue maintenance.",
+    "clan_look": "Dwarf forge-families who pass tools and unpaid imperial debts from parent to apprentice. They would reopen the mint so no clan works for another's crown. Brass and charcoal, square tools, gear badges; compact block silhouettes. Rival: Mosswhisper Clan, whose sacred roots have claimed their oldest workshop."
+  },
+  {
+    "id": "redcap-runners-hero",
+    "name": "Road Scamp",
+    "character_name": "Road Scamp",
+    "clan": "Redcap Clan",
+    "rarity": "common",
+    "quote": "First to the crossroads gets to name the price.",
+    "clan_look": "Goblin road-kin whose shared red scarves mark a family larger than any bloodline. They carry the twelve clans' messages and demand an equal voice at the new council. Scarlet scarves, patched tan leather, triangular ears, winged boot crest; nimble diagonals. Rival: Dawn Oath Clan, whose checkpoints threaten their free roads."
+  },
+  {
+    "id": "moonwake-fellowship-hero",
+    "name": "Reed Piper",
+    "character_name": "Reed Piper",
+    "clan": "Moonwake Clan",
+    "rarity": "common",
+    "quote": "The river remembers a verse the kings left out.",
+    "clan_look": "Frogfolk boat-families whose clan history is sung rather than written. They want the reunited coin to free every waterway from borders and tolls. Teal and pearl, crescent paddles and lily pads; soft oval silhouettes. Rival: Tideglass Clan, who guard a prophecy Moonwake believes belongs in every song."
+  },
+  {
+    "id": "dawn-oath-hero",
+    "name": "Sun Squire",
+    "character_name": "Sun Squire",
+    "clan": "Dawn Oath Clan",
+    "rarity": "uncommon",
+    "quote": "I inherit no crown. Only the oath that broke one.",
+    "clan_look": "An oath-bound clan of paladins who inherit a promise, not a throne: never let the wishing coin crown another tyrant. They would destroy it even if the other eleven clans stood against them. Ivory and sunrise gold, sunburst helms and long lances; upright angular silhouettes. Rival: Redcap Clan, whose messengers keep the dangerous seals moving."
+  },
+  {
+    "id": "velvet-knives-hero",
+    "name": "Alley Whisper",
+    "character_name": "Alley Whisper",
+    "clan": "Velvetclaw Clan",
+    "rarity": "uncommon",
+    "quote": "A purse closes. A secret opens.",
+    "clan_look": "Catfolk shadow-families who welcome debtors and outcasts as kin. They steal seals to erase the imperial ledgers that still bind their adopted siblings. Plum and rose, velvet masks, curved daggers; sleek crescent silhouettes. Rival: Ashquill Clan, who refuse to burn a single ancestral record."
+  },
+  {
+    "id": "ashen-archive-hero",
+    "name": "Bone Scribe",
+    "character_name": "Bone Scribe",
+    "clan": "Ashquill Clan",
+    "rarity": "uncommon",
+    "quote": "History is easier to keep when you need no sleep.",
+    "clan_look": "Undead scholar-kin who remain beside their descendants to preserve every clan's history, including its betrayals. Their ancestral archive holds the last account of the coin's breaking. Ash gray and violet, paper strips and bone quills; tall narrow silhouettes. Rival: Velvetclaw Clan, whose liberating fires threaten memories as well as debts."
+  },
+  {
+    "id": "stormhorn-clans-hero",
+    "name": "Crag Runner",
+    "character_name": "Crag Runner",
+    "clan": "Stormhorn Clan",
+    "rarity": "uncommon",
+    "quote": "The thunder speaks the names our clan refuses to forget.",
+    "clan_look": "Mountain minotaur kin who carve their ancestors' names into living horn-runes. They seek the seals to recover sky relics taken when their elders bent the knee to the empire. Cobalt and storm silver, horn runes and zigzag axes; broad triangular silhouettes. Rival: Emberwing Clan, who keep those relics beside the first furnace."
+  },
+  {
+    "id": "tideglass-choir-hero",
+    "name": "Foam Listener",
+    "character_name": "Foam Listener",
+    "clan": "Tideglass Clan",
+    "rarity": "rare",
+    "quote": "One ripple told us the coin would fall again.",
+    "clan_look": "Merfolk oracle-kin who pass visions between generations in singing shells. They saw a future for each clan, but the reunited coin may leave room for only one. Sea-glass turquoise and coral pink, translucent fins and hourglass shells; flowing fan silhouettes. Rival: Moonwake Clan, whose songs might reveal the future they are trying to prevent."
+  },
+  {
+    "id": "emberwing-covenant-hero",
+    "name": "Coal Hatchling",
+    "character_name": "Coal Hatchling",
+    "clan": "Emberwing Clan",
+    "rarity": "rare",
+    "quote": "It is not treasure if it still needs hatching.",
+    "clan_look": "Dragonkin hatch-broods united by an ember carried from the mint's first furnace. They believe the wishing coin is an ancestor's unhatched egg and the seals are pieces of its shell. Obsidian and molten orange, wing shapes and cracked egg crest; spiky swept silhouettes. Rival: Stormhorn Clan, whose sky relics they believe must keep the egg warm."
+  },
+  {
+    "id": "crownless-court-hero",
+    "name": "Penny Page",
+    "character_name": "Penny Page",
+    "clan": "Crownless Clan",
+    "rarity": "legendary",
+    "quote": "They called it luck when we were being polite.",
+    "clan_look": "Fey coin-kin descended from the first bargain, with no bloodline and no fixed faces. They offer each clan its heart's desire, claiming every wager makes the twelve one family again. Midnight blue and iridescent gold, floating crowns and impossible circles; weightless circular silhouettes. Rival: Hearthshield Clan, who remember the price of their last generous offer; temptation for all eleven other clans."
+  }
+]

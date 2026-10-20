@@ -1,0 +1,25 @@
+artwork_set:
+  name: rangers_targets
+  description: 'New York Rangers Full Target Roster (143 Players: 82 Cup Champions
+    + 61 Current 2025–2026)'
+  output_dir: game_server/src/game_server/static/stickers/rangers-history
+  review_dir: build/artwork/rangers_targets/review
+  theme: 'New York Rangers History: Championship Legends and Current 2025–2026 Roster'
+  style: Authentic athletic cartoon caricature illustration, bold clean ink outlines,
+    rich painted colors, centered full body, square composition, warm ivory background,
+    generous margin. No text, letters, labels, numbers, watermarks, photographs, food
+    or whimsical props. Legible at mobile sticker size.
+  format: webp
+  resolution:
+  - 512
+  - 512
+  quality: 92
+  autocrop: true
+  pad: 10
+item_template:
+  prompt_template: Authentic athletic cartoon caricature illustration of New York
+    Rangers player {name}, NHL player ID {player_id}. Rangers playing era {era}; wearing
+    official era-appropriate blue, red and white New York Rangers uniform and {gear}.
+    Recognizable face and hairstyle, confident athletic expression, classic hockey
+    stance posing proudly in full uniform on ice. {style}
+data_file: cards.json

@@ -1,25 +1,23 @@
 # BobProtocol Documentation Index
 
-**Last Updated:** 2026-10-07
+**Last Updated:** 2026-10-19
 
-## Collectables — The Twelve Clans
+## Generic Declarative Art Generator & Pack Catalogs
+
+- [Generic Art Generator Guide](oracle.docs/art_generator_guide.md)
+- [Art Generator Architecture Specification](morpheus.docs/arch_art_generator.md)
+- [Art Generator Refactor Sprint Plan](cypher.docs/art_generator_sprint.md)
+- [Rangers Target Roster & Artwork Guide](../tools/RANGERS_STICKER_TARGETS.md)
+- [Sticker Pack Catalogs & Manifests](../game_server/src/game_server/sticker_catalog/)
+- [Generic Art Generator Engine](../tools/art_generator.py)
+
+## Collectables & Game Server
 
 - [Feature guide and validation commands](../ntag424_sdm_provisioner/docs/COLLECTABLES.md)
 - [Accepted requirements, PRD §16](../ntag424_sdm_provisioner/docs/PRD.md)
-- [Sprint stories and architecture](cypher/collectables_sprint.md)
-- [Entropy-weighted awards stories and architecture](cypher/entropy_stickers_sprint.md)
-- [Smith faction catalog and UX criteria](smith/collectables_catalog.md)
-- [Reusable RTG artwork pipeline](../tools/STICKER_ART.md)
-
-## Rangers historical pack — BLOCKED, not released
-
-- [Accepted stories and editorial rarity](cypher/rangers_stickers_sprint.md)
-- [Archive-safe pack architecture](morpheus/rangers_stickers_architecture.md)
-- [Official roster audit and caveats](oracle/rangers_roster_sources.md)
-- [Portable portrait-source status audit](oracle/rangers_art_sources.json)
-- [Actual sample acceptance criteria](smith/rangers_art_acceptance.md)
-- [Six-phase sprint progress](mouse/rangers_sprint_log.md)
-- [Open release gates](cypher/rangers_release_checklist.md)
+- [Sprint stories and architecture](cypher.docs/collectables_sprint.md)
+- [Entropy-weighted awards stories and architecture](cypher.docs/entropy_stickers_sprint.md)
+- [Smith faction catalog and UX criteria](smith.docs/collectables_catalog.md)
 
 ## Quick Access
 

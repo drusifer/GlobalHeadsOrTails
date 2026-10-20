@@ -1,5 +1,11 @@
-# Oracle current task
+# Oracle Current Task
 
-Quota-block grooming complete. **BLOCKED — not released.** Image generation returned `usage_limit_reached` (HTTP429). At the stop checkpoint, 478 of 1,162 masters existed and 684 player IDs remained missing. All four managed lanes stopped cleanly. Reset: **2026-10-08 22:44:02 America/New_York** (2026-10-09 02:44:02 UTC; epoch1791513842). Exact missing IDs and evidence: `agents/neo.docs/rangers_art_blocker.json`; ignored quota report: `build/rangers-art/quota-report.json`. Packing the 478 existing masters does not satisfy full-art completeness. Twelve Clans remains active.
+**Task**: Complete documentation grooming for the art generator refactor, sticker pack catalog structure, and legacy cleanup (`$oracle groom docs`).
 
-Root owns packing/review of existing masters; no release or activation.
+### Actions Completed:
+1. Recorded Decision 11 in `ntag424_sdm_provisioner/DECISIONS.md`.
+2. Updated `agents/oracle.docs/art_generator_guide.md` with Structured Pack Catalog (`cards.json` + `item_template`) instructions.
+3. Updated `agents/DOCUMENTATION_INDEX.md` with current links to art generator architecture, guide, and pack catalog.
+4. Updated `task.md` with Phase 5 and Phase 6 completions.
+5. Updated `tools/RANGERS_STICKER_TARGETS.md` section 4 to point to `art_generator.py`.
+6. Verified all 316 unit and integration tests passing.
