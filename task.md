@@ -1,4 +1,27 @@
-# Sprint: SDM Provisioner Key Manager Service Integration — COMPLETE
+# Sprint: Game Server Coin Administration Interface — COMPLETE
+
+Plan: `agents/cypher.docs/coin_admin_sprint.md`. Arch: `agents/morpheus.docs/arch_coin_admin.md`.
+
+- [x] **Phase 1: Database Layer Coin Pairing & Administration Methods (`*swe impl`)**
+  - [x] Task 1.1: Implement `list_coins_admin()`, `create_coin()`, `update_coin()`, `delete_coin()` and validation in `game_server/src/game_server/game_state_manager.py`.
+  - [x] Task 1.2: Add unit tests in `game_server/tests/test_admin_coins.py` verifying full CRUD, validation, conflict prevention, and statistics aggregation.
+  - [x] Task 1.3: Run `game_server` test suite and verify all tests pass.
+- [x] **Phase 2: Flask Admin Security Decorator & REST API Endpoints (`*swe impl`)**
+  - [x] Task 2.1: Implement `@require_admin_token` security helper in `game_server/src/game_server/admin_routes.py`.
+  - [x] Task 2.2: Implement REST API routes (`GET /api/admin/coins`, `GET /api/admin/coins/<name>`, `POST /api/admin/coins`, `PUT /api/admin/coins/<name>`, `DELETE /api/admin/coins/<name>`).
+  - [x] Task 2.3: Register `admin_bp` in `game_server/src/game_server/app.py` and write API integration tests in `test_admin_coins.py`.
+- [x] **Phase 3: Web Admin Dashboard Template & Form Handlers (`*swe impl`)**
+  - [x] Task 3.1: Create `game_server/src/game_server/templates/admin_coins.html` matching the game aesthetic with summary stats, search filter, coin table, create modal, and edit modal.
+  - [x] Task 3.2: Implement web route handlers (`GET /admin`, `GET /admin/coins`, `POST /admin/coins/<name>/update`, `POST /admin/coins/<name>/delete`) with flash messaging.
+  - [x] Task 3.3: Write web route UI and form submission tests in `test_admin_coins.py`.
+- [x] **Phase 4: Full Workspace Regression & Sprint Close (`*qa uat` / `*devops sdlc-check`)**
+  - [x] Task 4.1: Run full workspace test regression across all 5 suites (`make test-all`).
+  - [x] Task 4.2: Record Decision 14 in `docs/DECISIONS.md`.
+  - [x] Task 4.3: Execute Stage 3 close gates (Tank SDLC check, Oracle doc grooming, Smith UAT, Retro, Cypher launch).
+
+---
+
+# Previous Sprint: SDM Provisioner Key Manager Service Integration — COMPLETE
 
 Plan: `agents/cypher.docs/key_manager_integration_sprint.md`. Arch: `agents/morpheus.docs/arch_key_manager_integration.md`.
 

@@ -161,4 +161,15 @@ This document records key decisions made during the project lifecycle.
   5. **TUI & Tooling Wiring**: `NtagProvisionerApp`, `ProvisioningService`, and `ToolRunner` default to `ServiceKeyManager`, completely eliminating reliance on local plaintext CSV files during interactive and automated provisioning.
 - **Status**: Accepted, 2026-10-20; 384/384 workspace tests passing (27 in `tag_validator_service`, 171 in `sdm_provisioner`, 170 in `game_server`, 5 in `shared`, 11 in `tools`).
 
+## 14. Game Server Coin Administration Interface & Identity Pairing Subsystem
+- **Context**: Operators needed an administrative interface on the running game server to register new coins, pair heads and tails chip UIDs, modify coin metadata (name, clan, rarity), and monitor flip statistics without manually running raw SQL queries or modifying CSV files.
+- **Decision**:
+  1. **Native Flask Blueprint (Zero Extra Dependencies)**: Implemented `game_server.admin_routes` and `templates/admin_coins.html` natively using Flask and Jinja2, avoiding heavy ORM dependencies (such as SQLAlchemy or Flask-Admin) and preserving the lightweight raw SQLite engine with WAL mode.
+  2. **Coin Pairing & Aggregation**: Added atomic coin CRUD methods (`list_coins_admin`, `create_coin`, `update_coin`, `delete_coin`) to `SqliteGameStateManager`. Groups and pairs heads (`heads_uid`) and tails (`tails_uid`) faces per coin name, enforces 14-hex character validation, prevents duplicate assignments, and aggregates flip metrics from `scan_logs`.
+  3. **Token-Based Security**: Enforced `@require_admin_token` checking `ADMIN_TOKEN` via `X-Admin-Token` header, Bearer authorization, cookie, or query parameter, with developer-mode fallback when unset.
+  4. **Design Language Consistency**: Styled `admin_coins.html` to match the game's clean light arcade aesthetic (`#f0f2f5`, Courier New typography, `#007BFF` blue gradient banner, responsive stat cards, and status badges).
+  5. **Companion REST API**: Provided JSON endpoints (`GET`, `POST`, `PUT`, `DELETE` at `/api/admin/coins`) for external tooling, automation, and testing.
+- **Status**: Accepted, 2026-10-20; 9/9 new tests passing in `test_admin_coins.py`, 393/393 workspace tests passing.
+
+
 

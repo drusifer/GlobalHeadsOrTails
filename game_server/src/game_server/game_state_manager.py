@@ -17,6 +17,33 @@ from game_server.sticker_odds import coin_sticker_odds
 
 log = logging.getLogger(__name__)
 
+
+def validate_uid(uid: str) -> str:
+    """Validates and normalizes a 14-hex character Tag UID."""
+    if not isinstance(uid, str):
+        raise ValueError(f"UID must be a string, got {type(uid).__name__}")
+    cleaned = uid.strip().upper()
+    if len(cleaned) != 14:
+        raise ValueError(f"UID must be exactly 14 hex characters, got {len(cleaned)} ('{cleaned}')")
+    try:
+        int(cleaned, 16)
+    except ValueError:
+        raise ValueError(f"UID must contain only hexadecimal characters, got '{cleaned}'")
+    return cleaned
+
+
+def validate_coin_name(name: str) -> str:
+    """Validates and normalizes a coin name."""
+    if not isinstance(name, str):
+        raise ValueError(f"Coin name must be a string, got {type(name).__name__}")
+    cleaned = name.strip()
+    if not cleaned:
+        raise ValueError("Coin name cannot be empty")
+    if len(cleaned) > 64:
+        raise ValueError(f"Coin name cannot exceed 64 characters, got {len(cleaned)}")
+    return cleaned
+
+
 @dataclass
 class TagGameState:
     """Game state for a single NTAG424 DNA tag."""
@@ -180,6 +207,222 @@ class SqliteGameStateManager(IGameStateManager):
                 }
                 for row in cur.fetchall()
             ]
+
+    def list_coins_admin(self) -> list[dict]:
+        """Lists all coins with heads/tails pairings, completeness, and flip statistics."""
+        with self._get_conn() as conn:
+            cur = conn.execute(
+                "SELECT uid, coin_name, outcome, clan, rarity, created_at FROM coins ORDER BY coin_name ASC, outcome ASC"
+            )
+            rows = cur.fetchall()
+
+            stats_cur = conn.execute(
+                """SELECT coin_name,
+                          COUNT(*) as total_flips,
+                          SUM(CASE WHEN LOWER(outcome) = 'heads' THEN 1 ELSE 0 END) as heads_flips,
+                          SUM(CASE WHEN LOWER(outcome) = 'tails' THEN 1 ELSE 0 END) as tails_flips
+                   FROM scan_logs
+                   WHERE coin_name != ''
+                   GROUP BY coin_name"""
+            )
+            stats_map = {
+                r[0]: {
+                    "total_flips": r[1] or 0,
+                    "heads_flips": r[2] or 0,
+                    "tails_flips": r[3] or 0,
+                }
+                for r in stats_cur.fetchall()
+            }
+
+            grouped: dict[str, dict] = {}
+            for r in rows:
+                uid, cname, outcome, clan, rarity, created_at = (
+                    r[0],
+                    r[1],
+                    (r[2] or "").lower(),
+                    r[3] or "",
+                    r[4] or "common",
+                    r[5] or "",
+                )
+                if cname not in grouped:
+                    c_stats = stats_map.get(cname, {"total_flips": 0, "heads_flips": 0, "tails_flips": 0})
+                    grouped[cname] = {
+                        "coin_name": cname,
+                        "clan": clan,
+                        "rarity": rarity,
+                        "heads_uid": None,
+                        "tails_uid": None,
+                        "is_complete": False,
+                        "created_at": created_at,
+                        "total_flips": c_stats["total_flips"],
+                        "heads_flips": c_stats["heads_flips"],
+                        "tails_flips": c_stats["tails_flips"],
+                    }
+                if clan and not grouped[cname]["clan"]:
+                    grouped[cname]["clan"] = clan
+                if rarity and grouped[cname]["rarity"] == "common":
+                    grouped[cname]["rarity"] = rarity
+
+                if outcome == "heads":
+                    grouped[cname]["heads_uid"] = uid
+                elif outcome == "tails":
+                    grouped[cname]["tails_uid"] = uid
+                else:
+                    if not grouped[cname]["heads_uid"]:
+                        grouped[cname]["heads_uid"] = uid
+                    elif not grouped[cname]["tails_uid"]:
+                        grouped[cname]["tails_uid"] = uid
+
+            for cdata in grouped.values():
+                cdata["is_complete"] = bool(cdata["heads_uid"] and cdata["tails_uid"])
+
+            return sorted(grouped.values(), key=lambda x: x["coin_name"])
+
+    def get_coin_admin(self, coin_name: str) -> dict | None:
+        """Retrieves a single paired coin record by coin name."""
+        all_coins = self.list_coins_admin()
+        norm = coin_name.strip().upper()
+        for c in all_coins:
+            if c["coin_name"].upper() == norm:
+                return c
+        return None
+
+    def create_coin(
+        self,
+        coin_name: str,
+        heads_uid: str,
+        tails_uid: str,
+        clan: str = "",
+        rarity: str = "common",
+    ) -> dict:
+        """Creates a new paired coin with heads and tails UIDs."""
+        cname = validate_coin_name(coin_name)
+        h_uid = validate_uid(heads_uid)
+        t_uid = validate_uid(tails_uid)
+        if h_uid == t_uid:
+            raise ValueError(f"Heads UID and Tails UID cannot be the same ('{h_uid}')")
+
+        rarity = rarity.strip().lower() if rarity else "common"
+        if rarity not in ("common", "uncommon", "rare", "epic", "legendary"):
+            rarity = "common"
+        clan = clan.strip()
+
+        with self._get_conn() as conn:
+            cur = conn.execute("SELECT 1 FROM coins WHERE UPPER(coin_name) = UPPER(?)", (cname,))
+            if cur.fetchone():
+                raise ValueError(f"Coin '{cname}' already exists")
+
+            cur = conn.execute("SELECT coin_name FROM coins WHERE uid = ?", (h_uid,))
+            row = cur.fetchone()
+            if row:
+                raise ValueError(f"UID '{h_uid}' is already assigned to coin '{row[0]}'")
+
+            cur = conn.execute("SELECT coin_name FROM coins WHERE uid = ?", (t_uid,))
+            row = cur.fetchone()
+            if row:
+                raise ValueError(f"UID '{t_uid}' is already assigned to coin '{row[0]}'")
+
+            conn.execute(
+                "INSERT INTO coins (uid, coin_name, outcome, clan, rarity) VALUES (?, ?, 'heads', ?, ?)",
+                (h_uid, cname, clan, rarity),
+            )
+            conn.execute(
+                "INSERT INTO coins (uid, coin_name, outcome, clan, rarity) VALUES (?, ?, 'tails', ?, ?)",
+                (t_uid, cname, clan, rarity),
+            )
+            conn.commit()
+
+        return {
+            "coin_name": cname,
+            "heads_uid": h_uid,
+            "tails_uid": t_uid,
+            "clan": clan,
+            "rarity": rarity,
+            "is_complete": True,
+            "total_flips": 0,
+            "heads_flips": 0,
+            "tails_flips": 0,
+        }
+
+    def update_coin(
+        self,
+        old_coin_name: str,
+        new_coin_name: str,
+        heads_uid: str,
+        tails_uid: str,
+        clan: str = "",
+        rarity: str = "common",
+    ) -> dict:
+        """Updates an existing coin's name, attributes, and face UIDs."""
+        old_cname = validate_coin_name(old_coin_name)
+        new_cname = validate_coin_name(new_coin_name)
+        h_uid = validate_uid(heads_uid)
+        t_uid = validate_uid(tails_uid)
+        if h_uid == t_uid:
+            raise ValueError(f"Heads UID and Tails UID cannot be the same ('{h_uid}')")
+
+        rarity = rarity.strip().lower() if rarity else "common"
+        if rarity not in ("common", "uncommon", "rare", "epic", "legendary"):
+            rarity = "common"
+        clan = clan.strip()
+
+        with self._get_conn() as conn:
+            cur = conn.execute("SELECT uid FROM coins WHERE UPPER(coin_name) = UPPER(?)", (old_cname,))
+            existing_uids = [r[0] for r in cur.fetchall()]
+            if not existing_uids:
+                raise ValueError(f"Coin '{old_coin_name}' not found")
+
+            if new_cname.upper() != old_cname.upper():
+                cur = conn.execute("SELECT 1 FROM coins WHERE UPPER(coin_name) = UPPER(?)", (new_cname,))
+                if cur.fetchone():
+                    raise ValueError(f"Coin '{new_cname}' already exists")
+
+            cur = conn.execute("SELECT coin_name FROM coins WHERE uid = ?", (h_uid,))
+            row = cur.fetchone()
+            if row and row[0].upper() != old_cname.upper():
+                raise ValueError(f"UID '{h_uid}' is already assigned to coin '{row[0]}'")
+
+            cur = conn.execute("SELECT coin_name FROM coins WHERE uid = ?", (t_uid,))
+            row = cur.fetchone()
+            if row and row[0].upper() != old_cname.upper():
+                raise ValueError(f"UID '{t_uid}' is already assigned to coin '{row[0]}'")
+
+            conn.execute("DELETE FROM coins WHERE UPPER(coin_name) = UPPER(?)", (old_cname,))
+            conn.execute(
+                "INSERT INTO coins (uid, coin_name, outcome, clan, rarity) VALUES (?, ?, 'heads', ?, ?)",
+                (h_uid, new_cname, clan, rarity),
+            )
+            conn.execute(
+                "INSERT INTO coins (uid, coin_name, outcome, clan, rarity) VALUES (?, ?, 'tails', ?, ?)",
+                (t_uid, new_cname, clan, rarity),
+            )
+
+            if new_cname != old_cname:
+                conn.execute(
+                    "UPDATE scan_logs SET coin_name = ? WHERE coin_name = ?",
+                    (new_cname, old_cname),
+                )
+            conn.commit()
+
+        return self.get_coin_admin(new_cname) or {
+            "coin_name": new_cname,
+            "heads_uid": h_uid,
+            "tails_uid": t_uid,
+            "clan": clan,
+            "rarity": rarity,
+            "is_complete": True,
+        }
+
+    def delete_coin(self, coin_name: str) -> bool:
+        """Deletes all face records for a coin from the database."""
+        cname = validate_coin_name(coin_name)
+        with self._get_conn() as conn:
+            cur = conn.execute("SELECT 1 FROM coins WHERE UPPER(coin_name) = UPPER(?)", (cname,))
+            if not cur.fetchone():
+                return False
+            conn.execute("DELETE FROM coins WHERE UPPER(coin_name) = UPPER(?)", (cname,))
+            conn.commit()
+            return True
 
     def _query(self, sql: str, params: tuple = ()):
         with self._get_conn() as conn:

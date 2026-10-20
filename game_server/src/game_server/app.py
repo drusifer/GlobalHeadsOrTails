@@ -14,6 +14,7 @@ from game_server.game_state_manager import SqliteGameStateManager
 from game_server.jokes import get_random_joke
 from game_server.sticker_service import StickerService
 from game_server.sticker_routes import register_sticker_routes, authenticated_coin
+from game_server.admin_routes import register_admin_routes
 
 # Configure Logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -66,6 +67,7 @@ def create_app(
 ):
     """Application factory for the Flask app."""
     app = Flask(__name__)
+    app.secret_key = getenv("FLASK_SECRET_KEY", "dev-secret-key-heads-tails-game")
 
     with app.app_context():
         Path("data").mkdir(exist_ok=True)
@@ -77,6 +79,7 @@ def create_app(
             service_url=service_url,
         )
     register_sticker_routes(app)
+    register_admin_routes(app)
 
     @app.route("/")
     def index():

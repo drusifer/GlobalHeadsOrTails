@@ -90,6 +90,12 @@ Located in `agents/templates/`:
 
 ---
 
+## Coin Administration & Game Server
+- [Coin Administration Sprint Plan](cypher.docs/coin_admin_sprint.md)
+- [Coin Administration Architecture Specification](morpheus.docs/arch_coin_admin.md)
+- [Coin Administration Routes](../game_server/src/game_server/admin_routes.py)
+- [Coin Administration Dashboard](../game_server/src/game_server/templates/admin_coins.html)
+
 ## Key Manager Integration & Provisioner
 - [SDM Provisioner Key Manager Integration Sprint Plan](cypher.docs/key_manager_integration_sprint.md)
 - [Key Manager Integration Architecture Specification](morpheus.docs/arch_key_manager_integration.md)
@@ -99,7 +105,7 @@ Located in `agents/templates/`:
 
 | File | Purpose |
 |------|---------|
-| `docs/DECISIONS.md` | Architecture decisions log (13 entries; latest SDM Provisioner Key Manager Service Integration) |
+| `docs/DECISIONS.md` | Architecture decisions log (14 entries; latest Game Server Coin Administration Interface) |
 | `sdm_provisioner/ARCH.md` | System architecture — provisioner TUI service layer |
 | `docs/LESSONS.md` | Lessons learned |
 | `docs/PRD.md` | Product Requirements Document (§16 collectables and weighted awards current) |
