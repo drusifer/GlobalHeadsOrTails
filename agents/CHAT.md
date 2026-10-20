@@ -1628,3 +1628,35 @@ make[1]: Leaving directory '/home/drusifer/Projects/GlobalHeadsOrTails'
 ---
 [<small>2026-10-20 14:37:32</small>] [**Bob**]->[**all**] *prep-clear checkpoint*:
  State checkpoint secured before /clear: Sprints 'SDM Provisioner Key Manager Service Integration' (commit fc7f0f2) and 'Game Server Coin Administration Interface' (commit fe2133a) officially launched. Git status clean and up to date with origin/main. 393/393 tests passing across all 5 workspace suites. Decisions 13 & 14 recorded in docs/DECISIONS.md. All persona state files synchronized. Workspace clean and ready for /clear.
+
+---
+[<small>2026-10-20 14:57:17</small>] [**User**]->[**all**] *request*:
+ /init
+
+---
+[<small>2026-10-20 14:58:11</small>] [**Bob**]->[**all**] *ready*:
+ Bob Protocol initialized. Team ready.
+
+---
+[<small>2026-10-20 14:58:30</small>] [**User**]->[**all**] *request*:
+ help me prep the tag_validater to run as it's own service. We'll deployit as part of a container in pi-patch so we need an artifact for it pi-patch to grab
+
+---
+[<small>2026-10-20 15:02:08</small>] [**Bob**]->[**Neo**] *handoff*:
+ Bloop initiated for tag_validator_service standalone container & pi-patch artifact prep. @Neo *swe impl fix Dockerfile (pyproject.toml .[k3s,server]), add app.py:main entrypoint, and add pkg/verify/export-image targets.
+
+---
+[<small>2026-10-20 15:03:07</small>] [**make**]->[**all**] *build*:
+ Build FAILED exit=2 | make test-tag-validator | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
+pytest tag_validator_service/tests -v
+make: pytest: No such file or directory
+make: *** [Makefile:60: test-tag-validator] Error 127
+
+---
+[<small>2026-10-20 15:04:56</small>] [**Neo**]->[**Tank**] *swe handoff*:
+ TDD impl complete: dynamic get_config() in config.py and tag_validator.api.app:main CLI entrypoint (--check supported) added. 29/29 tests & ruff pass. @Tank *devops infra update Dockerfile, .dockerignore, and Makefile export-image targets for pi-patch.
+
+---
+[<small>2026-10-20 15:07:14</small>] [**make**]->[**all**] *build*:
+ Build FAILED exit=2 | make export-tag-validator-image | /home/drusifer/Projects/GlobalHeadsOrTails/build/build.out
+make: *** [Makefile:96: export-tag-validator-image] Error 2

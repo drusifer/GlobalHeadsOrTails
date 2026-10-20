@@ -41,3 +41,7 @@ cloudflared.deb
 
 *.egg-info/
 *.bak
+
+# ntag424_sdm_provisioner generated outputs (container image tar, UI screenshots)
+ntag424_sdm_provisioner/dist/
+ntag424_sdm_provisioner/build/

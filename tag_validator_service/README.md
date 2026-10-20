@@ -98,10 +98,16 @@ make seed-secrets CSV=../tag_keys.csv
 
 ---
 
-## Kubernetes / k3s Deployment
+## Kubernetes / k3s & `pi-patch` Deployment
 
 ```bash
-# Apply RBAC, Deployment, and Service
+# Build, verify container boot, and export image tarball for pi-patch
+make export-image
+# (or from workspace root: make export-tag-validator-image)
+# Artifact produced: dist/tag-validator-service-latest.tar
+# Local image tag:   localhost/tag-validator-service:latest
+
+# Apply RBAC, Deployment, and Service directly
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/deployment.yaml
 kubectl apply -f k8s/service.yaml

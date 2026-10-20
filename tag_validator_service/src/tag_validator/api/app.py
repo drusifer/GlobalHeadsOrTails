@@ -446,3 +446,62 @@ class TagValidatorApp:
 def create_app(store: TagKeyStore | None = None) -> TagValidatorApp:
     """Factory creating configured TagValidatorApp WSGI application."""
     return TagValidatorApp(store=store)
+
+
+def main(argv: list[str] | None = None) -> None:
+    """CLI entrypoint to run the standalone tag-validator-service."""
+    import argparse
+    from wsgiref.simple_server import make_server
+
+    cfg = get_config()
+    parser = argparse.ArgumentParser(description="Run NTAG 424 DNA Tag Validator Service")
+    parser.add_argument(
+        "--host",
+        default=cfg.host,
+        help="Bind host (default: HOST env or 0.0.0.0)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=cfg.port,
+        help="Bind port (default: PORT env or 8080)",
+    )
+    parser.add_argument(
+        "--backend",
+        choices=["memory", "k3s"],
+        default=cfg.secret_store_backend,
+        help="Secret store backend (default: SECRET_STORE_BACKEND env or memory)",
+    )
+    parser.add_argument(
+        "--namespace",
+        default=cfg.tag_secrets_namespace,
+        help="Kubernetes namespace for tag secrets (default: TAG_SECRETS_NAMESPACE env or tag-secrets)",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Initialize application and verify configuration without starting HTTP server",
+    )
+    args = parser.parse_args(argv)
+
+    store = create_secret_store(
+        backend=args.backend,
+        namespace=args.namespace,
+        kubeconfig_path=cfg.kubeconfig_path or None,
+    )
+    app = create_app(store=store)
+    if args.check:
+        print(
+            f"tag-validator-service check OK (backend={args.backend}, namespace={args.namespace}, host={args.host}, port={args.port})"
+        )
+        return
+
+    print(
+        f"Running tag-validator-service on {args.host}:{args.port} (backend={args.backend}, namespace={args.namespace})..."
+    )
+    with make_server(args.host, args.port, app) as server:
+        server.serve_forever()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,7 @@
 """Unit tests for official TagValidatorClient SDK."""
 
 from unittest.mock import patch
+
 import pytest
 
 from tag_validator.client import TagValidatorClient, validate_tag_remotely

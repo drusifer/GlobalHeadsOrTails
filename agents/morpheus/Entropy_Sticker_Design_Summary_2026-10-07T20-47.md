@@ -1,0 +1,3 @@
+# Entropy award design
+
+Cypher wrote four stories and two-phase plan in agents/cypher/entropy_stickers_sprint.md. Oracle context and Mouse coordination state consulted; Oracle memory/lessons absent. VIA inspection found padded byte statistics; new award policy uses exactcounts instead. Morpheus defines transaction-aware helper and unified real/test atomic awardpath with ledgerreplay beforetestinsertion. Formula floor5%, ceiling50%, normalizedentropy multiplied by actualmonobitp after100flips; before100 neutralp. BothfaceUIDs share coin-name history. Smith explicitly approved story/architecture gates. Root owns code/tests/finalbrowsergate.

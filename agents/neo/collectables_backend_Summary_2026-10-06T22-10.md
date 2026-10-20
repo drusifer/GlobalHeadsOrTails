@@ -1,0 +1,5 @@
+# Collectables backend
+Implemented coin-owned sticker drops with persisted idempotent decisions, rarity weighting and automatic unlocked evolution. Added optional pre-agreed Flip Off stakes, transactionally locked, settled or returned with challenge status. Existing unstaked behavior retained. Acceptance resets scan baseline. Pending wager yield cancels; accepted yield transfers both. Cancel only allowed while awaiting acceptance. Added tests for retry/no-drop, rarity boundaries, cascade/max level, lock exclusion, concurrent awards/challenge creation, acceptance permissions, ownership validation, yield/draw/cancel/expiry, settlement evolution and competing terminal transitions.
+Validation: 81 server tests passed using make test_collectables.
+Public return shape: award_flip -> {drop: decorated_sticker|null, evolutions:[{consumed_ids:[id], sticker:decorated_sticker}]}; challenge decorators -> wagered, wager_status, stakes.
+Integration limitation: award transaction follows scan persistence; app must retry/recover award failures to ensure eventual award decision for every logged eligible tap.

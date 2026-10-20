@@ -2,7 +2,7 @@
 
 **Repository**: GlobalHeadsOrTails  
 **Owner**: Tank (DevOps Engineer)  
-**Last Verified**: 2026-10-19  
+**Last Verified**: 2026-10-20  
 
 ---
 
@@ -23,14 +23,15 @@ All development in this repository strictly adheres to Bob Protocol SDLC standar
 
 - **Primary Runtime**: Python 3.11+
 - **Virtual Environment**: Unified workspace root `.venv` (`.venv/`) with all packages installed in editable mode (`make install-all`).
-- **Container Runtime**: Docker / containerd / k3s.
+- **Container Runtime**: Docker / Podman / containerd / k3s.
 - **Automation Interface**: `make` is mandatory for all builds, tests, lints, and container operations. No manual out-of-band commands that bypass `make`.
 
 ### Standard Makefile Targets per Service
 - `make test`: Run automated unit and integration tests.
 - `make lint`: Run syntax checks, type checks, and linters.
-- `make build`: Build packaging / wheels / containers.
-- `make docker-build`: Build container images (`localhost/tag-validator-service:latest`).
+- `make pkg` / `make docker-build`: Build container images (`localhost/tag-validator-service:latest`).
+- `make verify-container`: Verify container dependency graph, CLI check (`tag-validator --check`), and Gunicorn WSGI boot inside a read-only container.
+- `make export-image` (or root `make export-tag-validator-image`): Build, verify, tag `localhost/tag-validator-service:$(VERSION)`, and export `dist/tag-validator-service-$(VERSION).tar` for `pi-patch` consumption.
 - `make run`: Run development service locally.
 
 ---

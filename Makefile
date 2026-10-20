@@ -1,10 +1,19 @@
+ifneq ("$(wildcard .venv/bin/python)","")
+PYTHON ?= .venv/bin/python
+else ifneq ("$(wildcard ntag424_sdm_provisioner/.venv/bin/python)","")
+PYTHON ?= ntag424_sdm_provisioner/.venv/bin/python
+else
 PYTHON ?= python3
+endif
+
+VERSION ?= latest
+export PYTHONPATH := $(CURDIR)/shared/src:$(CURDIR)/tag_validator_service/src:$(CURDIR)/sdm_provisioner/src:$(CURDIR)/game_server/src$(if $(PYTHONPATH),:$(PYTHONPATH))
 
 .DEFAULT_GOAL := help
 
 .PHONY: help chat
 help: ## Show available make targets
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[36m%-22s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 chat: ## Post a message to CHAT.md (usage: make chat MSG="<msg>" [PERSONA="<name>"] [CMD="<cmd>"] [TO="<recipient>"])
 	@[ -n "$(MSG)" ] || { echo "Usage: make chat MSG=\"<message>\" [PERSONA=\"<name>\"] [CMD=\"<cmd>\"] [TO=\"<recipient>\"]"; exit 1; }
@@ -33,16 +42,16 @@ rangers-roster-seasons: ## Audit first/last NYR seasons against the frozen roste
 rangers-catalog: ## Build full Rangers catalog from frozen NHL snapshot
 	$(PYTHON) tools/rangers_catalog.py
 
-.PHONY: test-all test-shared test-tag-validator test-sdm-provisioner test-game-server test-art-generator install-all run-game-server run-tui run-tag-validator art-status art-generate art-review
+.PHONY: test-all test-shared test-tag-validator test-sdm-provisioner test-game-server test-art-generator install-all run-game-server run-tui run-tag-validator pkg-tag-validator verify-tag-validator-container export-tag-validator-image art-status art-generate art-review
 test-all: ## Run full test suites across all packages and tools
-	pytest shared/tests -v
-	pytest tag_validator_service/tests -v
-	pytest sdm_provisioner/tests -v
-	pytest game_server/tests -v
-	pytest tools/tests/test_art_generator.py -v
+	$(PYTHON) -m pytest shared/tests -v
+	$(PYTHON) -m pytest tag_validator_service/tests -v
+	$(PYTHON) -m pytest sdm_provisioner/tests -v
+	$(PYTHON) -m pytest game_server/tests -v
+	$(PYTHON) -m pytest tools/tests/test_art_generator.py -v
 
 test-art-generator: ## Run test suite for generic art generator
-	pytest tools/tests/test_art_generator.py -v
+	$(PYTHON) -m pytest tools/tests/test_art_generator.py -v
 
 art-status: ## Show artwork status for a manifest (MANIFEST=path/to/manifest.yaml)
 	$(PYTHON) tools/art_generator.py --manifest $(or $(MANIFEST),game_server/src/game_server/sticker_catalog/twelve-clans/manifest.yaml) --status
@@ -54,19 +63,19 @@ art-review: ## Build clean HTML review contact sheet from YAML manifest (MANIFES
 	$(PYTHON) tools/art_generator.py --manifest $(or $(MANIFEST),game_server/src/game_server/sticker_catalog/twelve-clans/manifest.yaml) --review
 
 test-shared: ## Run tests for shared contracts package
-	pytest shared/tests -v
+	$(PYTHON) -m pytest shared/tests -v
 
 test-tag-validator: ## Run tests for tag_validator_service
-	pytest tag_validator_service/tests -v
+	$(PYTHON) -m pytest tag_validator_service/tests -v
 
 test-sdm-provisioner: ## Run tests for sdm_provisioner
-	pytest sdm_provisioner/tests -v
+	$(PYTHON) -m pytest sdm_provisioner/tests -v
 
 test-game-server: ## Run tests for game_server
-	pytest game_server/tests -v
+	$(PYTHON) -m pytest game_server/tests -v
 
 install-all: ## Install all workspace packages in editable mode
-	pip install -e shared -e tag_validator_service -e sdm_provisioner -e game_server
+	pipx install -e shared -e tag_validator_service -e sdm_provisioner -e game_server
 
 run-game-server: ## Run Flask game server
 	$(PYTHON) -m game_server.app
@@ -76,6 +85,18 @@ run-tui: ## Run Textual SDM Provisioner TUI
 
 run-tag-validator: ## Run Tag Validator Service locally
 	$(MAKE) -C tag_validator_service run
+
+pkg-tag-validator: ## Build standalone container image for tag_validator_service
+	$(MAKE) -C tag_validator_service pkg VERSION=$(VERSION)
+
+verify-tag-validator-container: ## Verify tag_validator_service container dependencies and Gunicorn WSGI boot
+	$(MAKE) -C tag_validator_service verify-container VERSION=$(VERSION)
+
+export-tag-validator-image: ## Build, verify, and export tag_validator_service container tarball for pi-patch
+	$(MAKE) -C tag_validator_service export-image VERSION=$(VERSION)
+	@mkdir -p dist
+	@cp -f tag_validator_service/dist/tag-validator-service-$(VERSION).tar dist/tag-validator-service-$(VERSION).tar
+	@echo "Artifact ready for pi-patch -> dist/tag-validator-service-$(VERSION).tar"
 
 clean: ## Clean cache and build artifacts across all packages
 	$(PYTHON) -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]; [p.unlink(missing_ok=True) for p in pathlib.Path('.').rglob('*.py[co]')]; [shutil.rmtree(p, ignore_errors=True) for p in ('.pytest_cache', 'build', 'dist') if pathlib.Path(p).exists()]"
