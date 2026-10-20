@@ -13,8 +13,8 @@
 
 ## Collectables & Game Server
 
-- [Feature guide and validation commands](../ntag424_sdm_provisioner/docs/COLLECTABLES.md)
-- [Accepted requirements, PRD §16](../ntag424_sdm_provisioner/docs/PRD.md)
+- [Feature guide and validation commands](../docs/COLLECTABLES.md)
+- [Accepted requirements, PRD §16](../docs/PRD.md)
 - [Sprint stories and architecture](cypher.docs/collectables_sprint.md)
 - [Entropy-weighted awards stories and architecture](cypher.docs/entropy_stickers_sprint.md)
 - [Smith faction catalog and UX criteria](smith.docs/collectables_catalog.md)
@@ -90,13 +90,13 @@ Located in `agents/templates/`:
 
 ---
 
-## Project Knowledge Base (ntag424_sdm_provisioner/)
+## Project Knowledge Base (`docs/`)
 
 | File | Purpose |
 |------|---------|
-| `DECISIONS.md` | Architecture decisions log (7 entries; latest entropy-weighted awards2026-10-07) |
-| `ARCH.md` | System architecture — provisioner TUI service layer |
-| `LESSONS.md` | Lessons learned |
+| `docs/DECISIONS.md` | Architecture decisions log (12 entries; latest workspace component reorg & cleanup) |
+| `sdm_provisioner/ARCH.md` | System architecture — provisioner TUI service layer |
+| `docs/LESSONS.md` | Lessons learned |
 | `docs/PRD.md` | Product Requirements Document (§16 collectables and weighted awards current) |
 | `docs/ROADMAP.md` | Feature roadmap |
 | `docs/ISO Compliant NDEF Reference.md` | NDEF/NXP reference specification |

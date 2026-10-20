@@ -3,7 +3,13 @@
 This file is auto-discovered by pytest and runs before any tests.
 """
 
+import sys
 from pathlib import Path
+
+# Add tests directory to sys.path so tests can import mock_hal, trace_based_simulator, etc.
+_tests_dir = str(Path(__file__).parent)
+if _tests_dir not in sys.path:
+    sys.path.insert(0, _tests_dir)
 
 import pytest
 

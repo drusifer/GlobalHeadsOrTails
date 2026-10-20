@@ -2,7 +2,7 @@
 
 **Repository**: GlobalHeadsOrTails  
 **Owner**: Tank (DevOps Engineer)  
-**Last Verified**: 2026-10-18  
+**Last Verified**: 2026-10-19  
 
 ---
 
@@ -22,7 +22,7 @@ All development in this repository strictly adheres to Bob Protocol SDLC standar
 ## 2. Tooling, Runtime & Environment
 
 - **Primary Runtime**: Python 3.11+
-- **Virtual Environment**: `.venv` (located in service subdirectories, e.g. `ntag424_sdm_provisioner/.venv` or `tag_validator_service/.venv`).
+- **Virtual Environment**: Unified workspace root `.venv` (`.venv/`) with all packages installed in editable mode (`make install-all`).
 - **Container Runtime**: Docker / containerd / k3s.
 - **Automation Interface**: `make` is mandatory for all builds, tests, lints, and container operations. No manual out-of-band commands that bypass `make`.
 

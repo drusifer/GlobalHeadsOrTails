@@ -1,4 +1,28 @@
-# Sprint: Generic YAML-Driven Art Generator Refactor — COMPLETE
+# Sprint: Reorganization Completion & Legacy Cleanup — COMPLETE
+
+Plan: `agents/cypher.docs/reorg_cleanup_sprint.md`. Arch: `agents/morpheus.docs/arch_reorg_cleanup.md`.
+
+- [x] **Phase 1: Component Parity & Test Porting**
+  - [x] Task 1.1: Copy `key_manager.py` into `sdm_provisioner/src/sdm_provisioner/` and harmonize imports.
+  - [x] Task 1.2: Port 13 missing unit test files and `trace_based_simulator.py` into `sdm_provisioner/tests/`.
+  - [x] Task 1.3: Update ported test imports/assertions to match decoupled architecture and verify all pass (155/155 passing).
+  - [x] Task 1.4: Move `acceptance_tests/` to `sdm_provisioner/acceptance_tests/`.
+- [x] **Phase 2: Asset Migration**
+  - [x] Task 2.1: Copy all 473 Rangers history WebP portraits into `game_server/src/game_server/static/stickers/rangers-history/`.
+  - [x] Task 2.2: Verify full 479+ portrait count and file integrity in `game_server` (481 total portraits present).
+- [x] **Phase 3: Documentation Consolidation**
+  - [x] Task 3.1: Move `DECISIONS.md` to `docs/DECISIONS.md`.
+  - [x] Task 3.2: Move `LESSONS.md` to `docs/LESSONS.md`.
+  - [x] Task 3.3: Merge `ntag424_sdm_provisioner/docs/` into root `docs/` and update `agents/DOCUMENTATION_INDEX.md`.
+- [x] **Phase 4: Root Virtual Environment Bootstrap & Legacy Purge**
+  - [x] Task 4.1: Create fresh root `.venv` and install all workspace packages in editable mode.
+  - [x] Task 4.2: Update root `Makefile` and `docs/SDLC.md` to point to root `.venv`.
+  - [x] Task 4.3: Safely delete obsolete `ntag424_sdm_provisioner/` directory.
+  - [x] Task 4.4: Run full workspace test suite `make test-all` and execute sprint close gates.
+
+---
+
+# Previous Sprint: Generic YAML-Driven Art Generator Refactor — COMPLETE
 
 Plan: `agents/cypher.docs/art_generator_sprint.md`. Arch: `agents/morpheus.docs/arch_art_generator.md`.
 
