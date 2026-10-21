@@ -64,12 +64,12 @@ install-art: ## pip-install artai (../artai or ARTAI_SRC=) into .venv-art
 art-status: install-art ## Show artwork status for a manifest (MANIFEST=path/to/manifest.yaml)
 	$(ARTAI) status $(ART_MANIFEST)
 
-art-generate: install-art ## Generate then pack artwork (MANIFEST=... BACKEND=codex|agy|gemini|command|mock, required)
-	$(ARTAI) generate $(ART_MANIFEST) $(if $(BACKEND),--backend $(BACKEND)) $(ARGS)
-	$(if $(filter mock,$(BACKEND)),@echo "BACKEND=mock: placeholder masters are not packed into the shipped output_dir",$(ARTAI) pack $(ART_MANIFEST))
+art-generate: install-art ## Paint stickers with no art yet, then pack (BACKEND= required; FORCE=1 redoes existing)
+	$(ARTAI) generate $(ART_MANIFEST) $(if $(BACKEND),--backend $(BACKEND)) $(if $(FORCE),--force) $(ARGS)
+	$(if $(filter mock,$(BACKEND)),@echo "BACKEND=mock: placeholder masters are not packed into the shipped output_dir",$(ARTAI) pack $(ART_MANIFEST) $(if $(FORCE),--force))
 
-art-pack: install-art ## Pack existing masters into the manifest's output_dir (MANIFEST=...)
-	$(ARTAI) pack $(ART_MANIFEST)
+art-pack: install-art ## Pack new/changed masters into the manifest's output_dir (MANIFEST=... FORCE=1 rewrites all)
+	$(ARTAI) pack $(ART_MANIFEST) $(if $(FORCE),--force)
 
 art-review: install-art ## Build the HTML review contact sheet (MANIFEST=...)
 	$(ARTAI) review $(ART_MANIFEST)

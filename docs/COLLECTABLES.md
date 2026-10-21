@@ -62,7 +62,7 @@ Sticker art is made with **artai** (sibling repo `../artai`, override with `ARTA
 
 ```sh
 make art-status   [MANIFEST=...]             # items, masters, packed, missing
-make art-generate BACKEND=codex [MANIFEST=...]  # paint missing masters (resumable; quota stops with exit 2), then pack
+make art-generate BACKEND=codex [MANIFEST=...]  # paint stickers with no art yet (resumable; quota stops with exit 2), then pack; FORCE=1 redoes existing
 make art-pack     [MANIFEST=...]             # re-pack masters into the manifest's output_dir
 make art-review   [MANIFEST=...]             # HTML contact sheet
 make art-verify   [MANIFEST=...]             # every sticker present, 512x512, unique, not placeholder art
