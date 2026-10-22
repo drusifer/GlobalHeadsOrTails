@@ -1,0 +1,11 @@
+# Allowlist for the game_server image build (context = workspace root).
+*
+!shared/pyproject.toml
+!shared/src
+!tag_validator_service/pyproject.toml
+!tag_validator_service/README.md
+!tag_validator_service/src
+!game_server/pyproject.toml
+!game_server/src
+**/__pycache__
+**/*.egg-info
