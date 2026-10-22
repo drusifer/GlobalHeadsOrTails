@@ -46,3 +46,7 @@ cloudflared.deb
 ntag424_sdm_provisioner/dist/
 ntag424_sdm_provisioner/build/
 .venv-art/
+
+# Exported container image tarballs (published to Forgejo, never committed)
+dist/
+tag_validator_service/dist/

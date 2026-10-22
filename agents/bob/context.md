@@ -1,15 +1,14 @@
 # Agent Local Context — Bob
 
 > ## Recent Decisions
-> - Initiated Bloop work-loop (`*impl` -> `*deploy`) to prepare `tag_validator_service` container and `pi-patch` tarball artifact.
+> - Completed Bloop work-loop for standalone `tag_validator_service` containerization and `pi-patch` artifact export (`dist/tag-validator-service-latest.tar`).
 >
 > ## Key Findings
-> - `tag_validator_service/Dockerfile` references missing `requirements.txt`; must install `.[k3s,server]` from `pyproject.toml`.
-> - `tag_validator.api.app:main` CLI entrypoint declared in `pyproject.toml` is missing from `app.py`.
-> - `pi-patch` consumes `localhost/tag-validator-service:latest` and exported image tarball `dist/tag-validator-service-latest.tar`.
+> - 30/30 `tag_validator_service` tests passing; container `localhost/tag-validator-service:latest` (`fb133664706c`) verified in read-only mode.
+> - Use `/home/drusifer/Projects/bob_protocol/.venv/bin/bobp` inside the sandbox when `/home/drusifer/.local/bin` is not mounted.
 >
 > ## Important Notes
-> - Following full Bob Protocol state management across Neo -> Trin -> Morpheus -> Tank.
+> - Uncommitted files: `agents/CHAT.md`, `agents/CHAT.diagram.md`, persona `state.md` files, and untracked `dist/tag-validator-service-latest.tar` / `tag_validator_service/dist/tag-validator-service-latest.tar`.
 >
 > ---
-> *Last updated: 2026-10-20T15:02:00-04:00*
+> *Last updated: 2026-10-20T20:18:10-04:00*

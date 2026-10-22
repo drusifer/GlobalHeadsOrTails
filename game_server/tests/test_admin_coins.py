@@ -185,14 +185,11 @@ def test_app(tmp_path: Path, monkeypatch):
     csv_file = tmp_path / "tag_keys.csv"
     csv_file.write_text("uid,key,asset_tag,outcome,coin_name\n", encoding="utf-8")
     db_file = tmp_path / "app.db"
-    vip_csv = tmp_path / "vip_keys.csv"
-    vip_csv.write_text("uid,key,asset_tag\n", encoding="utf-8")
 
     monkeypatch.delenv("ADMIN_TOKEN", raising=False)
     app = create_app(
         key_csv_path=str(csv_file),
         db_path=str(db_file),
-        vip_key_csv_path=str(vip_csv),
     )
     app.config["TESTING"] = True
     return app

@@ -2,29 +2,35 @@
 
 ## Context
 > ## Recent Decisions
-> - User invoked `$bloop` to prepare `tag_validator_service` to run as its own standalone containerized service and produce the deployment artifact for `pi-patch`.
-> - Inspected `tag_validator_service/` and historical `pi-patch` export workflow (`pkg`, `verify_server_boot`, `export-image` -> `dist/<service>-$(VERSION).tar`).
+> - Completed `$bloop` work-loop (`Neo` -> `Tank` -> `Trin` -> `Morpheus`) to prepare `tag_validator_service` as a standalone container service and export its container image artifact for `pi-patch`.
+> - Updated `tag_validator_service/src/tag_validator/config.py` (`get_config()` dynamic env resolution) and `tag_validator_service/src/tag_validator/api/app.py` (`main()` CLI entrypoint with `--check`).
+> - Updated `tag_validator_service/Dockerfile` (installs `.[k3s,server]` from `pyproject.toml`, runs `pip check`, executes as UID `10001` `appuser` with `--worker-tmp-dir /tmp`), `tag_validator_service/.dockerignore`, `tag_validator_service/Makefile`, and root `Makefile` (`pkg-tag-validator`, `verify-tag-validator-container`, `export-tag-validator-image`).
 >
 > ## Key Findings
-> - `tag_validator_service/Dockerfile` currently references a non-existent `requirements.txt` instead of installing `.[k3s,server]` from `pyproject.toml`.
-> - `tag_validator_service/pyproject.toml` declares `tag-validator = "tag_validator.api.app:main"`, but `main()` is missing in `tag_validator/api/app.py`.
-> - `tag_validator_service/Makefile` and root `Makefile` need `pkg`, `verify-container`, and `export-image` targets producing `dist/tag-validator-service-latest.tar` (and `tag_validator_service/dist/tag-validator-service-latest.tar`) for `pi-patch` consumption.
+> - 30/30 `tag_validator_service` unit & packaging tests pass (`bobp make test-tag-validator`).
+> - Container image `localhost/tag-validator-service:latest` (`fb133664706c`) verified in read-only mode (`pip check`, `tag-validator --check --backend memory`, `gunicorn --check-config`).
+> - Exported image tarballs (321 MB) are ready at `dist/tag-validator-service-latest.tar` and `tag_validator_service/dist/tag-validator-service-latest.tar`.
+> - Inside the Antigravity sandbox, invoke `bobp` via `/home/drusifer/Projects/bob_protocol/.venv/bin/bobp` (since `/home/drusifer/.local/bin` is not mounted inside `bwrap`).
 >
 > ## Important Notes
-> - Orchestrating `*impl` + `*deploy` Bloop chain: Neo (TDD implementation) -> Trin (UAT verification) -> Morpheus (Architecture review) -> Tank (Container build, boot verification, artifact export for `pi-patch`, and SDLC update).
+> - Working tree status (`git status --short`):
+>   - Modified: `agents/CHAT.md`, `agents/CHAT.diagram.md`, `agents/bob/state.md`, `agents/tank/state.md`, `agents/trin/state.md`, `agents/morpheus/state.md`
+>   - Untracked artifacts: `dist/tag-validator-service-latest.tar`, `tag_validator_service/dist/tag-validator-service-latest.tar`
 
 ## Current Task
-**Status:** Handed off to Neo
-**Assigned to:** Neo
+**Status:** Completed
+**Assigned to:** None (Standing by)
 **Started:** 2026-10-20T15:01:30-04:00
 
 ### Task Description
-Orchestrate `$bloop` work-loop to prep `tag_validator_service` as a standalone container service and build the container image & tarball artifact for `pi-patch`.
+Prepare `tag_validator_service` standalone container and export container tarball artifact for `pi-patch`.
 
 ### Progress
-- [x] Log user `$bloop` request to `agents/CHAT.md`
-- [x] Audit `tag_validator_service` packaging, `Dockerfile`, `pyproject.toml`, and `Makefile`
-- [x] Hand off to Neo for TDD implementation
+- [x] Neo (`*swe impl`): Dynamic `get_config()`, `tag_validator.api.app:main` (`--check`), and `test_service_runtime.py`
+- [x] Tank (`*devops infra` / `*devops deploy`): `Dockerfile`, `.dockerignore`, `Makefile` targets, container build & verification, and `dist/tag-validator-service-latest.tar` export
+- [x] Trin (`*qa uat`): 30/30 tests green via `bobp make test-tag-validator`
+- [x] Morpheus (`*lead review`): Code & packaging review approved
+- [x] Checkpoint state via `/prep-clear`
 
 ### Blockers
 None
@@ -34,16 +40,16 @@ None
 
 ## Next Steps
 ### Immediate Next Action
-Neo executes `*swe impl` with TDD to fix `Dockerfile`, `app.py:main`, `.dockerignore`, and `Makefile` artifact targets.
+On cold start (`/init` or `*resume`):
+1. Read the tail of `agents/CHAT.md` and `agents/bob/state.md`.
+2. Verify that `dist/tag-validator-service-latest.tar` (and `tag_validator_service/dist/tag-validator-service-latest.tar`) is present or re-run `/home/drusifer/Projects/bob_protocol/.venv/bin/bobp make export-tag-validator-image` if a rebuild is requested.
+3. Wait for the user's next instruction.
 
 ### Waiting On
-Neo implementation completion
+User direction after `/clear` or `/compact`
 
 ### Planned Work
-- [ ] Neo (`*swe impl`): TDD packaging & container prep
-- [ ] Trin (`*qa uat`): Test suite & regression verification
-- [ ] Morpheus (`*lead review`): Architecture & container spec review
-- [ ] Tank (`*devops deploy`): Build image, run smoke check, export `pi-patch` tarball artifact, update `docs/SDLC.md`
+- [ ] Await user direction in next session
 
 ---
-*Last updated: 2026-10-20T15:02:00-04:00*
+*Last updated: 2026-10-20T20:18:10-04:00*
