@@ -1,12 +1,13 @@
 import logging
 
 from textual.app import ComposeResult
-from textual.containers import Container
+from textual.binding import Binding
+from textual.containers import Container, Horizontal
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Label, RichLog
 from textual.worker import Worker, WorkerState
 
-from sdm_provisioner.constants import GAME_COIN_BASE_URL
+from sdm_provisioner.constants import BIZ_CARD_BASE_URL, GAME_COIN_BASE_URL
 from sdm_provisioner.csv_key_manager import CsvKeyManager
 from sdm_provisioner.hal import CardManager
 from sdm_provisioner.sequence_logger import (
@@ -57,6 +58,29 @@ class SetupUrlAdapter:
 class SetupUrlScreen(Screen):
     """Screen for configuring SDM and NDEF URL (Phase 2)."""
 
+    CSS = """
+    #preset_container {
+        height: auto;
+        margin: 1 0;
+    }
+
+    #preset_container Button {
+        width: 1fr;
+        margin: 0 1;
+    }
+
+    #preset_label {
+        color: $text-muted;
+        text-style: bold;
+        margin-top: 1;
+    }
+    """
+
+    BINDINGS = [
+        Binding("ctrl+f", "select_preset_flip", "Flip URL", priority=True),
+        Binding("ctrl+b", "select_preset_biz", "Biz URL", priority=True),
+    ]
+
     def __init__(self, key_manager: CsvKeyManager, **kwargs):
         super().__init__(**kwargs)
         self.key_manager = key_manager
@@ -68,6 +92,12 @@ class SetupUrlScreen(Screen):
             Label(
                 "Configure SDM and NDEF URL.\nTag must have keys configured (Phase 1) first.",
                 id="info",
+            ),
+            Label("Quick Presets:", id="preset_label"),
+            Horizontal(
+                Button("🪙 Flip Game (Default)", id="btn_preset_flip", variant="primary"),
+                Button("💼 Biz Card (gs.works)", id="btn_preset_biz", variant="default"),
+                id="preset_container",
             ),
             Label("Base URL:", id="url_label"),
             Input(
@@ -81,6 +111,43 @@ class SetupUrlScreen(Screen):
             RichLog(highlight=True, markup=True, id="log_view"),
         )
         yield Footer()
+
+    def action_select_preset_flip(self) -> None:
+        self.select_preset("flip")
+
+    def action_select_preset_biz(self) -> None:
+        self.select_preset("biz")
+
+    def select_preset(self, preset: str) -> None:
+        url_input = self.query_one("#url_input", Input)
+        btn_flip = self.query_one("#btn_preset_flip", Button)
+        btn_biz = self.query_one("#btn_preset_biz", Button)
+        if preset == "flip":
+            url_input.value = GAME_COIN_BASE_URL
+            btn_flip.variant = "primary"
+            btn_biz.variant = "default"
+        elif preset == "biz":
+            url_input.value = BIZ_CARD_BASE_URL
+            btn_biz.variant = "primary"
+            btn_flip.variant = "default"
+        url_input.focus()
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        try:
+            btn_flip = self.query_one("#btn_preset_flip", Button)
+            btn_biz = self.query_one("#btn_preset_biz", Button)
+            val = event.value.strip()
+            if val == GAME_COIN_BASE_URL:
+                btn_flip.variant = "primary"
+                btn_biz.variant = "default"
+            elif val == BIZ_CARD_BASE_URL:
+                btn_biz.variant = "primary"
+                btn_flip.variant = "default"
+            else:
+                btn_flip.variant = "default"
+                btn_biz.variant = "default"
+        except Exception:
+            pass
 
     def on_mount(self) -> None:
         self.title = "Setup URL (Phase 2)"
@@ -104,6 +171,10 @@ class SetupUrlScreen(Screen):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "btn_start":
             self.start_url_setup()
+        elif event.button.id == "btn_preset_flip":
+            self.select_preset("flip")
+        elif event.button.id == "btn_preset_biz":
+            self.select_preset("biz")
 
     def start_url_setup(self) -> None:
         # Get URL from input

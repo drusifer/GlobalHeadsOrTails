@@ -2,30 +2,28 @@
 
 ## Context
 > ## Recent Decisions
-> - Approved surgical fix for `NameError: name 'os' is not defined` in `sdm_provisioner/services/provisioning_service.py` (`rubric LOOP_FIX: REPRO=S DIAG=S SURG=S NOSIDE=S GUARD=S`).
+> - Approved TUI URL presets for Flip Game and Biz Card (`https://gs.works/contact`) in `SetupUrlScreen` (`rubric LOOP_IMPL: TFIRST=S VERIF=S MODUL=S REGRESS=S BUDGET=S`).
 >
 > ## Key Findings
-> - `import os` cleanly added to `sdm_provisioner/src/sdm_provisioner/services/provisioning_service.py`.
-> - Type import `from typing import Any` added to `sdm_provisioner/src/sdm_provisioner/hal.py`.
-> - Syntax error fixed in `sdm_provisioner/acceptance_tests/test_production_auth.py`.
-> - 4 automated unit tests added to `test_provisioning_service_hardware_safety.py`.
-> - Full workspace regression suite passes at 385/385 tests (100% green).
+> - Clean declarative UI enhancement with zero breaking changes or external dependencies.
+> - Presets, shortcuts (`ctrl+f`, `ctrl+b`), and reactive styling covered by 3 automated async unit tests.
+> - Full workspace regression suite passes at 388/388 tests (100% green).
 >
 > ## Important Notes
-> - Fix work-loop closed. TUI key configuration on physical hardware with `ServiceKeyManager` is verified.
+> - Feature work-loop closed. Ready for user testing in TUI.
 
 ## Current Task
 **Status:** Complete — Work-Loop Closed
 **Assigned to:** None (Loop Closed)
-**Started:** 2026-10-25T13:53:45-04:00
+**Started:** 2026-10-25T14:00:45-04:00
 
 ### Task Description
-Review and approve surgical fix for `ProvisioningService` hardware safety initialization error.
+Review and approve TUI quick URL presets feature.
 
 ### Progress
 - [x] Review diff across modified files
-- [x] Verify UAT and regression test results (385/385 passed)
-- [x] Approve fix and log to `agents/CHAT.md`
+- [x] Verify UAT and regression test results (388/388 passed)
+- [x] Approve feature and log to `agents/CHAT.md`
 
 ### Blockers
 None
@@ -35,7 +33,7 @@ None
 
 ## Next Steps
 ### Immediate Next Action
-Ready for user to resume provisioning or test from TUI.
+Ready for user to run TUI and select presets in Setup URL screen.
 
 ### Waiting On
 User
@@ -44,4 +42,4 @@ User
 - [ ] None pending
 
 ---
-*Last updated: 2026-10-25T13:54:30-04:00*
+*Last updated: 2026-10-25T14:01:00-04:00*

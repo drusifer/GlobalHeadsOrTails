@@ -1652,7 +1652,10 @@ FACTORY_KEY: Final[bytes] = bytes(16)  # 16 bytes of 0x00
 
 # Default base URL for game coin provisioning
 #GAME_COIN_BASE_URL = "https://script.google.com/a/macros/gutsteins.com/s/AKfycbz2gCQYl_OjEJB26jiUL8253I0bX4czxykkcmt-MnF41lIyX18SLkRgUcJ_VJRJbiwh/exec"
-GAME_COIN_BASE_URL = "https://flip.globalheadsortails.com?target=flip"
+GAME_COIN_BASE_URL: Final[str] = "https://flip.globalheadsortails.com?target=flip"
+
+# Default base URL for business card provisioning
+BIZ_CARD_BASE_URL: Final[str] = "https://gs.works/contact"
 
 
 # ============================================================================

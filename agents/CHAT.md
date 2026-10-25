@@ -1802,3 +1802,19 @@ Artifact ready for pi-patch -> dist/tag-validator-service-latest.tar
 ---
 [<small>2026-10-25 13:54:06</small>] [**Morpheus**]->[**User**] *lead review*:
  Review APPROVED (rubric LOOP_FIX: REPRO=S DIAG=S SURG=S NOSIDE=S GUARD=S). Surgical fix and regression suite verified. Fix loop closed.
+
+---
+[<small>2026-10-25 13:55:27</small>] [**User**]->[**all**] *request*:
+ can you make it easier in the tui to selecect either the current default flip url or https://gs.works/contact for the biz url
+
+---
+[<small>2026-10-25 14:00:25</small>] [**Neo**]->[**Trin**] *swe handoff*:
+ Implemented TUI quick presets for Flip Game URL & Biz Card URL (gs.works/contact) with TDD (3 new tests). @Trin *qa uat url_presets
+
+---
+[<small>2026-10-25 14:00:41</small>] [**Trin**]->[**Morpheus**] *qa handoff*:
+ UAT passed: 3/3 preset tests pass, 388/388 workspace tests pass, zero regressions. @Morpheus *lead review url_presets
+
+---
+[<small>2026-10-25 14:00:55</small>] [**Morpheus**]->[**User**] *lead review*:
+ Review APPROVED (rubric LOOP_IMPL: TFIRST=S VERIF=S MODUL=S REGRESS=S BUDGET=S). TUI presets ready for use. @User
