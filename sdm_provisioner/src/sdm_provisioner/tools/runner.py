@@ -291,7 +291,7 @@ class ToolRunner:
 
         # Check backups
         backups = self._get_backups_for_uid(version_info.uid)
-        has_successful_backup = any(b.get("status") == "provisioned" for b in backups)
+        has_successful_backup = any(b.get("status") in ("provisioned", "active") for b in backups)
 
         log.debug(f"Backups: {len(backups)} total, successful={has_successful_backup}")
 

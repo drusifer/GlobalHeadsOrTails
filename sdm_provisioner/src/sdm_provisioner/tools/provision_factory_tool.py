@@ -27,7 +27,7 @@ class ProvisionFactoryTool:
 
     def is_available(self, tag_state: TagState) -> bool | tuple[bool, str]:
         """Available only for factory/unknown tags."""
-        if tag_state.in_database and tag_state.keys and tag_state.keys.status == "provisioned":
+        if tag_state.in_database and tag_state.keys and tag_state.keys.status in ("provisioned", "active"):
             return False, "tag already provisioned (use Re-provision instead)"
         return True
 

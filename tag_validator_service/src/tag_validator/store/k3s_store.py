@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 
 from ..models import TagSecret
+from .base import TagKeyStore
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ except ImportError:
     K8S_AVAILABLE = False
 
 
-class K3sSecretStore:
+class K3sSecretStore(TagKeyStore):
     """Manages tag keys as Kubernetes Secret objects in k3s."""
 
     def __init__(
@@ -32,6 +33,7 @@ class K3sSecretStore:
         namespace: str = "tag-secrets",
         kubeconfig_path: str | None = None,
     ) -> None:
+        super().__init__()
         self.namespace = namespace
         self.kubeconfig_path = kubeconfig_path
         self._v1: k8s_client.CoreV1Api | None = None

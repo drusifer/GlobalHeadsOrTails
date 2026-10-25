@@ -17,21 +17,22 @@ class CardConnectionFactory:
     """
 
     @staticmethod
-    def create(sequence_logger: SequenceLogger) -> AbstractContextManager[NTag424CardConnection]:
+    def create(
+        sequence_logger: SequenceLogger,
+        key_store: object | None = None,
+    ) -> AbstractContextManager[NTag424CardConnection]:
         """Create a context manager that yields a card connection.
 
         Args:
             sequence_logger: Logger for command sequence tracing (required)
+            key_store: Optional key store. For real hardware, defaults to real ServiceKeyManager.
 
         Returns:
             AbstractContextManager yielding NTag424CardConnection-compatible object
         """
         if os.environ.get("NTAG_SIMULATION") == "1":
             log.info("Using SIMULATED card connection (SeritagSimulator)")
-            # SeritagCardManager yields a SeritagCardConnection
-            # We need to ensure it's compatible or wrapped if necessary
-            # For now, we assume SeritagCardConnection implements the required interface
-            return SeritagCardManager(sequence_logger)
+            return SeritagCardManager(sequence_logger, key_store=key_store)
         else:
             log.info("Using REAL card connection (PCSC)")
-            return CardManager(sequence_logger)
+            return CardManager(sequence_logger, key_store=key_store)

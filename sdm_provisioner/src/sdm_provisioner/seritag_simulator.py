@@ -515,9 +515,13 @@ class SeritagSimulator:
 class SeritagCardConnection:
     """Simulated Seritag card connection."""
 
-    def __init__(self, simulator: SeritagSimulator, sequence_logger):
+    is_simulation = True
+
+    def __init__(self, simulator: SeritagSimulator, sequence_logger, key_store=None):
         self.simulator = simulator
         self.sequence_logger: SequenceLogger = sequence_logger
+        self.key_store = key_store
+        self.key_mgr = key_store
         self._get_command_sequence_name = get_command_sequence_name
 
     def send_apdu(self, apdu: list[int], use_escape: bool = False) -> tuple[list[int], int, int]:  # noqa: ARG002
@@ -574,18 +578,21 @@ class SeritagCardConnection:
 class SeritagCardManager:
     """Simulated card manager for Seritag tags."""
 
-    def __init__(self, sequence_logger, reader_index: int = 0):
+    is_simulation = True
+
+    def __init__(self, sequence_logger, reader_index: int = 0, key_store=None):
         self.sequence_logger: SequenceLogger = sequence_logger
         self.reader_index = reader_index
         self.simulator = SeritagSimulator()
         self.connection: SeritagCardConnection | None = None
+        self.key_store = key_store
 
     def __enter__(self):
         """Context manager entry."""
         log.info("SeritagSim: Simulating card connection...")
         atr = self.simulator.connect()
         log.info(f"SeritagSim: Card detected with ATR: {atr}")
-        self.connection = SeritagCardConnection(self.simulator, self.sequence_logger)
+        self.connection = SeritagCardConnection(self.simulator, self.sequence_logger, key_store=self.key_store)
         return self.connection
 
     def __exit__(self, exc_type, exc_val, exc_tb):

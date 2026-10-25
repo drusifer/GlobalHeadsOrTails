@@ -75,24 +75,59 @@ class ApduError(Exception):
 class CardManager:
     """A robust context manager that uses a direct, blocking call to wait for a card tap.
 
-    Establishes a clean connection.
-
+    Establishes a clean connection to physical hardware (ACR122 reader via PC/SC).
     Requires a SequenceLogger for command tracing (explicit DI).
+    Enforces the real persistent key store contract: real hardware HAL is strictly
+    forbidden from touching physical cards without an active, verified connection
+    to the real persistent key service manager.
     """
+
+    is_simulation = False
 
     def __init__(
         self,
         sequence_logger: SequenceLogger,
         reader_index: int = 0,
         timeout_seconds: int = 15,
+        key_store: Any | None = None,
     ):
         self.sequence_logger = sequence_logger
         self.reader_index = reader_index
         self.timeout_ms = timeout_seconds * 1000
         self.connection: CardConnection | None = None
         self.context = None
+        self.key_store = key_store
 
     def __enter__(self) -> NTag424CardConnection:
+        from sdm_provisioner.service_key_manager import DEFAULT_SERVICE_URL, ServiceKeyManager
+        from urllib.parse import urlparse
+
+        if self.key_store is None:
+            self.key_store = ServiceKeyManager(strict=True)
+        elif not isinstance(self.key_store, ServiceKeyManager):
+            raise RuntimeError(
+                f"CRITICAL HARDWARE KEY SAFETY RULE:\n"
+                f"Real hardware HAL (CardManager) requires the real persistent key service store.\n"
+                f"Received invalid key store: {self.key_store.__class__.__name__}.\n"
+                f"Connecting real hardware to in-memory, mock, or CSV key stores is forbidden."
+            )
+
+        url = getattr(self.key_store, "service_url", "")
+        hostname = (urlparse(url).hostname or "").lower()
+        if hostname in ("localhost", "127.0.0.1", "::1"):
+            raise RuntimeError(
+                f"CRITICAL HARDWARE KEY SAFETY RULE:\n"
+                f"Real hardware HAL (CardManager) is attached to localhost key service: '{url}'.\n"
+                f"Real hardware can ONLY talk to the real cluster key service manager ({DEFAULT_SERVICE_URL})."
+            )
+
+        if not self.key_store.client.is_healthy():
+            raise ConnectionError(
+                f"CRITICAL HARDWARE KEY SAFETY RULE:\n"
+                f"Real key service manager at {url} is DOWN or unreachable.\n"
+                f"Real hardware connection is strictly BLOCKED unless the real key service is online."
+            )
+
         try:
             # 1. Establish a PC/SC context. This is the handle to the resource manager.
             hresult, self.context = SCardEstablishContext(SCARD_SCOPE_USER)
@@ -140,7 +175,11 @@ class CardManager:
             self.connection.connect()
             log.info("Successfully connected to the card.")
 
-            return NTag424CardConnection(self.connection, self.sequence_logger)
+            return NTag424CardConnection(
+                self.connection,
+                self.sequence_logger,
+                key_store=self.key_store,
+            )
 
         except Exception as e:
             # Ensure context is released on failure
@@ -167,13 +206,22 @@ class NTag424CardConnection:
     """A wrapper for a pyscard CardConnection.
 
     Handles the low-level details of APDU transmission.
-
     Requires a SequenceLogger for command tracing (explicit DI).
+    Holds the verified key_store required for hardware operations.
     """
 
-    def __init__(self, connection: CardConnection, sequence_logger: SequenceLogger):
+    is_simulation = False
+
+    def __init__(
+        self,
+        connection: CardConnection,
+        sequence_logger: SequenceLogger,
+        key_store: Any | None = None,
+    ):
         self.connection = connection
         self.sequence_logger = sequence_logger
+        self.key_store = key_store
+        self.key_mgr = key_store
 
     def __str__(self) -> str:
         return str(self.connection.getReader())

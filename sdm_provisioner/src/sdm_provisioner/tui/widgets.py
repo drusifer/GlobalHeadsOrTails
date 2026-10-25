@@ -100,6 +100,7 @@ class TagStatusWidget(Static):
         db_indicator = ""
         if self.db_keys:
             status_color = {
+                "active": "green",
                 "provisioned": "green",
                 "keys_configured": "cyan",
                 "picc_verified": "blue",  # Only PICC key verified, Keys 1/3 unknown
@@ -497,6 +498,7 @@ class KeyCandidatesTable(DataTable):
     def _format_status(self, status: str) -> str:
         """Format status with color coding."""
         status_colors = {
+            "active": "green",
             "provisioned": "green",
             "prov": "green",
             "keys_configured": "cyan",

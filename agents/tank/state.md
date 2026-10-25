@@ -2,49 +2,35 @@
 
 ## Context
 > ## Recent Decisions
-> - Updated `tag_validator_service/Dockerfile` to install `.[k3s,server]` from `pyproject.toml` with `pip check` and run Gunicorn with `--worker-tmp-dir /tmp` under unprivileged `appuser` (UID 10001).
-> - Added `tag_validator_service/.dockerignore` to exclude caches, tests, and build artifacts from container build context.
-> - Added `pkg`, `verify-container`, and `export-image` targets to `tag_validator_service/Makefile` and `pkg-tag-validator`, `verify-tag-validator-container`, and `export-tag-validator-image` to root `Makefile`.
-> - Updated `docs/SDLC.md` and `tag_validator_service/README.md` with container build, verification, and `pi-patch` artifact export documentation.
+> - Resolved Windows cross-platform virtual environment detection across all Makefiles (`Makefile`, `sdm_provisioner/Makefile`, `tag_validator_service/Makefile`, `game_server/Makefile`) supporting `.venv\Scripts\python.exe`.
+> - Fixed Makefile `help` and environment variable exports for Windows `cmd.exe` compatibility.
+> - Added Windows launcher scripts (`scripts/run-tui.ps1` and `run-tui.bat`) that auto-check/auto-start `tag_validator_service` on port 8080 before launching `provision-tui`.
 >
 > ## Key Findings
-> - Container image `localhost/tag-validator-service:latest` (sha256 `fb133664706c`) built and passed read-only container verification (`pip check`, `tag-validator --check --backend memory`, and `gunicorn --check-config`).
-> - Exported container image tarball for `pi-patch` to `dist/tag-validator-service-latest.tar` and `tag_validator_service/dist/tag-validator-service-latest.tar` (321 MB).
->
-> ## Important Notes
-> - `bobp` is now installed system-wide; all subsequent commands use `bobp make` and `bobp chat`.
+> - All 381 unit and integration tests across the workspace pass cleanly on Windows (`make test-all`).
+> - Physical NFC hardware `ACS ACR122 0` is detected via PC/SC (`pyscard`).
+> - Simulated card mode is supported via `-Simulated` switch or `NTAG_SIMULATION=1`.
 
 ## Current Task
-**Status:** Complete — Handed off to Trin
-**Assigned to:** Trin
-**Started:** 2026-10-20T15:05:00-04:00
+**Status:** Complete
+**Assigned to:** Tank
+**Started:** 2026-10-23T12:08:00-04:00
 
 ### Task Description
-Configure `tag_validator_service` container build, read-only boot verification, and `pi-patch` tarball artifact export (`dist/tag-validator-service-latest.tar`).
+Support building, testing, and running `sdm_provisioner` TUI on Windows.
 
 ### Progress
-- [x] Create `tag_validator_service/.dockerignore`
-- [x] Update `tag_validator_service/Dockerfile` (`pyproject.toml` `.[k3s,server]` + `pip check` + `--worker-tmp-dir /tmp`)
-- [x] Add `pkg`, `verify-container`, and `export-image` targets to `tag_validator_service/Makefile` and root `Makefile`
-- [x] Build `localhost/tag-validator-service:latest`, verify read-only container boot, and export `dist/tag-validator-service-latest.tar`
-- [x] Update `docs/SDLC.md` and `tag_validator_service/README.md`
+- [x] Fixed `.venv\Scripts\python.exe` path detection and GNU Make targets for Windows
+- [x] Verified PC/SC smartcard connectivity (`ACS ACR122 0` reader recognized)
+- [x] Created `scripts/run-tui.ps1` and `run-tui.bat` with auto-startup of `tag_validator_service`
+- [x] Ran full workspace regression (381/381 tests pass)
 
 ### Blockers
 None
 
-### Oracle Consultations
-None
-
 ## Next Steps
 ### Immediate Next Action
-Trin (`*qa uat`) executes `bobp make test-tag-validator` and verifies the exported `pi-patch` tarball artifact.
-
-### Waiting On
-Trin UAT verification
-
-### Planned Work
-- [ ] Trin (`*qa uat`): Verify test suite and exported container artifact
-- [ ] Morpheus (`*lead review`): Architectural and packaging review
+User can run `.\run-tui.bat` or `make run-tui` from terminal.
 
 ---
-*Last updated: 2026-10-20T20:12:15-04:00*
+*Last updated: 2026-10-23T12:20:00-04:00*

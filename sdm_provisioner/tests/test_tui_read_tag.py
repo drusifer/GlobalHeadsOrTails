@@ -1,12 +1,21 @@
+from unittest.mock import MagicMock
 import pytest
 
+from sdm_provisioner.service_key_manager import ServiceKeyManager
 from sdm_provisioner.tui.app import NtagProvisionerApp
 
 
+@pytest.fixture
+def mock_km():
+    km = MagicMock(spec=ServiceKeyManager)
+    km.list_tags.return_value = []
+    return km
+
+
 @pytest.mark.asyncio
-async def test_read_tag_navigation():
+async def test_read_tag_navigation(mock_km):
     """Test navigation to Read Tag screen."""
-    app = NtagProvisionerApp()
+    app = NtagProvisionerApp(key_manager=mock_km)
     async with app.run_test(size=(120, 40)) as pilot:
         # Check initial state
         assert app.screen.id == "menu"
@@ -26,9 +35,9 @@ async def test_read_tag_navigation():
 
 
 @pytest.mark.asyncio
-async def test_read_tag_screen_elements():
+async def test_read_tag_screen_elements(mock_km):
     """Test read tag screen has required elements."""
-    app = NtagProvisionerApp()
+    app = NtagProvisionerApp(key_manager=mock_km)
     async with app.run_test(size=(120, 40)) as pilot:
         # Navigate to screen
         await pilot.click("#btn_read")

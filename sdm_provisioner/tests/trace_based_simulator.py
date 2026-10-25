@@ -296,6 +296,8 @@ class MockNTag424CardConnection:
     
     Uses TraceBasedSimulator for responses.
     """
+
+    is_simulation = True
     
     def __init__(self, uid: bytes):
         """Args:

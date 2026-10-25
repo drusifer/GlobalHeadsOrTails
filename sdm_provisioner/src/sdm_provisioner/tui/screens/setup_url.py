@@ -195,7 +195,7 @@ class SetupUrlScreen(Screen):
                     log_view.write(
                         f"[bold cyan]━━━ {len(seq.steps)} commands | ✓ {success_count} success ━━━[/]"
                     )
-                    log_view.write("[bold green]Tag Status: provisioned[/]")
+                    log_view.write("[bold green]Tag Status: active[/]")
                     # Write full sequence diagram to log file
                     seq.log_to_file()
 

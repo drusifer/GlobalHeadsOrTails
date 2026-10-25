@@ -99,7 +99,7 @@ class NtagProvisionerApp(App):
         self,
         log_file: str | None = None,
         key_manager: ServiceKeyManager | CsvKeyManager | None = None,
-        strict: bool | None = None,
+        strict: bool = True,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -136,12 +136,10 @@ class NtagProvisionerApp(App):
         if key_manager is not None:
             self.key_manager = key_manager
         else:
-            is_pytest = "pytest" in sys.modules or "PYTEST_CURRENT_TEST" in os.environ
-            should_strict = strict if strict is not None else (not is_pytest)
             db_path = str(project_root / "data" / "app.db")
             self.key_manager = ServiceKeyManager(
                 db_path=db_path,
-                strict=should_strict,
+                strict=strict,
             )
 
         log = logging.getLogger(__name__)

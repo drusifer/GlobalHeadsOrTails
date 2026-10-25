@@ -6,13 +6,14 @@ import threading
 from datetime import datetime, timezone
 
 from ..models import TagSecret
-from .base import KeyConflictError
+from .base import KeyConflictError, TagKeyStore
 
 
-class MemorySecretStore:
+class MemorySecretStore(TagKeyStore):
     """Thread-safe in-memory key-value secret store with WORM and soft-delete semantics."""
 
     def __init__(self, initial_keys: dict[str, TagSecret] | None = None) -> None:
+        super().__init__()
         self._lock = threading.RLock()
         self._store: dict[str, TagSecret] = {}
         if initial_keys:

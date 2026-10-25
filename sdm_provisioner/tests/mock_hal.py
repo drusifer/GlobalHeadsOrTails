@@ -46,6 +46,8 @@ class MockCardConnection:
     - CLA=00 required for ISO commands, CLA=90 fails with SW=917E
     """
 
+    is_simulation = True
+
     def __init__(self):
         self.keys: dict[int, bytes] = {
             0: KEY_DEFAULT_FACTORY,

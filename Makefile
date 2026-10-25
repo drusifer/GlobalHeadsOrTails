@@ -1,5 +1,7 @@
 ifneq ("$(wildcard .venv/bin/python)","")
 PYTHON ?= .venv/bin/python
+else ifneq ("$(wildcard .venv/Scripts/python.exe)","")
+PYTHON ?= .venv\Scripts\python.exe
 else ifneq ("$(wildcard ntag424_sdm_provisioner/.venv/bin/python)","")
 PYTHON ?= ntag424_sdm_provisioner/.venv/bin/python
 else
@@ -13,7 +15,7 @@ export PYTHONPATH := $(CURDIR)/shared/src:$(CURDIR)/tag_validator_service/src:$(
 
 .PHONY: help chat
 help: ## Show available make targets
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "    \033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@$(PYTHON) -c "import re; [print(f'    \033[36m{m.group(1):<30}\033[0m {m.group(2)}') for line in open('Makefile', encoding='utf-8') if (m := re.match(r'^([a-zA-Z0-9_-]+):.*?## (.*)$$', line))]"
 
 chat: ## Post a message to CHAT.md (usage: make chat MSG="<msg>" [PERSONA="<name>"] [CMD="<cmd>"] [TO="<recipient>"])
 	@[ -n "$(MSG)" ] || { echo "Usage: make chat MSG=\"<message>\" [PERSONA=\"<name>\"] [CMD=\"<cmd>\"] [TO=\"<recipient>\"]"; exit 1; }

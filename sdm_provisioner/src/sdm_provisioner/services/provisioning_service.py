@@ -50,11 +50,29 @@ class ProvisioningService:
     def __init__(
         self,
         card: NTag424CardConnection,
-        key_mgr: CsvKeyManager,
+        key_mgr: object | None = None,
         progress_callback: Callable[[str], None] | None = None,
     ):
         self.card = card
-        self.key_mgr = key_mgr
+        # Pull key_store directly from HAL if not explicitly passed
+        self.key_mgr = key_mgr or getattr(card, "key_store", None)
+        if self.key_mgr is None:
+            from sdm_provisioner.service_key_manager import ServiceKeyManager
+
+            self.key_mgr = ServiceKeyManager()
+
+        # Enforce that real hardware HAL strictly requires the real persistent key store
+        is_sim = getattr(card, "is_simulation", False) or (os.environ.get("NTAG_SIMULATION") == "1")
+        if not is_sim:
+            from sdm_provisioner.service_key_manager import ServiceKeyManager
+
+            if not isinstance(self.key_mgr, ServiceKeyManager):
+                raise RuntimeError(
+                    f"CRITICAL HARDWARE KEY SAFETY RULE:\n"
+                    f"Provisioning real hardware with key manager '{self.key_mgr.__class__.__name__}' is forbidden.\n"
+                    f"Real hardware HAL requires the real persistent ServiceKeyManager connected to the cluster."
+                )
+
         self.progress_callback = progress_callback
 
     def _log(self, message: str):
@@ -359,11 +377,11 @@ class ProvisioningService:
             self._log("  Session ended.")
 
             # Update URL and status in database
-            current_keys.status = "provisioned"
+            current_keys.status = "active"
             current_keys.notes = base_url
             self.key_mgr.save_tag_keys(current_keys)
 
-            self._log("URL provisioning complete! Tag status: provisioned")
+            self._log("URL provisioning complete! Tag status: active")
             return True
 
         except Exception as e:

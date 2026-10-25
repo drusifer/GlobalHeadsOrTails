@@ -241,7 +241,7 @@ class ServiceKeyManager(KeyManager):
                 outcome=outcome,
                 coin_name=coin_name,
                 provisioned_date=secret.get("created_at", datetime.now(UTC).isoformat()),
-                status=secret.get("status", "provisioned"),
+                status=secret.get("status", "active"),
                 notes="Vaulted in tag_validator_service",
             )
 
@@ -265,7 +265,7 @@ class ServiceKeyManager(KeyManager):
         if k3 and k3 != "0" * 32 and "..." not in k3:
             k0 = tag_keys.picc_master_key or "0" * 32
             k1 = tag_keys.app_read_key or "0" * 32
-            status = tag_keys.status or "active"
+            status = "active" if tag_keys.status in ("provisioned", "active") else (tag_keys.status or "active")
             return self.client.save_key(clean_uid, k3=k3, k0=k0, k1=k1, status=status)
 
         return True
@@ -347,7 +347,7 @@ class ServiceKeyManager(KeyManager):
             raise
         finally:
             if success:
-                staged_keys.status = "keys_configured" if url is None else "provisioned"
+                staged_keys.status = "keys_configured" if url is None else "active"
                 staged_keys.notes = url or "Keys configured, ready for URL provisioning"
                 self.save_tag_keys(staged_keys)
 
@@ -362,7 +362,7 @@ class ServiceKeyManager(KeyManager):
             success = True
         finally:
             if success:
-                tag_keys.status = "provisioned"
+                tag_keys.status = "active"
                 tag_keys.notes = url
                 self.save_tag_keys(tag_keys)
 
@@ -445,7 +445,7 @@ class ServiceKeyManager(KeyManager):
                     outcome=outcome,
                     coin_name=coin_name,
                     provisioned_date=secret.get("created_at", datetime.now(UTC).isoformat()),
-                    status=secret.get("status", "provisioned"),
+                    status=secret.get("status", "active"),
                     notes="Vaulted in tag_validator_service",
                 )
             else:

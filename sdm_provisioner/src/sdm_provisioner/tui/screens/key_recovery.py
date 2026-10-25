@@ -77,17 +77,16 @@ class KeyRecoveryScreen(Screen):
 
     CSS = """
     KeyRecoveryScreen {
-        min-height: 48;
         height: 100%;
         width: 100%;
     }
 
     #main_container {
         width: 100%;
-        height: 100%;
-        min-height: 48;
+        height: 1fr;
         border: solid $primary;
         padding: 0 1;
+        overflow-y: auto;
     }
 
     #title_row {
@@ -131,7 +130,7 @@ class KeyRecoveryScreen(Screen):
     #candidates_section {
         width: 100%;
         height: 1fr;
-        min-height: 15;
+        min-height: 6;
         border: solid $primary;
     }
 
@@ -158,17 +157,18 @@ class KeyRecoveryScreen(Screen):
     }
 
     #button_row {
+        dock: bottom;
         width: 100%;
-        height: 5;
-        layout: grid;
-        grid-size: 6;
-        grid-gutter: 1;
-        padding: 1 0;
+        height: 3;
+        layout: horizontal;
     }
 
     #button_row Button {
-        width: 100%;
+        width: 1fr;
         height: 3;
+        min-width: 8;
+        margin: 0 1;
+        padding: 0;
     }
 
     .hidden {

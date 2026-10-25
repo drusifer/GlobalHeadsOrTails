@@ -704,12 +704,12 @@ class CsvKeyManager:
         issues = []
         if heads is None:
             issues.append("Missing heads tag")
-        elif heads.status not in ('provisioned', 'keys_configured'):
+        elif heads.status not in ('active', 'provisioned', 'keys_configured'):
             issues.append(f"Heads tag not provisioned (status: {heads.status})")
 
         if tails is None:
             issues.append("Missing tails tag")
-        elif tails.status not in ('provisioned', 'keys_configured'):
+        elif tails.status not in ('active', 'provisioned', 'keys_configured'):
             issues.append(f"Tails tag not provisioned (status: {tails.status})")
 
         return {

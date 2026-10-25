@@ -60,8 +60,8 @@ class DiagnosticsAdapter:
             registered = tag_status.db_keys is not None
             if registered:
                 db_status = tag_status.db_keys.status
-                if db_status == "provisioned":
-                    status = "Provisioned (Registered)"
+                if db_status in ("active", "provisioned"):
+                    status = "Active (Registered)"
                 elif db_status == "failed":
                     status = "Failed (Registered)"
                 else:

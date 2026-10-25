@@ -2,6 +2,8 @@
 
 ifneq ("$(wildcard ../.venv/bin/python)","")
 PYTHON ?= ../.venv/bin/python
+else ifneq ("$(wildcard ../.venv/Scripts/python.exe)","")
+PYTHON ?= ..\.venv\Scripts\python.exe
 else ifneq ("$(wildcard ../ntag424_sdm_provisioner/.venv/bin/python)","")
 PYTHON ?= ../ntag424_sdm_provisioner/.venv/bin/python
 else
@@ -14,18 +16,28 @@ IMAGE_NAME ?= $(IMAGE_REPO):$(VERSION)
 PORT ?= 8080
 NAMESPACE ?= tag-secrets
 
+export PYTHONPATH := src$(if $(PYTHONPATH),:$(PYTHONPATH))
+
 help: ## Show available make targets
 	@echo "Available targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
+	@echo "  test              Run unit and integration tests"
+	@echo "  lint              Run syntax and lint checks"
+	@echo "  run               Run service locally using Python WSGI server"
+	@echo "  docker-build      Build standalone container image"
+	@echo "  pkg               Alias for docker-build"
+	@echo "  verify-container  Verify container dependencies"
+	@echo "  export-image      Build, verify, and export container image tarball"
+	@echo "  seed-secrets      Seed tag keys from CSV into k3s secrets"
+	@echo "  clean             Clean cache and build artifacts"
 
 test: ## Run unit and integration tests
-	PYTHONPATH=src $(PYTHON) -m pytest tests/ -v
+	$(PYTHON) -m pytest tests/ -v
 
 lint: ## Run syntax and lint checks
 	$(PYTHON) -m ruff check src/ tests/
 
 run: ## Run service locally using Python WSGI server
-	PYTHONPATH=src $(PYTHON) -m tag_validator.api.app --host 0.0.0.0 --port $(PORT)
+	$(PYTHON) -m tag_validator.api.app --host 0.0.0.0 --port $(PORT)
 
 docker-build: ## Build standalone container image
 	docker build -t tag-validator-service -t $(IMAGE_NAME) .
@@ -49,7 +61,7 @@ export-image: pkg verify-container ## Build, verify, and export container image 
 
 seed-secrets: ## Seed tag keys from CSV into k3s secrets (usage: make seed-secrets CSV=tag_keys.csv [NS=tag-secrets])
 	@[ -n "$(CSV)" ] || { echo "Usage: make seed-secrets CSV=path/to/tag_keys.csv [NS=tag-secrets]"; exit 1; }
-	PYTHONPATH=src $(PYTHON) -m tag_validator.cli.importer "$(CSV)" --backend k3s --namespace $(NAMESPACE)
+	$(PYTHON) -m tag_validator.cli.importer "$(CSV)" --backend k3s --namespace $(NAMESPACE)
 
 clean: ## Clean cache and build artifacts
 	$(PYTHON) -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]; [p.unlink(missing_ok=True) for p in pathlib.Path('.').rglob('*.py[co]')]; [shutil.rmtree(p, ignore_errors=True) for p in ('.pytest_cache', 'build', 'dist') if pathlib.Path(p).exists()]"

@@ -171,10 +171,10 @@ def test_two_phase_provision_tag_with_url(mock_client, temp_db):
     with mgr.provision_tag(test_uid, url="https://game.heads-or-tails.app", coin_name="HAWK-1", outcome=Outcome.HEADS) as staged:
         assert staged.status == "pending"
 
-    # Succeeded -> status should be provisioned with URL note
+    # Succeeded -> status should be active with URL note
     assert mock_client.save_key.called
     saved_args = mock_client.save_key.call_args[1]
-    assert saved_args["status"] == "provisioned"
+    assert saved_args["status"] == "active"
 
 
 def test_provision_tag_failure_rolls_back(mock_client, temp_db):
