@@ -2,31 +2,33 @@
 
 ## Context
 > ## Recent Decisions
-> - Implemented dynamic runtime environment variable resolution in `tag_validator_service/src/tag_validator/config.py` using `dataclass(field(default_factory=...))`.
-> - Implemented `main()` CLI entrypoint with `--host`, `--port`, `--backend`, `--namespace`, and `--check` flags in `tag_validator_service/src/tag_validator/api/app.py`, matching `pyproject.toml` `[project.scripts] tag-validator = "tag_validator.api.app:main"`.
+> - Integrated real persistent `ServiceKeyManager` requirement into HAL and `ProvisioningService` for physical hardware.
 >
 > ## Key Findings
-> - `Config` previously evaluated `os.getenv(...)` at module import time rather than call time; switching to `default_factory` ensures container/runtime overrides take effect dynamically.
-> - Added `test_service_runtime.py` covering dynamic `get_config()` and `main(["--check"])` standalone verification.
-> - All 29 `tag_validator_service` tests pass and `ruff check` is 100% clean.
+> - `ProvisioningService.__init__` references `os.environ.get("NTAG_SIMULATION")` on line 65, but `import os` was omitted from module imports.
+> - This caused `NameError: name 'os' is not defined` when executing `ConfigureKeys` screen in TUI with real hardware.
+> - Reproduced deterministically with `ProvisioningService(Mock(is_simulation=False))`.
 >
 > ## Important Notes
-> - Per persona boundary rules, `Dockerfile`, `.dockerignore`, and `Makefile` deployment/container artifact targets are owned by Tank (`*devops infra`).
+> - Rule from Bob Protocol (`fix` / `*swe fix`): Diagnose first (actual vs expected, cause, proposed fix) and wait for user confirmation before changing code.
 
 ## Current Task
-**Status:** Complete — Handed off to Tank
-**Assigned to:** Tank
-**Started:** 2026-10-20T15:02:15-04:00
+**Status:** Complete — Handed off to Trin
+**Assigned to:** Trin
+**Started:** 2026-10-25T13:29:18-04:00
 
 ### Task Description
-Implement standalone `tag_validator_service` CLI entrypoint (`tag_validator.api.app:main`) and dynamic runtime configuration with TDD tests.
+Fix `NameError: name 'os' is not defined` in `sdm_provisioner/services/provisioning_service.py:65`.
 
 ### Progress
-- [x] Write failing tests in `tag_validator_service/tests/test_service_runtime.py` (Red)
-- [x] Update `tag_validator_service/src/tag_validator/config.py` for dynamic env var resolution (Green)
-- [x] Implement `main()` in `tag_validator_service/src/tag_validator/api/app.py` with `--check` mode (Green)
-- [x] Verify 29/29 unit tests and `ruff check` pass
-- [x] Hand off to Tank for `Dockerfile`, `.dockerignore`, and `Makefile` `pi-patch` artifact targets
+- [x] Reproduce bug deterministically with reproduction command
+- [x] Identify root cause: missing `import os` in `provisioning_service.py`
+- [x] Post diagnosis and proposed fix to `agents/CHAT.md`
+- [x] Receive user confirmation to apply fix
+- [x] Apply surgical fix: add `import os` to `provisioning_service.py` (and `from typing import Any` in `hal.py`)
+- [x] Add regression test in `sdm_provisioner/tests/test_provisioning_service_hardware_safety.py` (4 tests)
+- [x] Verify test suite passes via `sdm_provisioner/tests` (175/175 tests passing)
+- [x] Hand off to Trin (`*qa uat`)
 
 ### Blockers
 None
@@ -36,15 +38,16 @@ None
 
 ## Next Steps
 ### Immediate Next Action
-Tank (`*devops infra`) updates `tag_validator_service/Dockerfile`, `.dockerignore`, `tag_validator_service/Makefile`, and root `Makefile` (`pkg`, `verify-container`, `export-image`), builds the container, and exports the `pi-patch` tarball artifact.
+Trin (`*qa uat`) executes UAT verification and regression sweep across workspace.
 
 ### Waiting On
-Tank (`*devops infra`)
+Trin
 
 ### Planned Work
-- [ ] Tank (`*devops infra`): Update `Dockerfile`, `.dockerignore`, `Makefile` targets, and build/export container artifact
-- [ ] Trin (`*qa uat`): Run test suites and verify container artifact smoke test
-- [ ] Morpheus (`*lead review`): Review implementation and container packaging
+- [x] Apply fix: `import os` in `sdm_provisioner/src/sdm_provisioner/services/provisioning_service.py`
+- [x] Add regression unit test in `sdm_provisioner/tests/test_provisioning_service_safety.py`
+- [ ] Trin (`*qa uat`): Run full test suites and verify zero regressions
+- [ ] Morpheus (`*lead review`): Review surgical diff and close work-loop
 
 ---
-*Last updated: 2026-10-20T15:04:30-04:00*
+*Last updated: 2026-10-25T13:53:00-04:00*

@@ -31,7 +31,6 @@ from sdm_provisioner.hal import CardManager
 from sdm_provisioner.sequence_logger import create_sequence_logger
 
 
-def test_production_auth():
 @pytest.mark.hardware
 def test_production_auth(tmp_path):
     """Test production auth_session with verified crypto."""

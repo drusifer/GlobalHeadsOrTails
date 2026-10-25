@@ -5,6 +5,7 @@ import os
 import threading
 from collections.abc import Iterator
 from types import TracebackType
+from typing import Any
 
 from smartcard.CardConnection import CardConnection
 from smartcard.CardMonitoring import CardMonitor, CardObserver
