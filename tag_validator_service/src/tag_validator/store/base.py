@@ -9,6 +9,10 @@ class KeyConflictError(Exception):
     pass
 
 
+class CounterStoreError(Exception):
+    """The counter could not be read or written reliably; the caller must not treat the tap as used or fresh."""
+
+
 class TagKeyStore(ABC):
     """Abstract base class for managing tag key secrets with internal WORM semantics."""
 
@@ -56,6 +60,14 @@ class TagKeyStore(ABC):
     @abstractmethod
     def list_uids(self, include_deleted: bool = False) -> list[str]:
         """List managed tag UIDs (defaults to active only)."""
+        ...
+
+    @abstractmethod
+    def consume_counter(self, uid: str, counter: int) -> bool:
+        """Atomically record `counter` as the highest seen for `uid`.
+
+        True if it was strictly greater than anything recorded before (now recorded); False if it
+        is a replay. Raises CounterStoreError if the answer cannot be trusted."""
         ...
 
     @abstractmethod

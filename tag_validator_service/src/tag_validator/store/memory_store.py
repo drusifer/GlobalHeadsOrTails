@@ -16,6 +16,7 @@ class MemorySecretStore(TagKeyStore):
         super().__init__()
         self._lock = threading.RLock()
         self._store: dict[str, TagSecret] = {}
+        self._last_counter: dict[str, int] = {}
         if initial_keys:
             for k, v in initial_keys.items():
                 self._store[k.strip().upper()] = v
@@ -74,6 +75,14 @@ class MemorySecretStore(TagKeyStore):
             if include_deleted:
                 return sorted(list(self._store.keys()))
             return sorted([k for k, v in self._store.items() if v.status == "active"])
+
+    def consume_counter(self, uid: str, counter: int) -> bool:
+        clean_uid = uid.strip().replace(":", "").replace("-", "").upper()
+        with self._lock:
+            if counter <= self._last_counter.get(clean_uid, -1):
+                return False
+            self._last_counter[clean_uid] = counter
+            return True
 
     def is_healthy(self) -> bool:
         return True

@@ -18,7 +18,7 @@ from ..config import get_config
 from ..crypto.cmac_engine import generate_sdm_key, verify_sdm_cmac
 from ..models import TagSecret, ValidationResult
 from ..store import TagKeyStore, create_secret_store
-from ..store.base import KeyConflictError
+from ..store.base import CounterStoreError, KeyConflictError
 
 log = logging.getLogger(__name__)
 
@@ -117,7 +117,11 @@ class TagValidatorApp:
         counter = body.get("counter") if "counter" in body else body.get("ctr")
         cmac = body.get("cmac")
 
-        return self._execute_validation(uid, counter, cmac, start_response)
+        # Opt-in: only a real JSON `true` records the counter; GET never does. Existing callers
+        # (the coin game) send neither and keep today's stateless behaviour.
+        consume = body.get("consume") is True
+
+        return self._execute_validation(uid, counter, cmac, start_response, consume=consume)
 
     def _handle_validate_get(self, environ: dict[str, Any], start_response: Callable) -> list[bytes]:
         qs = parse_qs(environ.get("QUERY_STRING", ""))
@@ -133,6 +137,7 @@ class TagValidatorApp:
         counter_raw: Any,
         cmac_raw: Any,
         start_response: Callable,
+        consume: bool = False,
     ) -> list[bytes]:
         if not uid_raw or counter_raw is None or not cmac_raw:
             return self._json_response(
@@ -207,6 +212,23 @@ class TagValidatorApp:
             cmac_calculated=cmac_calc,
             error=None if is_valid else "CMAC mismatch",
         )
+
+        # Record the counter only after the CMAC is proven, so a forged tap cannot burn a real one.
+        if consume and is_valid:
+            try:
+                fresh = self.store.consume_counter(uid_str, counter)
+            except CounterStoreError:
+                log.exception("counter store failure for UID %s", uid_str)
+                return self._json_response(
+                    start_response,
+                    503,
+                    {"valid": False, "error": "Counter store unavailable; nothing was recorded"},
+                )
+            result.consumed = fresh
+            if not fresh:
+                result.valid = False
+                result.reason = "replayed"
+                result.error = "Counter already used"
         return self._json_response(start_response, 200, result.to_dict())
 
     def _handle_generate_key(self, environ: dict[str, Any], start_response: Callable) -> list[bytes]:

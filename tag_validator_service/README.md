@@ -54,6 +54,19 @@ Response (404 Not Found):
 ### 2. Validate CMAC (GET)
 `GET /api/v1/validate?uid=043F13E2151990&ctr=5&cmac=8841D6A4D9B0A352`
 
+GET is stateless and never records anything.
+
+### 2a. Validate and consume the counter (POST with `"consume": true`)
+Opt-in, for callers that must accept each tap once (for example tto). Send `"consume": true` (a JSON boolean; any other value is ignored and the request behaves as in section 1). The CMAC is checked first; only if it is valid is the counter recorded, so a forged tap cannot burn a real one. A counter is accepted only if it is strictly greater than every counter previously consumed for that tag.
+
+Fresh counter (200): the usual body plus `"consumed": true`.
+
+Replay (200): `{"valid": false, "reason": "replayed", "consumed": false, "error": "Counter already used", ...}`.
+
+Counter store failure (503): `{"valid": false, "error": "Counter store unavailable; nothing was recorded"}`. The counter is not recorded; retrying is safe.
+
+A caller must treat a `valid: true` without `"consumed": true` as not consumed (an older validator ignores the flag). Counters are kept in a separate Secret per tag (`tag-counter` component, `tag-ctr-<uid>`), never in the key Secret, and updated with Kubernetes compare-and-set, so any number of replicas agree. The in-memory backend keeps them in process memory (lost on restart; for tests only).
+
 ### 3. Key Management & Internal WORM Engine
 - `POST /api/v1/keys/generate`: Atomically generates a fresh CSPRNG AES-128 key and commits it directly to the WORM vault. Plaintext key is disclosed exactly once for burning to physical chip Key 3.
   ```json

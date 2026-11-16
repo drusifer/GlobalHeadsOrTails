@@ -8,9 +8,11 @@ from __future__ import annotations
 import logging
 
 from ..models import TagSecret
-from .base import TagKeyStore
+from .base import CounterStoreError, TagKeyStore
 
 log = logging.getLogger(__name__)
+
+_COUNTER_ATTEMPTS = 5
 
 try:
     from kubernetes import client as k8s_client  # type: ignore
@@ -259,6 +261,71 @@ class K3sSecretStore(TagKeyStore):
         except Exception as e:
             log.error(f"Unexpected error undeleting k3s Secret {secret_name}: {e}")
             return False
+
+    def consume_counter(self, uid: str, counter: int) -> bool:
+        """Record `counter` in the tag's own `tag-ctr-<uid>` Secret, never in the key Secret.
+
+        Kubernetes enforces compare-and-set: replace carries the resourceVersion we read, and a
+        concurrent writer makes it 409, so we re-read and decide again. This is what keeps two
+        validator replicas from both accepting the same counter."""
+        import base64
+
+        if not self._initialized or not self._v1:
+            raise CounterStoreError("k3s client not initialized")
+
+        clean_uid = uid.strip().replace(":", "").replace("-", "").upper()
+        name = f"tag-ctr-{clean_uid.lower()}"
+        for _ in range(_COUNTER_ATTEMPTS):
+            try:
+                current = self._v1.read_namespaced_secret(name=name, namespace=self.namespace)
+            except ApiException as e:
+                if e.status != 404:
+                    log.error(f"Error reading counter secret {name}: {e}")
+                    raise CounterStoreError(f"cannot read {name}") from e
+                current = None
+            except Exception as e:
+                log.error(f"Unexpected error reading counter secret {name}: {e}")
+                raise CounterStoreError(f"cannot read {name}") from e
+
+            if current is not None:
+                try:
+                    last = int(base64.b64decode((current.data or {})["last"]).decode())
+                except (KeyError, ValueError) as e:
+                    raise CounterStoreError(f"{name} is unreadable") from e
+                if counter <= last:
+                    return False
+
+            body = k8s_client.V1Secret(
+                api_version="v1",
+                kind="Secret",
+                type="Opaque",
+                metadata=k8s_client.V1ObjectMeta(
+                    name=name,
+                    namespace=self.namespace,
+                    labels={
+                        "app.kubernetes.io/name": "tag-validator-service",
+                        "app.kubernetes.io/component": "tag-counter",
+                        "tag-uid": clean_uid.lower(),
+                    },
+                    resource_version=current.metadata.resource_version if current else None,
+                ),
+                data={"last": base64.b64encode(str(counter).encode()).decode()},
+            )
+            try:
+                if current is None:
+                    self._v1.create_namespaced_secret(namespace=self.namespace, body=body)
+                else:
+                    self._v1.replace_namespaced_secret(name=name, namespace=self.namespace, body=body)
+                return True
+            except ApiException as e:
+                if e.status == 409:  # someone else won the race; look again
+                    continue
+                log.error(f"Error writing counter secret {name}: {e}")
+                raise CounterStoreError(f"cannot write {name}") from e
+            except Exception as e:
+                log.error(f"Unexpected error writing counter secret {name}: {e}")
+                raise CounterStoreError(f"cannot write {name}") from e
+        raise CounterStoreError(f"{name} stayed contended")
 
     def list_uids(self, include_deleted: bool = False) -> list[str]:
         if not self._initialized or not self._v1:

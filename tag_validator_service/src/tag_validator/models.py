@@ -141,6 +141,8 @@ class ValidationResult:
     cmac_received: str
     cmac_calculated: str | None = None
     error: str | None = None
+    reason: str | None = None  # "replayed" when a consuming request reused a counter
+    consumed: bool | None = None  # set only on consuming requests: was the counter recorded now?
 
     def to_dict(self) -> dict[str, Any]:
         res: dict[str, Any] = {
@@ -149,6 +151,10 @@ class ValidationResult:
             "counter": self.counter,
             "cmac_received": self.cmac_received,
         }
+        if self.reason:
+            res["reason"] = self.reason
+        if self.consumed is not None:
+            res["consumed"] = self.consumed
         if self.cmac_calculated:
             res["cmac_calculated"] = self.cmac_calculated
         if self.error:
