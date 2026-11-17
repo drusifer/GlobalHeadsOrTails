@@ -26,6 +26,12 @@ def tap(ctr: int, **extra):
     return {"uid": TEST_UID, "counter": ctr, "cmac": calculate_sdm_cmac(TEST_UID, ctr, TEST_K3), **extra}
 
 
+def test_healthz_advertises_what_this_validator_can_do(client):
+    status, body = client.get("/healthz")
+    assert status == 200 and body["features"] == ["consume"]
+    assert client.get("/health")[1]["features"] == ["consume"]
+
+
 def test_without_the_flag_nothing_is_recorded_and_the_same_counter_stays_valid(client):
     for _ in range(3):
         status, body = client.post("/api/v1/validate", tap(7))

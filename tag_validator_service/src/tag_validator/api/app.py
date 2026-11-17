@@ -22,6 +22,8 @@ from ..store.base import CounterStoreError, KeyConflictError
 
 log = logging.getLogger(__name__)
 
+FEATURES = ("consume",)
+
 
 class TagValidatorApp:
     """WSGI Application for stateless tag validation and k3s secret management."""
@@ -98,6 +100,8 @@ class TagValidatorApp:
             "status": "ok",
             "service": "tag-validator-service",
             "stateless": True,
+            # Optional behaviours a caller can rely on. tto refuses to report ready without "consume".
+            "features": list(FEATURES),
         })
 
     def _handle_readyz(self, start_response: Callable) -> list[bytes]:
