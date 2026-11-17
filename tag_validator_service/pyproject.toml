@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tag-validator-service"
-version = "0.2.0"
+version = "0.2.1"
 description = "Standalone microservice for managing NTAG 424 DNA tag keys as k3s secrets and performing stateless SDM CMAC validation"
 readme = "README.md"
 authors = [{ name = "GlobalHeadsOrTails Team" }]
