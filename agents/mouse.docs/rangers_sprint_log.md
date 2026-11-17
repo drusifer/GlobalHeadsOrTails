@@ -1,6 +1,6 @@
 # Rangers historical pack — implementation phases
 
-Approved stories: ../cypher.docs/rangers_stickers_sprint.md. Architecture: ../morpheus.docs/rangers_stickers_architecture.md. Smith Gate1/Gate2 passed. Snapshot1162players; one1162portraitset and3486formmetadata/CSSleveldesigns. PackIDrangers-history. No commit/build/deploy in scope.
+Approved stories: ../cypher/rangers_stickers_sprint.md. Architecture: ../morpheus/rangers_stickers_architecture.md. Smith Gate1/Gate2 passed. Snapshot1162players; one1162portraitset and3486formmetadata/CSSleveldesigns. PackIDrangers-history. No commit/build/deploy in scope.
 
 1. Data/catalog (Neo → Trin → Morpheus): import frozen career+season sources and reviewed rarity; create1162playerfamilies with sourced facts, separate role/competition/null stats and tenure; verify exact coverage/rarity/provenance.
 2. Pack service (Neo → Trin → Morpheus): indexed multi-pack registry preserving old IDs/wagers/replays; direct8/4/2/1 player draw and legacy policy; tests for archive awards and safe activation.
@@ -18,7 +18,7 @@ Phases1–4 approved: catalog1162/3486;145serverchecks; mobilepack/search/stats/
 
 ## Quota block and controlled resumption — 2026-10-07
 
-**BLOCKED — not released.** Image generation returned `usage_limit_reached` (HTTP429). At the stop checkpoint, 478 of 1,162 masters existed and 684 player IDs remained missing. All four managed lanes stopped cleanly. Reset: **2026-10-08 22:44:02 America/New_York** (2026-10-09 02:44:02 UTC; epoch1791513842). Exact missing IDs and evidence: `agents/neo.docs/rangers_art_blocker.json`; ignored quota report: `build/rangers-art/quota-report.json`. Packing the 478 existing masters does not satisfy full-art completeness. Twelve Clans remains active.
+**BLOCKED — not released.** Image generation returned `usage_limit_reached` (HTTP429). At the stop checkpoint, 478 of 1,162 masters existed and 684 player IDs remained missing. All four managed lanes stopped cleanly. Reset: **2026-10-08 22:44:02 America/New_York** (2026-10-09 02:44:02 UTC; epoch1791513842). Exact missing IDs and evidence: `agents/neo/rangers_art_blocker.json`; ignored quota report: `build/rangers-art/quota-report.json`. Packing the 478 existing masters does not satisfy full-art completeness. Twelve Clans remains active.
 
 The 147 server checks, isolated active-Rangers browser flow and Smith flow approval validate preparation only. They do not authorize a partial release, partial-package acceptance or launch.
 

@@ -11,14 +11,14 @@ Backend review2026-10-07: recheck root closing GET oddsreader SQLite connection;
 @Neo/root: run new yield authorization race regression and full server checks, receive Smith browser gate, verify all 36 packed images, then hand final documentation and sprint closure to Oracle/Mouse. No remaining architecture blocker after re-reviewed fix. Do not ship unintended tracked database changes.
 # Rangers next steps
 
-1. Smith explicitly approve/reject agents/morpheus.docs/rangers_stickers_architecture.md Gate2.
+1. Smith explicitly approve/reject agents/morpheus/rangers_stickers_architecture.md Gate2.
 2. On approval, Mouse creates1–3task phases from six-phase outline; Morpheus reviews actual plan before Neo.
 3. Oracle records stable multi-pack/no-migration, direct normalized weights, source coverage and all-assets-before-activation decisions.
 4. Art scope sample gate and full1162/3486 verification cannot be bypassed. Preserve legacy paths, UID+counter replay and coin-name identity.
 
 2026-10-07 revision: root/Smith clarified one unique portrait WebP per player shared by all three form.image references; three CSS frame/shape/level-label treatments, never color alone. Pack ID is rangers (aligned with Cypher manifest). Architecture updated; no duplicated form bitmaps. Request explicit Smith Gate2 then review root/Mouse plan.
 
-2026-10-07 final planning approval: Smith Gate2 explicit22:32:28 read; Mouse agents/mouse.docs/rangers_sprint_log.md six short phases reviewed APPROVED. Canonical pack ID rangers-history supersedes earlier draft rangers and matches frozen rarity manifest. Neo phase1 authorized: frozen source importer/catalog/coverage checks. Oldpack remains active through phases1–5; six-player Smith visual gate before full production;1162WebPs/3486form refs mandatory activation gate. Next Morpheus reviews phase1 after Trin evidence; no app code edited.
+2026-10-07 final planning approval: Smith Gate2 explicit22:32:28 read; Mouse agents/mouse/rangers_sprint_log.md six short phases reviewed APPROVED. Canonical pack ID rangers-history supersedes earlier draft rangers and matches frozen rarity manifest. Neo phase1 authorized: frozen source importer/catalog/coverage checks. Oldpack remains active through phases1–5; six-player Smith visual gate before full production;1162WebPs/3486form refs mandatory activation gate. Next Morpheus reviews phase1 after Trin evidence; no app code edited.
 
 2026-10-07 phase1 review APPROVED after Trin131-servercheck gate22:36:13: imported1162-ID union/3486forms, team-onlyknown totals, separate mixedroles/nulls, sourcedfacts,35rarityoverrides and8197totalweight correct. API phase2 refinement approved: alwayspackheaders/totals/policy, familiesmetadataowned-only; backendfullunioncache and decoratedhistoricalstakes retained. Follow-upbeforeclose: season-source URL provenance (currentlyseasons-audithashonly). Neo phase2 authorized; nextreview afterTrin. No appcode edits by reviewer.
 

@@ -2,7 +2,7 @@
 
 **Author:** Morpheus
 **Date:** 2026-04-22
-**PRD:** `agents/cypher.docs/custom_messages_prd.md`
+**PRD:** `agents/cypher/custom_messages_prd.md`
 
 ---
 

@@ -15,7 +15,7 @@ Type `*help` anytime to see this. One AI switches between 8 specialized personas
 ## The Team
 
 ### Bob — Prompt Engineer
-`agents/bob.docs/SKILL.md` · prefix: `*new` / `*reprompt` / `*learn`
+`agents/bob/SKILL.md` · prefix: `*new` / `*reprompt` / `*learn`
 
 | Command | Action |
 |---------|--------|
@@ -25,7 +25,7 @@ Type `*help` anytime to see this. One AI switches between 8 specialized personas
 | `*help` | Show this reference |
 
 ### Cypher — Product Manager
-`agents/cypher.docs/SKILL.md` · prefix: `*pm`
+`agents/cypher/SKILL.md` · prefix: `*pm`
 
 | Command | Action |
 |---------|--------|
@@ -36,7 +36,7 @@ Type `*help` anytime to see this. One AI switches between 8 specialized personas
 | `*pm doc <topic>` | Create a PRD or product document |
 
 ### Morpheus — Tech Lead
-`agents/morpheus.docs/SKILL.md` · prefix: `*lead`
+`agents/morpheus/SKILL.md` · prefix: `*lead`
 
 | Command | Action |
 |---------|--------|
@@ -47,7 +47,7 @@ Type `*help` anytime to see this. One AI switches between 8 specialized personas
 | `*lead refactor <target>` | Plan a refactoring strategy |
 
 ### Neo — Software Engineer
-`agents/neo.docs/SKILL.md` · prefix: `*swe`
+`agents/neo/SKILL.md` · prefix: `*swe`
 
 | Command | Action |
 |---------|--------|
@@ -57,7 +57,7 @@ Type `*help` anytime to see this. One AI switches between 8 specialized personas
 | `*swe refactor <target>` | Refactor code |
 
 ### Oracle — Knowledge Officer
-`agents/oracle.docs/SKILL.md` · prefix: `*ora`
+`agents/oracle/SKILL.md` · prefix: `*ora`
 
 | Command | Action |
 |---------|--------|
@@ -69,7 +69,7 @@ Type `*help` anytime to see this. One AI switches between 8 specialized personas
 | `*ora archive` | Archive old CHAT.md messages |
 
 ### Trin — QA Guardian
-`agents/trin.docs/SKILL.md` · prefix: `*qa`
+`agents/trin/SKILL.md` · prefix: `*qa`
 
 | Command | Action |
 |---------|--------|
@@ -80,7 +80,7 @@ Type `*help` anytime to see this. One AI switches between 8 specialized personas
 | `*qa repro <issue>` | Reproduce a bug |
 
 ### Mouse — Scrum Master
-`agents/mouse.docs/SKILL.md` · prefix: `*sm`
+`agents/mouse/SKILL.md` · prefix: `*sm`
 
 | Command | Action |
 |---------|--------|
@@ -94,7 +94,7 @@ Type `*help` anytime to see this. One AI switches between 8 specialized personas
 | `*sm velocity` | Team velocity metrics |
 
 ### Smith — Expert User & UX Advocate
-`agents/smith.docs/SKILL.md` · prefix: `*user`
+`agents/smith/SKILL.md` · prefix: `*user`
 
 | Command | Action |
 |---------|--------|

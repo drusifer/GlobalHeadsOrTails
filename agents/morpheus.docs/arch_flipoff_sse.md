@@ -5,7 +5,7 @@
 **Status:** ~~Proposed~~ **SUPERSEDED — 2026-04-22**
 
 > **This design was replaced.** SSE was removed in favour of two-endpoint polling.
-> See `agents/morpheus.docs/context.md` for the current architecture decision.
+> See `agents/morpheus/context.md` for the current architecture decision.
 > New endpoints: `GET /api/flips/since` (cheap check) + `GET /api/state` (full payload).
 
 ---

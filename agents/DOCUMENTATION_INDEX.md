@@ -12,9 +12,9 @@
 
 - [Feature guide and validation commands](../docs/COLLECTABLES.md)
 - [Accepted requirements, PRD §16](../docs/PRD.md)
-- [Sprint stories and architecture](cypher.docs/collectables_sprint.md)
-- [Entropy-weighted awards stories and architecture](cypher.docs/entropy_stickers_sprint.md)
-- [Smith faction catalog and UX criteria](smith.docs/collectables_catalog.md)
+- [Sprint stories and architecture](cypher/collectables_sprint.md)
+- [Entropy-weighted awards stories and architecture](cypher/entropy_stickers_sprint.md)
+- [Smith faction catalog and UX criteria](smith/collectables_catalog.md)
 
 ## Quick Access
 
@@ -88,14 +88,14 @@ Located in `agents/templates/`:
 ---
 
 ## Coin Administration & Game Server
-- [Coin Administration Sprint Plan](cypher.docs/coin_admin_sprint.md)
-- [Coin Administration Architecture Specification](morpheus.docs/arch_coin_admin.md)
+- [Coin Administration Sprint Plan](cypher/coin_admin_sprint.md)
+- [Coin Administration Architecture Specification](morpheus/arch_coin_admin.md)
 - [Coin Administration Routes](../game_server/src/game_server/admin_routes.py)
 - [Coin Administration Dashboard](../game_server/src/game_server/templates/admin_coins.html)
 
 ## Key Manager Integration & Provisioner
-- [SDM Provisioner Key Manager Integration Sprint Plan](cypher.docs/key_manager_integration_sprint.md)
-- [Key Manager Integration Architecture Specification](morpheus.docs/arch_key_manager_integration.md)
+- [SDM Provisioner Key Manager Integration Sprint Plan](cypher/key_manager_integration_sprint.md)
+- [Key Manager Integration Architecture Specification](morpheus/arch_key_manager_integration.md)
 - [SDM Provisioner ServiceKeyManager](../sdm_provisioner/src/sdm_provisioner/service_key_manager.py)
 
 ## Project Knowledge Base (`docs/`)

@@ -12,7 +12,7 @@ Rangers Gate1 approved 2026-10-07: Oracle1162-ID snapshot, weights8/4/2/1, onepo
 ## Entropy sticker sprint — 2026-10-07
 Extended actual browser evidence: root session51070 PASS additionally exercised mature balanced history showing50%, p1, explicit test-mode label, and genuine history unchanged at100 after test flips. All recommended UI states now verified in actual mobile browser. Smith retrospective: agreeing warm-up terminology and both-UID ownership before implementation prevented misleading score labels; actual screenshot review caught the at100 wording mismatch. Keep explicit probability ranges and test-isolation text in future odds features.
 Final running UX approved: root session89780 make test_sticker_ui passed actual mobile album/drop/evolution/wager regression plus physical-flip guidance/current5%/warm-up. Smith inspected refreshed ntag424_sdm_provisioner/build/collectables-mobile.png: existing tabs/styles consistent, personal chance readable, no overflow. Fixed wording at100 (not after100) in template/JS. Mature50% and test label code-reviewed; no separate browser state assertion claimed. No remaining UX blocker.
-Reviewed agents/cypher.docs/entropy_stickers_sprint.md. Explicit Gate 1 and Gate 2 approvals posted via make chat at 20:46 UTC. Policy accepted: exact unpadded coin-name Heads/Tails counts across both UIDs; entropy immediately, neutral p multiplier below100 true observations, p=erfc thereafter; chance=.5*max(.1,H/8*p_weight), 5%-50%; genuine history excludes tests, test awards use test-inclusive history. Borrowed transaction, current flip included, persisted replay snapshot. Approval is design only, not running-feature approval.
+Reviewed agents/cypher/entropy_stickers_sprint.md. Explicit Gate 1 and Gate 2 approvals posted via make chat at 20:46 UTC. Policy accepted: exact unpadded coin-name Heads/Tails counts across both UIDs; entropy immediately, neutral p multiplier below100 true observations, p=erfc thereafter; chance=.5*max(.1,H/8*p_weight), 5%-50%; genuine history excludes tests, test awards use test-inclusive history. Borrowed transaction, current flip included, persisted replay snapshot. Approval is design only, not running-feature approval.
 Required UX: visible physical-flip encouragement above collapsed rules; current chance with next-flip caveat; explicit early-history p-value warm-up; test-mode label clarifying real odds ignore tests. Replace independent fixed50% copy. Balance scores do not prove physical randomness or prevent intentional alternating. Preserve tab styling, tap-only owned stickers, clan lore, rarity/evolution behavior.
 
 ## Recent Decisions
@@ -26,7 +26,7 @@ Architecture approved: individual inventory IDs, atomic transactions, challenge 
 UI distinguishes rarity from level, shows counts and locks, explains 3-copy consumption and loss risk, and uses labeled mobile controls at least 44px tall. 50% never promises a drop every second flip.
 
 ## Important Notes
-No running-app usability approval claimed. Prior mobile opponent selector truncation/small targets/input zoom feedback remains relevant. Catalog: agents/smith.docs/collectables_catalog.md.
+No running-app usability approval claimed. Prior mobile opponent selector truncation/small targets/input zoom feedback remains relevant. Catalog: agents/smith/collectables_catalog.md.
 Last updated: 2026-10-06
 
 ## Running-app acceptance 2026-10-06

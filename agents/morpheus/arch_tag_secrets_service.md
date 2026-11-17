@@ -1,6 +1,6 @@
 # Architecture Specification: Tag Validator & K3s Secrets Microservice
 
-**Document**: `agents/morpheus.docs/arch_tag_secrets_service.md`  
+**Document**: `agents/morpheus/arch_tag_secrets_service.md`  
 **Author**: Morpheus (Tech Lead)  
 **Date**: 2026-10-18  
 **Status**: COMPLETE — SUBMITTED FOR GATE 2 (SMITH UX/API REVIEW)  

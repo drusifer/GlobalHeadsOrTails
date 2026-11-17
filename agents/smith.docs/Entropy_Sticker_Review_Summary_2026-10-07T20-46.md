@@ -2,7 +2,7 @@
 
 Extended final evidence: root session51070 actual mobile browser PASS additionally verifies mature balanced50% with p1, explicit test-mode label, and genuine history remaining100 after test flips. This supersedes earlier code-review-only scope for those states. All recommended UI states verified. Retrospective: explicit warm-up and shared identity criteria before coding reduced ambiguity; screenshot review caught at100 terminology. Preserve truthful variable odds and test isolation in future game changes.
 
-Gate1 stories and Gate2 architecture explicitly approved through make chat after reviewing agents/cypher.docs/entropy_stickers_sprint.md. No app edits made. Both face UIDs share coin_name ownership/history. Exact-count weighting avoids synthetic padding. Replay preserves prior odds; genuine history excludes tests. Warm-up avoids applying monobit before100 observations.
+Gate1 stories and Gate2 architecture explicitly approved through make chat after reviewing agents/cypher/entropy_stickers_sprint.md. No app edits made. Both face UIDs share coin_name ownership/history. Exact-count weighting avoids synthetic padding. Replay preserves prior odds; genuine history excludes tests. Warm-up avoids applying monobit before100 observations.
 
 Browser acceptance recommendations:
 - No tap: season narrative and physical-flip guidance visible, no sticker images or personal chance.

@@ -3,7 +3,7 @@
 **Owner**: Morpheus (Tech Lead)  
 **Date**: 2026-10-20  
 **Status**: Stage 1 - Sprint Planning (Gate 2 Review)  
-**Related**: `docs/DECISIONS.md` (Decisions 9, 10), `agents/cypher.docs/key_manager_integration_sprint.md`  
+**Related**: `docs/DECISIONS.md` (Decisions 9, 10), `agents/cypher/key_manager_integration_sprint.md`  
 
 ---
 
