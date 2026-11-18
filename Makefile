@@ -9,7 +9,7 @@ PYTHON ?= python3
 endif
 
 VERSION ?= latest
-export PYTHONPATH := $(CURDIR)/shared/src:$(CURDIR)/tag_validator_service/src:$(CURDIR)/sdm_provisioner/src:$(CURDIR)/game_server/src$(if $(PYTHONPATH),:$(PYTHONPATH))
+export PYTHONPATH := $(CURDIR)/game_server/src$(if $(PYTHONPATH),:$(PYTHONPATH))
 
 .DEFAULT_GOAL := help
 
@@ -91,8 +91,25 @@ test-sdm-provisioner: ## Run tests for sdm_provisioner
 test-game-server: ## Run tests for game_server
 	$(PYTHON) -m pytest game_server/tests -v
 
-install-all: ## Install all workspace packages in editable mode
-	pipx install -e shared -e tag_validator_service -e sdm_provisioner -e game_server
+# ntag-tools (tag validator, provisioner, shared, ntag-keys) lives in its own repo; the game uses its wheels.
+NTAG_TOOLS   ?= $(HOME)/Projects/ntag-tools
+NTAG_WHEELS  ?= $(NTAG_TOOLS)/dist
+NTAG_VERSION := 0.3.0
+
+.PHONY: venv vendor-ntag-wheels
+venv: ## Create .venv with the game's dependencies and the ntag-tools wheels (run `make dist` in ntag-tools first)
+	python3 -m venv .venv
+	.venv/bin/pip install -U pip
+	.venv/bin/pip install flask pillow coolname pycryptodome gunicorn pytest pytest-cov pytest-asyncio ruff
+	.venv/bin/pip install --find-links $(NTAG_WHEELS) "shared==$(NTAG_VERSION)" "ntag-keys==$(NTAG_VERSION)" "tag-validator-service==$(NTAG_VERSION)"
+
+vendor-ntag-wheels: ## Copy the ntag-tools wheels the game image needs into build/wheels
+	@ls $(NTAG_WHEELS)/shared-$(NTAG_VERSION)-*.whl $(NTAG_WHEELS)/ntag_keys-$(NTAG_VERSION)-*.whl $(NTAG_WHEELS)/tag_validator_service-$(NTAG_VERSION)-*.whl >/dev/null || { echo "Missing ntag-tools wheels in $(NTAG_WHEELS): run 'make dist' in $(NTAG_TOOLS)"; exit 1; }
+	@rm -rf build/wheels && mkdir -p build/wheels
+	cp $(NTAG_WHEELS)/shared-$(NTAG_VERSION)-*.whl $(NTAG_WHEELS)/ntag_keys-$(NTAG_VERSION)-*.whl $(NTAG_WHEELS)/tag_validator_service-$(NTAG_VERSION)-*.whl build/wheels/
+
+install-all: ## Install the game in editable mode into .venv (after `make venv`)
+	.venv/bin/pip install -e game_server
 
 run-game-server: ## Run Flask game server
 	$(PYTHON) -m game_server.app
@@ -117,7 +134,7 @@ export-tag-validator-image: ## Build, verify, and export tag_validator_service c
 
 GAME_SERVER_IMAGE ?= localhost/game-server
 
-export-game-server-image: ## Build, boot-check (read-only, no network) and export the game_server image -> dist/game-server-$(VERSION).tar
+export-game-server-image: vendor-ntag-wheels ## Build, boot-check (read-only, no network) and export the game_server image -> dist/game-server-$(VERSION).tar
 	docker build -f game_server/Dockerfile --ignorefile game_server/Dockerfile.dockerignore -t $(GAME_SERVER_IMAGE):$(VERSION) .
 	docker run --rm --network none --read-only --tmpfs /tmp --tmpfs /app/data:rw,mode=1777 \
 		-e TAG_VALIDATOR_URL=http://127.0.0.1:9 --entrypoint sh $(GAME_SERVER_IMAGE):$(VERSION) \
