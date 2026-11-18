@@ -44,11 +44,8 @@ rangers-roster-seasons: ## Audit first/last NYR seasons against the frozen roste
 rangers-catalog: ## Build full Rangers catalog from frozen NHL snapshot
 	$(PYTHON) tools/rangers_catalog.py
 
-.PHONY: test-all test-shared test-tag-validator test-sdm-provisioner test-game-server install-all run-game-server run-tui run-tag-validator pkg-tag-validator verify-tag-validator-container export-tag-validator-image export-game-server-image install-art art-status art-generate art-pack art-review art-verify
-test-all: ## Run full test suites across all packages and tools
-	$(PYTHON) -m pytest shared/tests -v
-	$(PYTHON) -m pytest tag_validator_service/tests -v
-	$(PYTHON) -m pytest sdm_provisioner/tests -v
+.PHONY: test-all test-game-server install-all run-game-server export-game-server-image install-art art-status art-generate art-pack art-review art-verify
+test-all: ## Run the game's test suite (the tag tools are tested in ntag-tools)
 	$(PYTHON) -m pytest game_server/tests -v
 
 # Sticker art is made with artai, pip-installed (editable) from a sibling checkout
@@ -79,15 +76,6 @@ art-review: install-art ## Build the HTML review contact sheet (MANIFEST=...)
 art-verify: install-art ## Check every sticker exists, fits and is real art (MANIFEST=...)
 	$(ARTAI) verify $(ART_MANIFEST)
 
-test-shared: ## Run tests for shared contracts package
-	$(PYTHON) -m pytest shared/tests -v
-
-test-tag-validator: ## Run tests for tag_validator_service
-	$(PYTHON) -m pytest tag_validator_service/tests -v
-
-test-sdm-provisioner: ## Run tests for sdm_provisioner
-	$(PYTHON) -m pytest sdm_provisioner/tests -v
-
 test-game-server: ## Run tests for game_server
 	$(PYTHON) -m pytest game_server/tests -v
 
@@ -114,24 +102,6 @@ install-all: ## Install the game in editable mode into .venv (after `make venv`)
 run-game-server: ## Run Flask game server
 	$(PYTHON) -m game_server.app
 
-run-tui: ## Run Textual SDM Provisioner TUI
-	$(PYTHON) -m sdm_provisioner.tui.tui_main
-
-run-tag-validator: ## Run Tag Validator Service locally
-	$(MAKE) -C tag_validator_service run
-
-pkg-tag-validator: ## Build standalone container image for tag_validator_service
-	$(MAKE) -C tag_validator_service pkg VERSION=$(VERSION)
-
-verify-tag-validator-container: ## Verify tag_validator_service container dependencies and Gunicorn WSGI boot
-	$(MAKE) -C tag_validator_service verify-container VERSION=$(VERSION)
-
-export-tag-validator-image: ## Build, verify, and export tag_validator_service container tarball for pi-patch
-	$(MAKE) -C tag_validator_service export-image VERSION=$(VERSION)
-	@mkdir -p dist
-	@cp -f tag_validator_service/dist/tag-validator-service-$(VERSION).tar dist/tag-validator-service-$(VERSION).tar
-	@echo "Artifact ready for pi-patch -> dist/tag-validator-service-$(VERSION).tar"
-
 GAME_SERVER_IMAGE ?= localhost/game-server
 
 export-game-server-image: vendor-ntag-wheels ## Build, boot-check (read-only, no network) and export the game_server image -> dist/game-server-$(VERSION).tar
@@ -153,6 +123,5 @@ FORGEJO_PUBLISH := $(PI_PATCH)/cluster/scripts/forgejo-publish.sh
 FORGEJO_VERSION ?= $(shell git describe --tags --always --dirty)
 
 .PHONY: deploy-forgejo
-deploy-forgejo: export-tag-validator-image export-game-server-image ## Build and publish the tag-validator-service and game-server images to pi-patch Forgejo
-	$(FORGEJO_PUBLISH) image dist/tag-validator-service-$(VERSION).tar tag-validator-service $(FORGEJO_VERSION)
+deploy-forgejo: export-game-server-image ## Build and publish the game-server image to pi-patch Forgejo (the validator image is published from ntag-tools)
 	$(FORGEJO_PUBLISH) image dist/game-server-$(VERSION).tar game-server $(FORGEJO_VERSION)
