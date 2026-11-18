@@ -75,6 +75,10 @@ class IGameStateManager(ABC):
         pass
 
 
+class CoinAssignmentError(ValueError):
+    """A tag cannot be assigned to this coin or side; the message says why."""
+
+
 class SqliteGameStateManager(IGameStateManager):
     """Manages game state persistence using SQLite."""
 
@@ -161,9 +165,30 @@ class SqliteGameStateManager(IGameStateManager):
         clan: str = "",
         rarity: str = "common",
     ) -> None:
-        """Stores or updates first-class coin identity in app.db."""
+        """Assigns a tag to a coin side in app.db, enforcing the coin rules.
+
+        A coin is exactly two tags: one heads, one tails. Refused (CoinAssignmentError) when the
+        side is already taken by another tag, the tag already belongs to another coin, or the
+        side is not heads/tails. Re-assigning a tag to what it already has is a no-op.
+        """
         uid = uid.upper()
+        side = (outcome or "").strip().lower()
+        if side not in ("", "heads", "tails"):
+            raise CoinAssignmentError(f"A coin side must be heads or tails, got '{outcome}'")
         with self._get_conn() as conn:
+            row = conn.execute("SELECT coin_name FROM coins WHERE uid = ?", (uid,)).fetchone()
+            if row and row[0].upper() != coin_name.upper():
+                raise CoinAssignmentError(f"UID '{uid}' is already assigned to coin '{row[0]}'")
+            if side:
+                taken = conn.execute(
+                    "SELECT uid FROM coins WHERE UPPER(coin_name) = UPPER(?) AND LOWER(outcome) = ? AND uid != ?",
+                    (coin_name, side, uid),
+                ).fetchone()
+                if taken:
+                    raise CoinAssignmentError(
+                        f"Coin '{coin_name}' already has a {side} tag (UID: {taken[0]}); "
+                        f"cannot assign UID '{uid}' as {side} as well"
+                    )
             conn.execute("""
                 INSERT INTO coins (uid, coin_name, outcome, clan, rarity)
                 VALUES (?, ?, ?, ?, ?)
@@ -172,8 +197,33 @@ class SqliteGameStateManager(IGameStateManager):
                     outcome=CASE WHEN excluded.outcome != '' THEN excluded.outcome ELSE outcome END,
                     clan=CASE WHEN excluded.clan != '' THEN excluded.clan ELSE clan END,
                     rarity=CASE WHEN excluded.rarity != '' THEN excluded.rarity ELSE rarity END
-            """, (uid, coin_name, outcome, clan, rarity))
+            """, (uid, coin_name, side, clan, rarity))
             conn.commit()
+
+    def get_side(self, uid: str) -> str:
+        """'heads', 'tails' or 'unassigned' (a tag with no coin side is never reported as a side)."""
+        row = self.get_coin(uid)
+        side = (row or {}).get("outcome", "").lower()
+        return side if side in ("heads", "tails") else "unassigned"
+
+    def import_coin_assignments(self, rows) -> dict:
+        """Carry coin names and sides from (uid, coin_name, outcome) rows into the registry.
+
+        Idempotent. Rows without a coin name or a heads/tails side are skipped; rows that break a
+        coin rule are reported in `conflicts` and never overwrite what is already registered.
+        """
+        report = {"imported": 0, "skipped": 0, "conflicts": []}
+        for uid, coin_name, outcome in rows:
+            side = (outcome or "").strip().lower()
+            if not coin_name or side not in ("heads", "tails"):
+                report["skipped"] += 1
+                continue
+            try:
+                self.set_coin(uid, coin_name, outcome=side)
+                report["imported"] += 1
+            except CoinAssignmentError as e:
+                report["conflicts"].append(str(e))
+        return report
 
     def get_coin(self, uid: str) -> dict | None:
         """Retrieves coin identity from app.db."""

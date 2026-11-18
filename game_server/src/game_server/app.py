@@ -41,6 +41,18 @@ def init_managers(
         app.key_manager = CsvKeyManager(csv_path=key_csv_path)
 
     app.game_manager = SqliteGameStateManager(db_path=db_path)
+    if isinstance(app.key_manager, CsvKeyManager):
+        # Coin names and sides live in the game's own registry; carry over any a legacy key CSV holds.
+        try:
+            tags = app.key_manager.list_tags()
+        except Exception as e:  # noqa: BLE001 - a missing/odd key CSV must not stop the game starting
+            log.warning("[COIN REGISTRY] Could not read coin data from key CSV: %s", e)
+            tags = []
+        report = app.game_manager.import_coin_assignments(
+            (t.uid.uid, t.coin_name, t.outcome.value) for t in tags
+        )
+        for conflict in report["conflicts"]:
+            log.warning("[COIN REGISTRY] Not imported from key CSV: %s", conflict)
     app.sticker_service = StickerService(db_path=db_path)
     app.flip_off_service = FlipOffService(db_path=db_path, sticker_service=app.sticker_service)
     app.coin_message_service = CoinMessageService(db_path=db_path)
@@ -227,6 +239,7 @@ def create_app(
         joke = get_random_joke() if new_outcome_str.lower() in ("heads", "tails") else None
         return {
             "outcome": new_outcome_str.upper(),
+            "assignment": new_outcome_str.lower() if new_outcome_str.lower() in ("heads", "tails") else "unassigned",
             "coin_name": coin_name,
             "joke": joke,
             "challenge": challenge,
