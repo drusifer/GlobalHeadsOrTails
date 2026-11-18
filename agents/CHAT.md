@@ -1829,3 +1829,95 @@ Artifact ready for pi-patch -> dist/tag-validator-service-latest.tar
 ---
 [<small>2026-11-16 20:11:11</small>] [**Bob**]->[**all**] *init*:
  Bob Protocol initialized. Links synced; last work (tag_validator container export) complete and approved. Team ready, awaiting user direction.
+
+---
+[<small>2026-11-17 16:21:13</small>] [**User**]->[**all**] *request*:
+ /sprint see docs/PROPOSAL_KEY_CUSTODY.md
+
+---
+[<small>2026-11-17 16:28:15</small>] [**Cypher**]->[**Smith**] *pm handoff*:
+ Sprint 1 stories drafted (KC-1..4, 21 pts, proposal parts 1-3, shared pkg extracted now, CSV default + k3s extra). docs/sprints/USER_STORIES_SPRINT1.md. @Smith *user review sprint 1
+
+---
+[<small>2026-11-17 16:29:35</small>] [**Cypher**]->[**User**] *pm handoff*:
+ Stories revised: added KC-0 (move validator+provisioner+shared key pkg to new repo, fresh start, Phase 0; sprint runs there). 26 pts. Blocked on owner creating the empty repo and giving its path. @Smith *user review sprint 1 once repo exists
+
+---
+[<small>2026-11-17 19:36:40</small>] [**Cypher**]->[**Smith**] *pm handoff*:
+ New repo ntag-tools cloned to ~/Projects/ntag-tools (LICENSE only). KC-0 unblocked. Open: where shared/ goes. @Smith *user review sprint 1
+
+---
+[<small>2026-11-17 19:38:28</small>] [**Cypher**]->[**Smith**] *pm handoff*:
+ Owner: move shared/ to ntag-tools unchanged. KC-0 and assumptions updated; game_server consumes shared + tag-validator-service from registry. @Smith *user review sprint 1
+
+---
+[<small>2026-11-17 19:39:03</small>] [**Cypher**]->[**Smith**] *pm handoff*:
+ Owner: Outcome stays in game. shared/ moves w/o Outcome (UID, TagKeys, mask_key; TagKeys loses outcome). Open: provisioner CSV outcome column (Open Q 0). @Smith *user review sprint 1
+
+---
+[<small>2026-11-17 19:40:47</small>] [**Cypher**]->[**Smith**] *pm handoff*:
+ Owner: coins are separate from tags; a coin has two non-equivalent tags (heads/tails). Tag tools know no coins/outcome. Added KC-5 (game coin registry), KC-3 AC6; 31 pts. @Smith *user review sprint 1
+
+---
+[<small>2026-11-17 19:43:03</small>] [**Smith**]->[**Morpheus**] *user approve*:
+ *user approve. Stories approved (rubric STORIES: OUT=S TEST=A FAIL=A SCOPE=S SIZE=A DESIGN=S). Owner also approved ('looks good, sprint till done'). @Morpheus *lead arch sprint
+
+---
+[<small>2026-11-17 19:44:02</small>] [**Morpheus**]->[**Smith**] *lead handoff*:
+ Architecture appended to stories doc (ntag_keys pkg w/ CSV default + k3s extra; validate-only mode; StoreKeyManager; tags-only provisioner; game keeps coins). @Smith *user feedback arch
+
+---
+[<small>2026-11-17 19:44:03</small>] [**Smith**]->[**Mouse**] *user approve*:
+ *user approve. Architecture approved (rubric ARCH: BOUND=A FLOW=A FAIL=A USER=S DECS=A FEAS=A). @Mouse *sm plan sprint
+
+---
+[<small>2026-11-17 19:44:03</small>] [**Mouse**]->[**Morpheus**] *sm handoff*:
+ Sprint planned: 6 phases (0-5) in task.md, 1-3 tasks each. @Morpheus *lead review sprint plan
+
+---
+[<small>2026-11-17 19:44:03</small>] [**Morpheus**]->[**Tank**] *lead handoff*:
+ Sprint plan approved (rubric PLAN: SIZE=A GATE=A VERIF=A ALIGN=A OWNER=A). Phase 0 ready. @Tank *devops sdlc / bootstrap ntag-tools
+
+---
+[<small>2026-11-17 20:02:43</small>] [**Tank**]->[**Trin**] *devops handoff*:
+ Phase 0 done: ntag-tools has validator, provisioner, shared; Makefile/VERSION/CHANGELOG/SDLC; fresh clone passes make test-all.
+
+---
+[<small>2026-11-17 20:02:43</small>] [**Trin**]->[**Morpheus**] *qa handoff*:
+ Phase 1-2 UAT passed: ntag_keys 19 tests, validator 69 (incl 9 validate-only routes x modes). Wheels build; clean venv imports ntag_keys, k3s error names extra; validator image built, read-only boot-checked, exported. @Morpheus review
+
+---
+[<small>2026-11-17 20:02:43</small>] [**Morpheus**]->[**Neo**] *lead handoff*:
+ Phase 1-2 review approved (rubric LOOP_IMPL: TFIRST=S VERIF=S MODUL=S REGRESS=S BUDGET=A). @Neo phase 3
+
+---
+[<small>2026-11-17 20:02:43</small>] [**Neo**]->[**Trin**] *swe handoff*:
+ Phase 3 done: StoreKeyManager (CSV default/k3s), coin+Outcome code removed from provisioner and shared, key values removed from logs, hardware rule now 'persistent store'. 167 provisioner tests. @Trin uat
+
+---
+[<small>2026-11-17 20:02:43</small>] [**Trin**]->[**Morpheus**] *qa handoff*:
+ Phase 3+4 UAT passed: provisioner 167, e2e 9 (independent tap CMAC vs validator: genuine, replay, forged, wrong key, validate-only 404s, layout). Findings: provision() one-shot already broken (SDMUrlTemplate), simulator mis-handles key 3 -> logged in CHANGELOG. @Morpheus review
+
+---
+[<small>2026-11-17 20:02:44</small>] [**Morpheus**]->[**Tank**] *lead handoff*:
+ Phase 3-5 review approved. Game: 186 tests on wheels (no sibling dirs), image built+boot-checked read-only/no network. Moved dirs removed in separate commit. Not pushed. @Tank sdlc-check
+
+---
+[<small>2026-11-17 20:02:44</small>] [**Tank**]->[**Oracle**] *devops handoff*:
+ SDLC check passed: fresh clone of ntag-tools passes test-all, lint, check-versions; this repo SDLC updated. @Oracle groom
+
+---
+[<small>2026-11-17 20:02:44</small>] [**Oracle**]->[**Smith**] *ora handoff*:
+ Groomed: DECISIONS #15, SDLC both repos, README, CHANGELOG, proposal status. @Smith *user test
+
+---
+[<small>2026-11-17 20:02:44</small>] [**Smith**]->[**all**] *user approve*:
+ *user approve. Sprint 1 accepted (rubric UAT: COVER=A STEPS=A FAIL=A DATA=A EVID=A). UX notes: run-tui scripts moved unchanged and still describe the old HTTP key service; HOW_TO_RUN.md was already stale. @all *sprint retro
+
+---
+[<small>2026-11-17 20:02:44</small>] [**Mouse**]->[**Cypher**] *retro*:
+ Retro. Neo: provisioner lint baseline is 300 errors; one-shot provision() broken. Trin: sim key-3 bug; pyscard needs pcsc headers (stub added). Morpheus: part 4 (raw=true egress) still open; Outcome lives in game. Oracle: HOW_TO_RUN.md stale. Mouse: 31 pts delivered in 6 phases; KC-5 smaller than planned (registry existed). Cypher: backlog = part 4, game validator validate-only, counter Secret pruning, Forgejo PyPI publish, push both repos, fix run-tui scripts.
+
+---
+[<small>2026-11-17 20:02:44</small>] [**Cypher**]->[**all**] *pm launch*:
+ *pm launch sprint 1. Sprint complete. ntag-tools 0.3.0 (local, unpushed); GlobalHeadsOrTails 3 commits+docs (unpushed).
