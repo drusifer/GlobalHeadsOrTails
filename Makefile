@@ -120,7 +120,7 @@ clean: ## Clean cache and build artifacts across all packages
 # Credentials: make -C $(PI_PATCH)/cluster forgejo-token
 PI_PATCH        ?= $(HOME)/Projects/pi-patch
 FORGEJO_PUBLISH := $(PI_PATCH)/cluster/scripts/forgejo-publish.sh
-FORGEJO_VERSION ?= $(shell git describe --tags --always --dirty)
+FORGEJO_VERSION ?= $(shell git describe --tags --always)
 
 .PHONY: deploy-forgejo
 deploy-forgejo: export-game-server-image ## Build and publish the game-server image to pi-patch Forgejo (the validator image is published from ntag-tools)
