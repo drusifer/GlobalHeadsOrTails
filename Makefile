@@ -82,7 +82,7 @@ test-game-server: ## Run tests for game_server
 # ntag-tools (tag validator, provisioner, shared, ntag-keys) lives in its own repo; the game uses its wheels.
 NTAG_TOOLS   ?= $(HOME)/Projects/ntag-tools
 NTAG_WHEELS  ?= $(NTAG_TOOLS)/dist
-NTAG_VERSION := 0.3.0
+NTAG_VERSION := 0.3.1
 
 .PHONY: venv vendor-ntag-wheels
 venv: ## Create .venv with the game's dependencies and the ntag-tools wheels (run `make dist` in ntag-tools first)
