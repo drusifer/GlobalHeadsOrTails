@@ -58,3 +58,7 @@ The tag tools moved to their own repo, **ntag-tools** (`git@github.com:drusifer/
   - `k3`: 32-hex character SDM MAC Key (AES-128).
   - `counter_offset`: Optional offset tracking.
 - Stateless Validator Constraint: The validator microservice maintains **zero persistent local state** outside the secret store.
+
+## Release Order
+
+Commit everything (clean tree, including `agents/CHAT*.md`) -> push -> create and push the version tag (`v<VERSION>`) -> `make deploy-forgejo` -> post with `bobp chat`. Published tags never contain `-dirty`.

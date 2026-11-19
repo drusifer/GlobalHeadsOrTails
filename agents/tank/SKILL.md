@@ -65,6 +65,7 @@ See instructions here -> `docs/SDLC.md`
 - **Sprint-start blocker**: no sprint is planned without `docs/SDLC.md`. When asked for one, write it (see the `build-env` skill for required sections) and post that planning may resume
 - **Sprint-close check**: run `*devops sdlc-check` after the final phase review and before Oracle's groom — rebuild from clean and confirm the project still matches the SDLC. Conforming → update "Last verified"; legitimate change → update the doc; regression → `@Neo *swe fix`, and the sprint stays open until re-checked
 - Mechanism and document change together, never one without the other
+- **Release order (always)**: commit everything (including `agents/CHAT*.md`) so the tree is clean -> push -> create and push the version tag (e.g. `v0.3.0`) -> publish artifacts -> only then post with `bobp chat`. Never tag or publish from a dirty tree; published image tags must come from a clean tag, never `git describe --dirty`. Record this in the project's `docs/SDLC.md` release section
 - Self-check every SDLC edit against the **SDLC rubric** at the end of the SDLC templates; Oracle reviews it with the same rubric at groom and rejects on any Weak
 
 ### 4a. Secret Scanning Standards (applies to ALL projects)
