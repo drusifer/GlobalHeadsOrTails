@@ -31,7 +31,7 @@ class ServiceKeyManager:
     Features:
     - Cryptographic validation via remote stateless REST API (/api/v1/validate).
     - Coin identities (coin_name, clan, rarity) managed locally in SQLite app.db.
-    - Atomic key generation and WORM custody via (/api/v1/keys/generate).
+    - Key custody stays in the key service (WORM); no key is ever read back over HTTP.
     - Soft-delete and undelete operations.
     """
 
@@ -89,9 +89,9 @@ class ServiceKeyManager:
     # ── KeyManager Protocol & SDM Validation ──────────────────────────────────
 
     def get_key(self, uid: UID | bytes | str, key_no: int) -> bytes:
-        """Retrieves raw key bytes if available or factory default.
+        """Returns the factory default for keys 0 and 1; real keys are never available here.
 
-        Note: SDM MAC keys (k3) are vaulted securely in tag_validator_service.
+        Note: tag keys live in the key store and never leave it over HTTP (ntag-tools decision 16).
         """
         if key_no < 0 or key_no > 4:
             raise ValueError(f"Key number must be 0-4, got {key_no}")
@@ -103,9 +103,6 @@ class ServiceKeyManager:
             if isinstance(uid, (bytes, bytearray))
             else (uid.uid if isinstance(uid, UID) else str(uid).upper())
         )
-        if hasattr(self, "_cached_keys") and uid_str in self._cached_keys:
-            return bytes.fromhex(self._cached_keys[uid_str])
-
         raise KeyError(
             f"SDM MAC key (Key {key_no}) for UID '{uid_str}' is vaulted in tag_validator_service and cannot be exported."
         )
@@ -124,7 +121,7 @@ class ServiceKeyManager:
                 "uid": UID,
                 "counter": int,
                 "cmac_received": str,
-                "cmac_calculated": str | None,
+                "cmac_calculated": None,  # the key service never returns the expected CMAC (SEC-003)
                 "error": str | None,
             }
         """
@@ -142,7 +139,7 @@ class ServiceKeyManager:
             "uid": uid_obj,
             "counter": counter,
             "cmac_received": cmac,
-            "cmac_calculated": resp.get("cmac_calculated"),
+            "cmac_calculated": None,  # never relayed, even from an older validator that still sends it
             "error": resp.get("error"),
         }
 
@@ -176,7 +173,7 @@ class ServiceKeyManager:
         status_code, body = self._http_request("GET", f"/api/v1/keys/{uid_obj.uid}")
         if status_code == 200:
             key_status = body.get("status", "provisioned")
-            masked_k3 = body.get("k3_masked", "0" * 32)
+            masked_k3 = body.get("k3_fingerprint", "0" * 32)
         elif status_code == 404:
             key_status = "factory"
             masked_k3 = "0" * 32
@@ -196,40 +193,6 @@ class ServiceKeyManager:
             notes=f"Remote key service at {self.service_url}",
         )
 
-    def generate_random_keys(
-        self,
-        uid: UID | str,
-        coin_name: str = "",
-        outcome: Outcome = Outcome.INVALID,
-    ) -> TagKeys:
-        """Atomically generates a fresh AES-128 key in the key service and associates coin_name in app.db."""
-        uid_obj = uid if isinstance(uid, UID) else UID(str(uid))
-
-        status_code, body = self._http_request("POST", "/api/v1/keys/generate", {"uid": uid_obj.uid})
-        if status_code == 201:
-            k3 = body.get("k3", "0" * 32)
-            if not hasattr(self, "_cached_keys"):
-                self._cached_keys = {}
-            self._cached_keys[uid_obj.uid] = k3
-
-            if coin_name or outcome != Outcome.INVALID:
-                outcome_str = outcome.value if outcome != Outcome.INVALID else ""
-                self.game_manager.set_coin(uid_obj.uid, coin_name, outcome=outcome_str)
-
-            return TagKeys(
-                uid=uid_obj,
-                picc_master_key="0" * 32,
-                app_read_key="0" * 32,
-                sdm_mac_key=k3,
-                outcome=outcome,
-                coin_name=coin_name,
-                provisioned_date=datetime.now(UTC).isoformat(),
-                status="provisioned",
-                notes="Atomically generated and stored in key service",
-            )
-        else:
-            raise RuntimeError(f"Failed to generate key in remote service: {body.get('error', 'Unknown error')}")
-
     def save_tag_keys(self, tag_keys: TagKeys) -> bool:
         """Saves key secret to key service and coin metadata to app.db."""
         uid_str = tag_keys.uid.uid
@@ -239,8 +202,9 @@ class ServiceKeyManager:
             outcome_str = tag_keys.outcome.value if tag_keys.outcome != Outcome.INVALID else ""
             self.game_manager.set_coin(uid_str, tag_keys.coin_name, outcome=outcome_str)
 
-        # If sdm_mac_key is provided and not masked/zeros, push to key service
-        if tag_keys.sdm_mac_key and tag_keys.sdm_mac_key != "0" * 32 and "..." not in tag_keys.sdm_mac_key:
+        # Push only a real key (32 hex characters). The key service shows 8-character fingerprints
+        # and zeros stand for "no key", so neither is ever sent back as a key.
+        if tag_keys.sdm_mac_key and tag_keys.sdm_mac_key != "0" * 32 and len(tag_keys.sdm_mac_key) == 32:
             status_code, _ = self._http_request("POST", "/api/v1/keys", {
                 "uid": uid_str,
                 "k3": tag_keys.sdm_mac_key,

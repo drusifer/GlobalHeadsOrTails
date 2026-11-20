@@ -45,7 +45,7 @@ class TestServiceKeyManagerValidation:
             "valid": True,
             "uid": "04AE664A2F7080",
             "counter": 12,
-            "cmac_calculated": "A1B2C3D4E5F67890",
+            "cmac_calculated": "A1B2C3D4E5F67890",  # an older validator still sends it; the game must not relay it
             "error": None,
         }
         km = ServiceKeyManager(service_url="http://test-service", db_path=temp_db)
@@ -54,7 +54,7 @@ class TestServiceKeyManagerValidation:
         assert res["valid"] is True
         assert res["uid"] == UID("04AE664A2F7080")
         assert res["counter"] == 12
-        assert res["cmac_calculated"] == "A1B2C3D4E5F67890"
+        assert res["cmac_calculated"] is None
         assert res["error"] is None
 
     @patch("game_server.service_key_manager.validate_tag_remotely")
@@ -83,7 +83,7 @@ class TestServiceKeyManagerKeyCustodyAndDomain:
             mock_http.return_value = (200, {
                 "uid": "04AE664A2F7080",
                 "status": "active",
-                "k3_masked": "1234567890ABCDEF...",
+                "k3_fingerprint": "1234ABCD",
             })
 
             tag_keys = km.get_tag_keys("04AE664A2F7080")
@@ -92,7 +92,7 @@ class TestServiceKeyManagerKeyCustodyAndDomain:
             assert tag_keys.coin_name == "CYBER-DRAGON"
             assert tag_keys.outcome == Outcome.HEADS
             assert tag_keys.status == "active"
-            assert tag_keys.sdm_mac_key == "1234567890ABCDEF..."
+            assert tag_keys.sdm_mac_key == "1234ABCD"
 
     def test_get_tag_keys_factory_404(self, temp_db):
         km = ServiceKeyManager(service_url="http://test-service", db_path=temp_db)
@@ -105,37 +105,26 @@ class TestServiceKeyManagerKeyCustodyAndDomain:
             assert tag_keys.coin_name == ""
             assert tag_keys.outcome == Outcome.INVALID
 
-    def test_generate_random_keys(self, temp_db):
+    def test_no_key_is_ever_generated_or_read_back_over_http(self, temp_db):
         km = ServiceKeyManager(service_url="http://test-service", db_path=temp_db)
-
+        assert not hasattr(km, "generate_random_keys")
         with patch.object(km, "_http_request") as mock_http:
-            mock_http.return_value = (201, {
-                "status": "created",
-                "uid": "04AE664A2F7080",
-                "k3": "0123456789ABCDEF0123456789ABCDEF",
-            })
-
-            tag_keys = km.generate_random_keys(
-                "04AE664A2F7080",
-                coin_name="TITANIUM-TIGER",
-                outcome=Outcome.HEADS,
-            )
-
-            assert tag_keys.uid.uid == "04AE664A2F7080"
-            assert tag_keys.coin_name == "TITANIUM-TIGER"
-            assert tag_keys.outcome == Outcome.HEADS
-            assert tag_keys.sdm_mac_key == "0123456789ABCDEF0123456789ABCDEF"
-            assert tag_keys.status == "provisioned"
-
-            # Check local app.db recorded the coin identity
-            coin_rec = km.game_manager.get_coin("04AE664A2F7080")
-            assert coin_rec is not None
-            assert coin_rec["coin_name"] == "TITANIUM-TIGER"
-            assert coin_rec["outcome"] == "heads"
-
-            # Check cached raw key for burning
-            assert km.get_key("04AE664A2F7080", 2) == bytes.fromhex("0123456789ABCDEF0123456789ABCDEF")
             assert km.get_key("04AE664A2F7080", 0) == b"\x00" * 16
+            with pytest.raises(KeyError):
+                km.get_key("04AE664A2F7080", 2)
+            mock_http.assert_not_called()
+
+    def test_save_tag_keys_never_sends_a_fingerprint_back_as_a_key(self, temp_db):
+        km = ServiceKeyManager(service_url="http://test-service", db_path=temp_db)
+        tk = TagKeys(
+            uid=UID("04AE664A2F7080"),
+            picc_master_key="0" * 32,
+            app_read_key="0" * 32,
+            sdm_mac_key="1A2B3C4D",  # what get_tag_keys returns: an 8-character fingerprint
+        )
+        with patch.object(km, "_http_request") as mock_http:
+            assert km.save_tag_keys(tk) is True
+            mock_http.assert_not_called()
 
     def test_save_tag_keys(self, temp_db):
         km = ServiceKeyManager(service_url="http://test-service", db_path=temp_db)
@@ -203,9 +192,9 @@ class TestServiceKeyManagerKeyCustodyAndDomain:
             if path == "/api/v1/keys":
                 return 200, {"uids": ["04000000000001", "04000000000002"]}
             if "/api/v1/keys/04000000000001" in path:
-                return 200, {"status": "active", "k3_masked": "1111..."}
+                return 200, {"status": "active", "k3_fingerprint": "11111111"}
             if "/api/v1/keys/04000000000002" in path:
-                return 200, {"status": "active", "k3_masked": "2222..."}
+                return 200, {"status": "active", "k3_fingerprint": "22222222"}
             return 404, {}
 
         with patch.object(km, "_http_request", side_effect=fake_http):

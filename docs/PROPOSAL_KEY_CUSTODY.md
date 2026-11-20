@@ -1,6 +1,6 @@
 # Proposal: keys never leave the validator's store (and provisioner + validator as one product)
 
-Status: **parts 1-3 implemented in Sprint 1 (2026-11-17); part 4 (remove `?raw=true`) is backlog.** Written 2026-11-17 from a session in the `tto` repo (tap-to-open), to be picked up in a separate session here. If accepted, it becomes ADR 15 and amends ADR 13.
+Status: **all four parts implemented: parts 1-3 in Sprint 1 (2026-11-17), part 4 (remove `?raw=true` and `generate`) in Sprint 2 (2026-11-20, ntag-tools 0.4.0, decision 16).** Written 2026-11-17 from a session in the `tto` repo (tap-to-open), to be picked up in a separate session here. If accepted, it becomes ADR 15 and amends ADR 13.
 
 ## Why this came up
 
